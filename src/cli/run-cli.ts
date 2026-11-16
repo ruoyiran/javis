@@ -24,6 +24,12 @@ function object(value: unknown): Record<string, unknown> {
 
 function display(result: unknown): string {
   const data = object(result)
+  const observationError = object(data.observationError)
+  if (typeof observationError.code === 'string') {
+    const action = object(data.action)
+    const delivery = typeof action.delivery === 'string' ? ` (${action.delivery})` : ''
+    return `Action delivered${delivery}; observation failed (${observationError.code}): ${String(observationError.message ?? '')}. Do not retry the action; inspect current state first.`
+  }
   const snapshot = object(data.snapshot)
   if (typeof snapshot.treeText === 'string') {
     const session = typeof data.sessionId === 'string' ? `Session: ${data.sessionId}\n` : ''

@@ -35,3 +35,25 @@ it('returns a structured error and a nonzero status for failed actions', async (
     error: { code: 'element_not_found', message: 'refresh snapshot' }
   })
 })
+
+it('distinguishes a delivered action from a failed follow-up observation', async () => {
+  const lines: string[] = []
+  const status = await runCli(
+    ['click', '--app', 'Finder', '--session', 'session-1', '--element-index', '3'],
+    {
+      call: async () => ({
+        sessionId: 'session-1',
+        action: { path: 'accessibility', delivery: 'background', verification: { state: 'unverified', reason: 'window_changed' } },
+        observationError: { code: 'window_not_found', message: 'window closed' },
+        snapshot: null,
+        screenshot: null
+      }),
+      stdout: (line) => lines.push(line),
+      stderr: () => {}
+    }
+  )
+  expect(status).toBe(0)
+  expect(lines[0]).toMatch(/action delivered/i)
+  expect(lines[0]).toMatch(/observation failed.*window closed/i)
+  expect(lines[0]).toMatch(/do not retry/i)
+})

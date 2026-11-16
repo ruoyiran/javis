@@ -53,6 +53,8 @@ An observation returns a session ID. Every action requires that ID so multiple a
 
 The default macOS input path targets the app in the background. `--restore-window` explicitly brings it forward when an app cannot accept background input. Inspect `action.verification` and the returned snapshot before assuming an action succeeded. The Javis Skill contains the full agent workflow and safety guidance.
 
+When an action is delivered but the app closes or cannot be observed afterwards, Javis returns `result.observationError` with the action metadata and no snapshot. Reobserve before deciding what happened; do not repeat the action from that result.
+
 ## Project boundaries
 
 The Swift helper owns macOS accessibility, screenshot capture, input delivery, and the system permission UI. A private Unix socket connects it to the on-demand Javis daemon, which retains short-lived snapshots for the CLI and MCP connections. No network port is opened. `javis daemon stop` shuts down the daemon and helper.

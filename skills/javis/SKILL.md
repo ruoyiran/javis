@@ -29,6 +29,7 @@ Actions return another snapshot. If `snapshot.treeDiff` is present, read `~` as 
 - For a popup or web `<select>`, use `set-value` on its element. A background click on these controls is refused because it can open an off-screen menu or wedge input.
 - Background input is the default. `--restore-window` takes focus and can move the real pointer; tell the user before using it while they work in another app.
 - `action.verification.state=unverified` means the effect is unknown. Inspect the returned snapshot or the destination before reporting success or retrying. Never blindly repeat a click, key, submit, or purchase after a timeout.
+- If `result.observationError` is present, the action was delivered but the follow-up observation failed. There is no fresh snapshot. Inspect the app or destination again; do not repeat the action.
 - If `element_not_found` or `window_stale` occurs, observe again. If `app_blocked` occurs, stop using Javis on that app.
 
 Use `--text-stdin` and `--value-stdin` for sensitive text so it is absent from shell history. Read or change only what the user requested. Sending messages, submitting forms, purchases, deletions, and account changes require the user's authorization for that action.

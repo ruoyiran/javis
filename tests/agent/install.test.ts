@@ -1,4 +1,4 @@
-import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdtempSync, mkdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, expect, it } from 'vitest'
@@ -53,4 +53,37 @@ it('rejects a same-path MCP registration that would launch help instead of the s
       stderr: ''
     })
   })).rejects.toThrow(/existing.*MCP/i)
+})
+
+it('upgrades its own previously installed skill and keeps user edits protected', async () => {
+  const { home, source } = fixture()
+  const commandPath = '/usr/local/bin/javis'
+  const run = async () => ({
+    code: 0,
+    stdout: `javis\n  command: ${commandPath}\n  args: mcp\n`,
+    stderr: ''
+  })
+  await installAgent('codex', { home, skillSource: source, commandPath, run })
+  writeFileSync(source, 'Javis skill v2')
+  await installAgent('codex', { home, skillSource: source, commandPath, run })
+  const target = join(home, '.agents', 'skills', 'javis', 'SKILL.md')
+  expect(readFileSync(target, 'utf8')).toBe('Javis skill v2')
+  writeFileSync(target, 'my modified skill')
+  await expect(installAgent('codex', { home, skillSource: source, commandPath, run }))
+    .rejects.toThrow(/existing.*skill/i)
+})
+
+it('refuses a managed manifest symlink without modifying its target', async () => {
+  const { home, source } = fixture()
+  const directory = join(home, '.agents', 'skills', 'javis')
+  mkdirSync(directory, { recursive: true })
+  writeFileSync(join(directory, 'SKILL.md'), 'Javis skill')
+  const outside = join(home, 'unrelated.txt')
+  writeFileSync(outside, 'keep this')
+  symlinkSync(outside, join(directory, '.javis-managed.json'))
+  await expect(installAgent('codex', {
+    home, skillSource: source, commandPath: '/usr/local/bin/javis',
+    run: async () => ({ code: 0, stdout: 'javis\n  command: /usr/local/bin/javis\n  args: mcp\n', stderr: '' })
+  })).rejects.toThrow(/manifest.*symlink/i)
+  expect(readFileSync(outside, 'utf8')).toBe('keep this')
 })

@@ -281,11 +281,27 @@ final class Provider {
             var fallbackParams = params
             fallbackParams.removeValue(forKey: "windowId")
             fallbackParams.removeValue(forKey: "windowIndex")
-            if action["verification"] == nil {
-                action["verification"] = ["state": "unverified", "reason": "window_changed"]
+            do {
+                let snapshot = try observe(params: fallbackParams)
+                if action["verification"] == nil {
+                    action["verification"] = ["state": "unverified", "reason": "window_changed"]
+                }
+                return renderActionResult(action: action, snapshot: snapshot)
+            } catch {
+                return failedActionObservation(action: action, error: error)
             }
-            return try renderActionResult(action: action, snapshot: observe(params: fallbackParams))
+        } catch {
+            return failedActionObservation(action: action, error: error)
         }
+    }
+
+    private func failedActionObservation(action: [String: Any], error: Error) -> [String: Any] {
+        let providerError = error as? ProviderError
+        return actionObservationFailure(
+            action: action,
+            code: providerError?.code ?? "accessibility_error",
+            message: providerError?.message ?? error.localizedDescription
+        )
     }
 
     /// Re-reads the target for about a second, since apps often apply an action on a later run-loop turn.

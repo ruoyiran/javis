@@ -132,9 +132,17 @@ export type ComputerSnapshotResult = {
   screenshotStatus: ComputerScreenshotStatus
 }
 
-export type ComputerActionResult = ComputerSnapshotResult & {
-  action?: ComputerActionMetadata
+export type ComputerActionObservationFailure = {
+  action: ComputerActionMetadata
+  observationError: { code: ComputerErrorCode; message: string }
+  snapshot: null
+  screenshot: null
+  screenshotStatus?: ComputerScreenshotStatus
 }
+
+export type ComputerActionResult =
+  | (ComputerSnapshotResult & { action?: ComputerActionMetadata; observationError?: never })
+  | ComputerActionObservationFailure
 
 export type ComputerProviderCapabilities = {
   platform: NodeJS.Platform

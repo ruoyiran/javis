@@ -30,8 +30,11 @@ export class SessionRuntime {
     if (sessionId && result && typeof result === 'object') {
       this.sessions.set(sessionId as string, Date.now())
       for (const [id,time] of this.sessions) if (Date.now()-time > 120_000) this.sessions.delete(id)
-      let normalized = result as ComputerSnapshotResult
-      if (action) normalized = rejectContradictedComputerAction(normalizeComputerActionResult(result as ComputerActionResult))
+      let normalized = result as ComputerSnapshotResult | ComputerActionResult
+      if (action) {
+        const actionResult=normalizeComputerActionResult(result as ComputerActionResult)
+        normalized=actionResult.observationError ? actionResult : rejectContradictedComputerAction(actionResult)
+      }
       if (normalized.snapshot) normalized = this.baselines.apply(nativeParams,normalized)
       return {...normalized, sessionId}
     }
