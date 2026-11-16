@@ -1,0 +1,8 @@
+node_modules/
+dist/
+build/
+native/javis-macos/.build/
+native/javis-macos/.swiftpm/
+.superpowers/
+*.log
+.DS_Store

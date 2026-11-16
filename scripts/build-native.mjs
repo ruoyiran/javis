@@ -1,0 +1,10 @@
+import { spawnSync } from 'node:child_process'
+
+if (process.platform !== 'darwin' || process.arch !== 'arm64') {
+  throw new Error('Javis local build requires Apple Silicon macOS')
+}
+const result = spawnSync('swift', [
+  'build', '-c', 'release', '--package-path', 'native/javis-macos'
+], { stdio: 'inherit' })
+if (result.error) throw result.error
+if (result.status !== 0) process.exit(result.status ?? 1)
