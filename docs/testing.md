@@ -52,11 +52,14 @@ Use an existing window only with task authorization. On macOS after local instal
 ```bash
 javis permissions status --json
 javis capabilities --json
-javis get-app-state --app com.apple.finder --json
+javis list-windows --app com.apple.Terminal --json
+javis get-app-state --app com.apple.Terminal --json
 javis daemon stop
 ```
 
 Check that the snapshot has a session/context and nonempty tree, and that a requested image is captured or has a truthful failure status. Check private screenshot file permissions when a file is produced. The MCP server should expose 14 tools, return JSON text for `javis_get_app_state`, and add an image block when capture succeeds. Do not print private trees or image bytes in test logs. Verify daemon shutdown leaves no helper child.
+
+Choose an app that actually has a visible top-level window. Finder's desktop background does not count; when `list-windows` returns zero, open a Finder window manually or use another app for the read-only check.
 
 On Linux, use a graphical login with Python 3, PyGObject/AT-SPI, and an existing permitted app window. Check `javis capabilities --json` first; screenshot, hotkey, paste, and window-ID support vary with X11/Wayland and installed tools. On Windows, use the user's interactive desktop and PowerShell UI Automation; verify capabilities and a read-only window snapshot there. A headless build is not a GUI smoke check.
 

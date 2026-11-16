@@ -695,7 +695,7 @@ final class Provider {
         let focused = try focusedWindow(
             appElement: appElement,
             app: app,
-            visibleWindowCount: windowCandidates.count,
+            visibleWindowCount: windowCandidates.filter { $0.layer == 0 && $0.isOnScreen }.count,
             allowRecovery: restoreWindow
         )
         let focusedTitle = stringAttribute(focused, kAXTitleAttribute as String) ?? app.name

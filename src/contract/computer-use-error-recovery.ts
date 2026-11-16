@@ -15,6 +15,10 @@ export function computerUseNextSteps(code: string): string[] {
         'Run javis get-app-state --app <app> --json in the same host and context, then select an element index from the fresh tree.'
       ]
     case 'window_not_found':
+      return [
+        'Run javis list-windows --app <app> --json on the selected host, then observe the intended window again before acting.',
+        'If no windows are listed, open a visible window in the target app before observing it.'
+      ]
     case 'window_stale':
       return [
         'Run javis list-windows --app <app> --json on the selected host, then observe the intended window again before acting.'

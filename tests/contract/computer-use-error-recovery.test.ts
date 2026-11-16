@@ -20,6 +20,10 @@ describe('computerUseNextSteps', () => {
     expect(computerUseNextSteps('window_stale')).toEqual([
       'Run javis list-windows --app <app> --json on the selected host, then observe the intended window again before acting.'
     ])
+    expect(computerUseNextSteps('window_not_found')).toEqual([
+      'Run javis list-windows --app <app> --json on the selected host, then observe the intended window again before acting.',
+      'If no windows are listed, open a visible window in the target app before observing it.'
+    ])
   })
 
   it('offers platform-specific permission and dependency checks', () => {

@@ -41,8 +41,8 @@ export async function startMobileGateway(options: MobileGatewayOptions): Promise
   const handler = (request: IncomingMessage, response: ServerResponse) => {
     void handle(request, response).catch(error => {
       if (response.headersSent || response.destroyed) { response.end(); return }
-      const status = error instanceof HttpError ? error.status : 502
-      sendJson(response, status, { error: { message: error instanceof HttpError ? error.message : 'Javis request failed; refresh before acting' } })
+      const safe = publicGatewayError(error)
+      sendJson(response, safe.status, { error: { code: safe.code, message: safe.message } })
     })
   }
   const server = tls
@@ -153,6 +153,17 @@ export async function startMobileGateway(options: MobileGatewayOptions): Promise
       })
     }
   }
+}
+
+function publicGatewayError(error: unknown): { status: number; code: string; message: string } {
+  if (error instanceof HttpError) return { status: error.status, code: 'invalid_request', message: error.message }
+  const code = error && typeof error === 'object' && 'code' in error ? error.code : undefined
+  if (code === 'window_not_found') return { status: 404, code, message: 'No ordinary visible window is available; open a window and refresh.' }
+  if (code === 'app_not_found') return { status: 404, code, message: 'The selected desktop app is unavailable; refresh the app list.' }
+  if (code === 'permission_denied') return { status: 403, code, message: 'Javis lacks desktop access on this host; check its permissions.' }
+  if (code === 'stale_snapshot' || code === 'element_not_found') return { status: 409, code, message: 'The observation is stale; refresh before acting.' }
+  if (code === 'action_timeout') return { status: 504, code, message: 'Action delivery may be uncertain; refresh before acting again.' }
+  return { status: 502, code: 'transport_error', message: 'Javis request failed; refresh before acting' }
 }
 
 async function pem(value: string): Promise<string> {

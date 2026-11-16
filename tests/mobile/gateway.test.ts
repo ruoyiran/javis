@@ -255,3 +255,17 @@ test('rejects action method and target injection before forwarding', async () =>
 test('requires TLS before binding to a LAN address', async () => {
   await expect(startMobileGateway({ bind: '192.0.2.1', port: 0, call: async () => ({}) })).rejects.toThrow(/certificate|TLS/i)
 })
+
+test('reports a missing desktop window without exposing provider details', async () => {
+  const server = await gateway(async method => {
+    if (method === 'getAppState') throw Object.assign(new Error('private window title'), { code: 'window_not_found' })
+    return { apps: [] }
+  })
+  const device = await pair(server)
+  const response = await json(server.url, '/api/observe', { app: 'com.apple.Terminal' }, device.headers)
+  expect(response.status).toBe(404)
+  const result = await response.json()
+  expect(result.error.code).toBe('window_not_found')
+  expect(result.error.message).toMatch(/visible window/i)
+  expect(JSON.stringify(result)).not.toContain('private window title')
+})
