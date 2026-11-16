@@ -39,10 +39,23 @@ describe('parseCall', () => {
     })
   })
 
-  it('rejects an action without its observation session', () => {
-    expect(() => parseCall(['click', '--app', 'Finder', '--element-index', '1'])).toThrow(
-      /session/
-    )
+  it('accepts a worktree context in place of an explicit session', () => {
+    expect(parseCall(['click', '--app', 'Finder', '--worktree', 'feature-a', '--element-index', '1'])).toMatchObject({
+      method: 'click',
+      params: { app: 'Finder', worktree: 'feature-a', elementIndex: 1, treeDiff: true }
+    })
+  })
+
+  it('keeps the host selector outside provider parameters', () => {
+    expect(parseCall(['get-app-state', '--host', 'devbox', '--app', 'Finder'])).toMatchObject({
+      method: 'getAppState',
+      host: 'devbox',
+      params: { app: 'Finder' }
+    })
+  })
+
+  it('rejects simultaneous session and worktree contexts', () => {
+    expect(() => parseCall(['click', '--app', 'Finder', '--session', 's1', '--worktree', 'feature-a', '--element-index', '1'])).toThrow(/either.*session.*worktree/i)
   })
 
   it('rejects conflicting element and coordinate click targets', () => {

@@ -32,7 +32,11 @@ it('returns a structured error and a nonzero status for failed actions', async (
   expect(status).toBe(1)
   expect(JSON.parse(lines[0])).toEqual({
     ok: false,
-    error: { code: 'element_not_found', message: 'refresh snapshot' }
+    error: {
+      code: 'element_not_found',
+      message: 'refresh snapshot',
+      nextSteps: ['Run javis get-app-state --app <app> --json in the same host and context, then select an element index from the fresh tree.']
+    }
   })
 })
 
@@ -56,4 +60,24 @@ it('distinguishes a delivered action from a failed follow-up observation', async
   expect(lines[0]).toMatch(/action delivered/i)
   expect(lines[0]).toMatch(/observation failed.*window closed/i)
   expect(lines[0]).toMatch(/do not retry/i)
+})
+
+it('routes a worktree action to the selected host while keeping host and context out of native parameters', async () => {
+  const calls: { method: string; params: Record<string, unknown>; target: unknown }[] = []
+  const status = await runCli(
+    ['click', '--host', 'devbox', '--worktree', 'feature-a', '--app', 'Finder', '--element-index', '3', '--json'],
+    {
+      call: async (method, params, target) => {
+        calls.push({ method, params, target })
+        return { snapshot: { treeText: '0 window Finder' }, screenshot: null }
+      },
+      stdout: () => {}, stderr: () => {}
+    }
+  )
+  expect(status).toBe(0)
+  expect(calls).toEqual([{
+    method: 'click',
+    params: { app: 'Finder', elementIndex: 3, treeDiff: true },
+    target: { host: 'devbox', context: 'worktree:feature-a' }
+  }])
 })

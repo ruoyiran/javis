@@ -1,6 +1,6 @@
 # Javis 使用示例
 
-本文从只读观察开始，逐步介绍 CLI 操作、脚本化工作流和 MCP 工具。命令适用于已安装的 Javis 0.1；构建、安装和权限设置见 [README](../README.md)。示例中的 `jq` 用于读取 JSON。
+本文从只读观察开始，逐步介绍 CLI 操作、脚本化工作流、MCP、独立 SSH 主机和手机浏览器。第 1–9 节以已安装的 macOS Javis 为例；Linux/Windows 和手机入口见后文。构建、安装和平台依赖见 [README](../README.md)。示例中的 `jq` 用于读取 JSON。
 
 在执行修改界面的示例前，先打开一个可以随时丢弃的目标窗口，例如 TextEdit 的临时文稿。`--element-index` 的编号仅作语法示意，必须从当前窗口的 `snapshot.treeText` 中选择。Javis 不负责启动目标应用；`--app` 可以使用应用名、bundle ID 或 `pid:N`。
 
@@ -54,11 +54,11 @@ jq '.result | {sessionId, screenshotStatus, screenshot}' <<<"$state"
 jq -r '.result.snapshot.treeText' <<<"$state"
 ```
 
-`result.screenshot.path` 是临时文件路径，`result.screenshot.scale` 用于换算截图像素和窗口坐标。截图内容不嵌入 CLI 的 JSON 文本。
+`result.screenshot.path` 通常是当前主机上的私有临时文件路径，`result.screenshot.scale` 用于换算截图像素和窗口坐标。若保存文件失败，CLI 会保留内联截图数据和警告；脚本需检查 `path` 是否存在。通过 SSH 观察时，路径也只属于发起命令的本机，不是远端路径。
 
 ## 3. 最小操作闭环：观察、点击、检查
 
-每次 CLI 动作都需要 `get-app-state` 返回的 `sessionId`。先从控件树选择真实编号，再执行动作；不要直接照抄示例编号。
+每次 CLI 动作都需要同一主机、同一上下文中的新观察。可传入 `get-app-state` 返回的 `sessionId`，也可在观察和动作中使用同一个 `--worktree`；两者不可同时使用。都不写时，CLI 使用当前目录的规范路径作为上下文，普通文件夹也适用。先从控件树选择真实编号，再执行动作；不要直接照抄示例编号。
 
 ```bash
 app=com.apple.TextEdit
@@ -73,7 +73,7 @@ result=$(javis click --app "$app" --session "$session" \
 jq '.' <<<"$result"
 ```
 
-先看 `ok` 和 `error`，再看成功结果。动作结果通常包含新快照和简短的控件树差异：`~` 表示控件变化，`-` 表示控件移除。需要完整树时，在动作上加 `--full-tree`。如果同一会话要重新观察，可用 `javis get-app-state --app "$app" --session "$session" --json` 刷新它。会话和元素索引最多保留约两分钟；窗口或界面发生变化时，应重新观察后再选择编号。
+先看 `ok` 和 `error`，再看成功结果。失败时 `error.nextSteps` 给出可执行的恢复建议。动作结果通常包含新快照和简短的控件树差异：`~` 表示控件变化，`-` 表示控件移除。需要完整树时，在动作上加 `--full-tree`。如果同一会话要重新观察，可用 `javis get-app-state --app "$app" --session "$session" --json` 刷新它。会话和元素索引最多保留约两分钟；窗口或界面发生变化时，应重新观察后再选择编号。
 
 后续动作示例中的 `$app` 和 `$session` 沿用本节变量。若从后面的某一节开始练习，应先重新运行 `get-app-state` 并设置这两个变量。
 
@@ -225,7 +225,7 @@ javis agent install all
 # 或只注册其中一个：javis agent install codex
 ```
 
-一个 MCP 客户端在**同一连接**内可以按以下顺序调用工具。参数采用 camelCase；MCP 会管理自己的 session，因此无需传 `sessionId`。
+一个 MCP 客户端在**同一连接**内可以按以下顺序调用工具。参数采用 camelCase；MCP 按主机和上下文管理自己的 session，因此无需传 `sessionId`。
 
 ```text
 javis_list_windows  {"app":"com.apple.finder"}
@@ -233,7 +233,7 @@ javis_get_app_state {"app":"com.apple.finder","windowIndex":0,"query":"button","
 javis_click         {"app":"com.apple.finder","windowIndex":0,"elementIndex":12}
 ```
 
-调用 `javis_click` 前，要从实际的 `javis_get_app_state` 结果中取得元素编号。MCP 的截图会作为 `image/png` 内容块返回，而不是文本中的 PNG base64。`javis_permissions_status` 只读权限状态；打开系统权限界面请使用 CLI 的 `javis permissions open`。完整工具列表和参数见 [CLI 与 MCP 协议](protocol.md)。
+调用 `javis_click` 前，要从实际的 `javis_get_app_state` 结果中取得元素编号。需要远端主机时，在两次工具调用中都传同一个 `host` SSH 别名；`worktree` 可单独指定会话上下文，不能替代 `host`。MCP 的截图会作为 `image/png` 内容块返回，而不是文本中的 PNG base64。`javis_permissions_status` 只读 macOS 权限状态，可带 `host` SSH 别名查询远端；打开系统权限界面请在目标主机运行 CLI 的 `javis permissions open`。完整工具列表和参数见 [CLI 与 MCP 协议](protocol.md)。
 
 在 Agent 对话中，也可以直接描述目标和约束，例如“用 Javis 读取 Finder 当前窗口，列出工具栏按钮，只观察，不点击”，或“在 TextEdit 临时文稿中输入一段文字；先确认目标控件，操作后检查新快照”。
 
@@ -251,3 +251,40 @@ javis_click         {"app":"com.apple.finder","windowIndex":0,"elementIndex":12}
 | `app_blocked` | 停止对该应用使用 Javis。 |
 
 结束后如需关闭按需启动的守护进程及 helper，可运行 `javis daemon stop`。
+
+## 10. Linux 与 Windows 的只读入口
+
+Linux 和 Windows 先运行 `npm ci && npm run build && npm run install:local`。安装器会把文件复制到用户目录，写出 `javis` 或 `javis.cmd` 启动器，并固定安装时 Node 可执行文件的绝对路径。保持该 Node 安装可用，把安装器打印出的启动器目录加入 `PATH`。Linux 需要当前图形登录中的 Python 3、PyGObject 和 AT-SPI；X11/Wayland 与 `xdotool`、`wl-copy`/`xclip`/`xsel` 的可用性会改变能力。Windows 需要用户交互桌面中的 Windows PowerShell UI Automation。先读取能力，再按实际平台选择应用：
+
+```bash
+javis capabilities --json
+javis list-apps --json
+javis list-windows --app '<实际应用名>' --json
+```
+
+Linux 的窗口 ID 定位当前不受支持，改用列表里的 `--window-index`。截图或后台输入可能因平台和会话不同而不可用；以 `capabilities` 返回值为准。macOS 上运行 TypeScript/模拟测试不能证明 Windows 图形界面操作通过；Windows 原生验证须在 Windows 上进行。
+
+## 11. SSH 主机与文件夹上下文
+
+在配置好的 OpenSSH 别名 `office-desktop` 对应主机上安装 Javis，确保非交互式 SSH 会话能找到 `javis`。以下只读命令不会把本机桌面当作目标：
+
+```bash
+javis capabilities --host office-desktop --json
+javis get-app-state --host office-desktop --app '<远端应用名>' \
+  --worktree project-alpha --no-screenshot --json
+```
+
+若随后执行动作，必须沿用 `--host office-desktop --worktree project-alpha` 并使用刚获取的元素编号。`--worktree` 是所选主机上的会话标识，可以是任意非空 ID；它不要求 Git 工作树，也不会改变 SSH 主机。省略 `--worktree` 和 `--session` 时，CLI 以发起命令时的当前目录作为上下文。SSH 断开或超时后，动作是否送达可能无法判断；重新观察目标，不要自动重放。
+
+## 12. 本机设置与手机浏览器
+
+在 macOS 上，可通过 `javis settings open` 打开本机回环地址的设置页，查看两项权限、打开各自的授权界面、重置授权以及查看或安装 Codex/Claude Skill。`javis permissions reset` 会针对核验过的 Javis app 身份重置 Accessibility 和 Screen Recording 授权，应由用户主动选择。普通观察不会弹出系统设置。
+
+在需要被控制的桌面主机上启动手机入口：
+
+```bash
+javis mobile serve --bind <局域网 IP> --port 8787 \
+  --cert <certificate.pem> --key <private-key.pem>
+```
+
+完整的 macOS 自签名证书命令见[运行手册](operations.md#remote-host-and-phone-gateway)。手机浏览器须信任或接受该证书，打开打印出的 HTTPS 地址，并在五分钟内输入一次性配对码。页面列出主机应用和窗口、显示截图及控件树，并提供九种桌面动作。点击截图时会按显示尺寸和 `screenshot.scale` 换算窗口坐标。若动作已送达但观察失败，或网络中断导致结果不确定，先刷新观察；页面不会自动重发动作。该页面控制桌面主机，不控制手机自己的应用。Orca Mobile 没有 CUA 路由，这个手机界面是 Javis 新增的能力。

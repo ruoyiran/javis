@@ -4,6 +4,7 @@ export type ParsedCall = {
   method: JavisMethod
   params: Record<string, unknown>
   json: boolean
+  host?: string
   query?: string
   maxElements?: number
 }
@@ -30,7 +31,7 @@ const methods: Record<string, JavisMethod> = {
 
 const booleanFlags = new Set(['json', 'no-screenshot', 'restore-window', 'full-tree', 'text-stdin', 'value-stdin'])
 const valueFlags = new Set([
-  'app', 'session', 'window-id', 'window-index', 'element-index', 'from-element-index',
+  'app', 'host', 'worktree', 'session', 'window-id', 'window-index', 'element-index', 'from-element-index',
   'to-element-index', 'x', 'y', 'from-x', 'from-y', 'to-x', 'to-y', 'click-count',
   'mouse-button', 'modifiers', 'action', 'direction', 'pages', 'text', 'key',
   'value', 'query', 'max-elements'
@@ -94,22 +95,24 @@ export function parseCall(argv: string[], stdinText?: string): ParsedCall {
   const flags = flagsOf(argv.slice(1))
   const params: Record<string, unknown> = {}
   const json = flags.has('json')
+  const host = value(flags, 'host')
   const action = !['capabilities', 'listApps', 'listWindows', 'getAppState'].includes(method)
   if (method !== 'capabilities' && method !== 'listApps') params.app = required(flags, 'app')
   if (method === 'listWindows' || method === 'capabilities' || method === 'listApps') {
-    const allowed = new Set(['json', ...(method === 'listWindows' ? ['app'] : [])])
+    const allowed = new Set(['json', 'host', ...(method === 'listWindows' ? ['app'] : [])])
     for (const flag of flags.keys()) if (!allowed.has(flag)) fail(`--${flag} is not supported by ${name}`)
-    return { method, params, json }
+    return { method, params, json, ...(host ? { host } : {}) }
   }
 
   put(params, 'sessionId', value(flags, 'session'))
+  put(params, 'worktree', value(flags, 'worktree'))
+  if (params.sessionId !== undefined && params.worktree !== undefined) fail('Choose either --session or --worktree')
   put(params, 'windowId', number(flags, 'window-id', true))
   put(params, 'windowIndex', number(flags, 'window-index', true))
   if (params.windowId !== undefined && params.windowIndex !== undefined) fail('Choose either --window-id or --window-index')
   if (flags.has('no-screenshot')) params.noScreenshot = true
   if (flags.has('restore-window')) params.restoreWindow = true
   if (action) {
-    required(flags, 'session')
     params.treeDiff = !flags.has('full-tree')
   } else if (flags.has('full-tree')) fail('--full-tree is only valid for actions')
 
@@ -152,7 +155,7 @@ export function parseCall(argv: string[], stdinText?: string): ParsedCall {
   if (maxElements !== undefined && maxElements < 1) fail('--max-elements must be a positive integer')
   if (method !== 'getAppState' && (query !== undefined || maxElements !== undefined)) fail('--query and --max-elements are only valid for get-app-state')
   const allowed = new Set([
-    'app', 'session', 'window-id', 'window-index', 'no-screenshot', 'restore-window', 'json',
+    'app', 'host', 'worktree', 'session', 'window-id', 'window-index', 'no-screenshot', 'restore-window', 'json',
     ...(action ? ['full-tree'] : []),
     ...(method === 'getAppState' ? ['query', 'max-elements'] : []),
     ...(method === 'click' ? ['element-index', 'x', 'y', 'click-count', 'mouse-button', 'modifiers'] : []),
@@ -166,6 +169,7 @@ export function parseCall(argv: string[], stdinText?: string): ParsedCall {
   for (const flag of flags.keys()) if (!allowed.has(flag)) fail(`--${flag} is not supported by ${name}`)
   return {
     method, params, json,
+    ...(host ? { host } : {}),
     ...(query !== undefined ? { query } : {}),
     ...(maxElements !== undefined ? { maxElements } : {})
   }

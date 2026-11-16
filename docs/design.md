@@ -2,30 +2,34 @@
 
 ## Intent and scope
 
-Javis makes macOS desktop control available to local agents without running Orca. The product has three entry points: a human-readable and JSON CLI, an MCP stdio server, and an Agent Skill. The Swift helper retains the macOS computer-use behavior copied from the MIT-licensed Orca source at commit `729f757b592244176420a86114c1ea23911eeeba`.
+Javis makes desktop computer use available to agents without an Orca checkout or process. It has a CLI, MCP stdio server, Agent Skill, local settings page, and separately paired mobile browser page. The mobile page controls a desktop Javis installation; it does not control phone apps. Orca Mobile has no computer-use route, so this phone page is a Javis addition beyond Orca parity.
 
-Version 0.1 targets Apple Silicon and macOS 14 or newer. It supports local GUI apps, multiple windows, accessibility trees, window screenshots, semantic actions, background pointer and keyboard delivery, and explicit foreground fallback. Linux, Windows, remote desktop access, a public JavaScript SDK, Intel Mac packaging, and notarized distribution are outside this version.
+The desktop scope follows Orca computer use at commit `729f757b592244176420a86114c1ea23911eeeba`: app and window discovery, observation, nine actions, capabilities, and permission status/setup where the platform supplies it. Javis owns its public names and result envelopes. The original MIT notice remains in [LICENSE](../LICENSE).
 
 ## Decisions
 
 | Decision | Reason and consequence |
 | --- | --- |
-| Separate repository and signed `Javis.app` (`com.royran.javis`) | The project builds without Orca. The stable app identity owns Accessibility and Screen Recording grants across local upgrades. |
-| Swift native provider plus TypeScript control layer | Reuses the existing macOS UI behavior and validation while exposing CLI and MCP with one runtime contract. Installation bundles Node, so users need no system Node. |
-| On-demand, same-user daemon | Element indexes and tree baselines survive separate CLI calls. Each MCP process has its own session; the daemon serializes native requests. |
-| Launch helper with `open -n -g -W` | LaunchServices gives the signed helper its macOS privacy identity while `-g` avoids foreground activation. Directly spawning its binary did not receive the app's grants. |
-| Authenticate the helper with controller PID, UID, and random token | LaunchServices is the helper's parent, so parent-PID authentication cannot identify the Node daemon. The socket and token also live in a private directory. |
-| Keep the full action result when observation fails | Input may already have been delivered. Returning an ordinary pre-action error would invite unsafe repetition. `observationError` carries the read failure, with no fresh snapshot. |
-| Register Agents with a separate command | Installing the app leaves Codex and Claude Code configuration alone until `javis agent install` is requested. Managed Skill hashes permit upgrades without overwriting edits. |
+| Independent repository and runtime | Source, build, and installed runtime cannot depend on a sibling Orca checkout, RPC, or package. |
+| Platform providers behind one daemon contract | A signed Swift helper serves macOS, Python 3/AT-SPI serves Linux, and Windows PowerShell UI Automation serves Windows. Capabilities report actual support, including missing optional Linux tools and Wayland limits. |
+| On-demand per-user daemon | It serializes provider requests and retains short-lived element identity and per-context tree baselines across CLI calls. Unix sockets are private on macOS/Linux; Windows uses a token-authenticated per-user named pipe. |
+| Explicit SSH host routing | `--host` or MCP `host` selects a Javis installation through `ssh -T <alias> javis rpc --stdio`. SSH checks host identity; no daemon/helper TCP listener is opened. A disconnected or timed-out action is not retried. |
+| Context separate from host | `--worktree <opaque ID>` is a session namespace on the selected host, not a path requirement or desktop selector. The default context is the canonical current directory, including non-Git folders. Explicit `--session` is exclusive with `--worktree`. |
+| Authenticated macOS helper | LaunchServices gives the signed app its stable privacy identity. Controller PID, same UID, one-time token, and trusted signature restrict its helper connection; each process generation gets a fresh socket and token. |
+| Delivered-action result survives read failure | `action`, `verification`, and `observationError` remain available when input was delivered but the next observation failed. A null snapshot is never fresh state and must not trigger replay. |
+| Local settings page | A loopback-only, tokenized view presents macOS permission states, setup/reset controls, and Agent installation state. Normal observation never opens System Settings. |
+| Paired HTTPS mobile gateway | It is a separate server with a short-lived one-time pairing code, per-device sessions, CSRF checks, and no-store responses. It forwards only allowed computer calls to the private local daemon. |
 
 ## Behavior contract
 
-The normal loop is observe → act → observe. `get-app-state` creates a session; an action uses that session and a current element index or window-local coordinates. Native accessibility actions are preferred. Synthetic input and clipboard paths report that their effect may be unverified. A semantic value write can be read back; a contradictory readback is a verification error. A changed or missing window causes a fresh observation request, not blind action replay.
+The normal loop is observe → act → observe. An indexed action must use a fresh observation of the same app, window, host, and context. Window ID and window index cannot be supplied together. Action results default to a tree diff, with full-tree opt-in. Screenshot coordinates are window-local points; image pixels must be divided by `screenshot.scale`. Remote image bytes are materialized into a private temporary file on the caller, never exposed as a path on the remote host.
 
-`restoreWindow` is explicit because it may take focus and the real pointer. Background input uses private macOS symbols where available. If that route cannot serve the target, Javis reports `background_unavailable` so the caller can decide whether foreground control is appropriate. The helper retains blocked-app checks and secure-value redaction.
+Native accessibility actions are preferred. Synthetic input and clipboard delivery may remain unverified; semantic value writes can be read back. `restoreWindow` is an explicit foreground choice because it can change focus and pointer position. Linux and Windows synthetic input may need the interactive foreground desktop; background capability is platform dependent. A timeout, transport loss, or post-action `observationError` requires a fresh inspection before any new action.
+
+The helper/provider blocks protected apps and redacts secure fields. Diagnostics never contain raw typed text, accessibility trees, or screenshot bytes. The mobile gateway stores the selected app/window and Javis session per paired device, not in trusted browser action payloads. After ambiguous delivery it disables actions until observation succeeds; it never resends an action automatically.
 
 ## Acceptance and limits
 
-Acceptance requires a clean build from a copy of this repository, passing TypeScript and Swift suites, valid app code signature, a local permission check, a read-only real-window snapshot with image, and an MCP tool call returning text and image. Mutable desktop actions require an isolated graphical session. See [testing](testing.md).
+Acceptance requires a clean copy building without Orca imports, TypeScript tests and typecheck, Swift tests and signed build on macOS, Python provider tests, PowerShell/provider integration on Windows CI, and reproducible read-only desktop smoke checks on authorized windows. Mutable desktop checks belong in isolated graphical sessions. A macOS run cannot prove Windows GUI behavior. See [testing](testing.md).
 
-The daemon fails closed if it is killed while holding its short-lived recovery guard; [operations](operations.md) documents manual recovery. A deprecated CoreGraphics window-image fallback remains in the provider alongside ScreenCaptureKit. These are known platform and lifecycle limits, not Orca dependencies.
+The current macOS app packaging targets arm64 and x64 macOS 14+. Linux depends on the active graphical login, AT-SPI, and optional tools for some actions; Wayland may omit screenshots or X11-only input. Windows depends on an interactive desktop and PowerShell UI Automation. Capability responses, not a cross-platform assumption, determine what can be attempted. Local installation is supported on all three systems; signed app packaging applies only to macOS.

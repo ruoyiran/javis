@@ -1,4 +1,5 @@
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js'
+import { computerUseNextSteps } from '../contract/computer-use-error-recovery.js'
 
 export function toMcpResult(value: unknown): CallToolResult {
   const object = value && typeof value === 'object' ? value as Record<string, unknown> : null
@@ -13,5 +14,6 @@ export function toMcpResult(value: unknown): CallToolResult {
 
 export function toMcpError(error: unknown): CallToolResult {
   const details = error as { code?: unknown; message?: unknown } | null
-  return { isError: true, content: [{ type: 'text', text: JSON.stringify({ code: typeof details?.code === 'string' ? details.code : 'internal_error', message: typeof details?.message === 'string' ? details.message : String(error) }) }] }
+  const code = typeof details?.code === 'string' ? details.code : 'internal_error'
+  return { isError: true, content: [{ type: 'text', text: JSON.stringify({ code, message: typeof details?.message === 'string' ? details.message : String(error), nextSteps: computerUseNextSteps(code) }) }] }
 }

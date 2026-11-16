@@ -2,7 +2,7 @@ import { mkdtempSync, mkdirSync, readFileSync, rmSync, symlinkSync, writeFileSyn
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, expect, it } from 'vitest'
-import { installAgent } from '../../src/agent/install.js'
+import { installAgent, readAgentInstallStatus } from '../../src/agent/install.js'
 
 const folders: string[] = []
 afterEach(() => { for (const folder of folders.splice(0)) rmSync(folder, { recursive: true, force: true }) })
@@ -41,6 +41,28 @@ it('installs a skill and registers a missing Codex MCP server', async () => {
   })
   expect(readFileSync(join(home, '.agents', 'skills', 'javis', 'SKILL.md'), 'utf8')).toBe('Javis skill')
   expect(commands).toContainEqual(['codex', 'mcp', 'add', 'javis', '--', '/usr/local/bin/javis', 'mcp'])
+})
+
+it('reports an installed MCP registration and matching Skill', async () => {
+  const { home, source } = fixture()
+  const commandPath = '/usr/local/bin/javis'
+  const run = async () => ({ code: 0, stdout: `javis\n  command: ${commandPath}\n  args: mcp\n`, stderr: '' })
+  await installAgent('codex', { home, skillSource: source, commandPath, run })
+  expect(await readAgentInstallStatus('codex', { home, skillSource: source, commandPath, run })).toEqual({
+    agent: 'codex', available: true, mcp: true, skill: true
+  })
+})
+
+it('can inspect an existing managed Skill when process.getuid is unavailable', async () => {
+  const { home, source } = fixture()
+  const commandPath = '/usr/local/bin/javis'
+  const run = async () => ({ code: 0, stdout: `javis\n  command: ${commandPath}\n  args: mcp\n`, stderr: '' })
+  await installAgent('codex', { home, skillSource: source, commandPath, run })
+  const descriptor = Object.getOwnPropertyDescriptor(process, 'getuid')!
+  Object.defineProperty(process, 'getuid', { configurable: true, value: undefined })
+  try {
+    await expect(installAgent('codex', { home, skillSource: source, commandPath, run })).resolves.toBeUndefined()
+  } finally { Object.defineProperty(process, 'getuid', descriptor) }
 })
 
 it('rejects a same-path MCP registration that would launch help instead of the server', async () => {

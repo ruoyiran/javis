@@ -15,7 +15,7 @@ export function selectNodeRuntime() {
     const probe = spawnSync(candidate, ['-p', '`${process.versions.node} ${process.arch}`'], { encoding: 'utf8' })
     if (probe.status !== 0) continue
     const [version, arch] = probe.stdout.trim().split(' ')
-    if (Number(version?.split('.')[0]) >= 24 && arch === 'arm64') return candidate
+    if (Number(version?.split('.')[0]) >= 24 && arch === process.arch) return candidate
   }
-  throw new Error('An arm64 Node 24 runtime is required to build Javis.app')
+  throw new Error(`A ${process.arch} Node 24 runtime is required to build Javis.app`)
 }

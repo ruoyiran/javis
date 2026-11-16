@@ -1,5 +1,5 @@
 {
-  "name": "javis-macos",
+  "name": "javis",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -7,10 +7,10 @@
   "scripts": {
     "build:js": "node scripts/build-js.mjs",
     "build:native": "node scripts/build-native.mjs",
-    "build": "npm run build:js && npm run build:native && node scripts/package-macos.mjs",
+    "build": "node scripts/build.mjs",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --maxWorkers=2",
-    "install:local": "node scripts/install-local.mjs"
+    "install:local": "node scripts/install.mjs"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.32.2",

@@ -13,7 +13,7 @@ const identity = process.env.JAVIS_SIGN_IDENTITY ?? developmentIdentity()
 const nodeRuntime = selectNodeRuntime()
 
 if (!existsSync(helper) || !existsSync(cli)) throw new Error('Build Swift and TypeScript before packaging')
-if (process.platform !== 'darwin' || process.arch !== 'arm64') throw new Error('Javis packaging requires Apple Silicon macOS')
+if (process.platform !== 'darwin' || !['arm64', 'x64'].includes(process.arch)) throw new Error('Javis packaging requires arm64 or x64 macOS')
 if (!identity || identity === '-') throw new Error('An Apple Development signing identity is required for local installation')
 
 rmSync(app, { recursive: true, force: true })

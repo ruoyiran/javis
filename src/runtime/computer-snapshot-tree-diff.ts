@@ -109,6 +109,11 @@ type Baseline = {
 export class ComputerTreeBaselines {
   private readonly entries = new Map<string, Baseline>()
 
+  forget(params: Record<string, unknown>): void {
+    const prefix = `${baselineNamespace(params)}\u0000`
+    for (const key of this.entries.keys()) if (key.startsWith(prefix)) this.entries.delete(key)
+  }
+
   apply<T extends ComputerSnapshotResult>(params: Record<string, unknown>, result: T): T {
     const { snapshot } = result
     const key = baselineKey(params, snapshot.app.pid)
@@ -151,13 +156,17 @@ export class ComputerTreeBaselines {
 }
 
 function baselineKey(params: Record<string, unknown>, pid: number): string {
+  return `${baselineNamespace(params)}\u0000${pid}`
+}
+
+function baselineNamespace(params: Record<string, unknown>): string {
   const namespace =
     typeof params.session === 'string' && params.session
       ? `session:${params.session}`
       : typeof params.worktree === 'string' && params.worktree
         ? `worktree:${params.worktree}`
         : 'default'
-  return `${namespace}\u0000${pid}`
+  return namespace
 }
 
 function snapshotWindowKey(window: ComputerSnapshotResult['snapshot']['window']): string {

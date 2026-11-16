@@ -3,6 +3,8 @@ import { createHash, randomUUID } from 'node:crypto'
 import { copyFile, lstat, mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises'
 import { homedir } from 'node:os'
 import { dirname, join } from 'node:path'
+import { resolveAgentInstallPaths } from './install-paths.js'
+import { mcpLaunchCommand } from './mcp-launch-command.js'
 
 type Agent = 'codex' | 'claude'
 type Result = { code: number; stdout: string; stderr: string }
@@ -22,7 +24,7 @@ function digest(text: string): string { return createHash('sha256').update(text)
 async function assertSafeManifest(path: string): Promise<void> {
   try {
     const info = await lstat(path)
-    if (!info.isFile() || info.isSymbolicLink() || info.uid !== process.getuid?.()) {
+    if (!info.isFile() || info.isSymbolicLink() || (process.getuid && info.uid !== process.getuid())) {
       throw new Error(`Javis manifest at ${path} is a symlink or unsafe file`)
     }
   } catch (error) {
@@ -42,11 +44,11 @@ async function managedDigest(path: string): Promise<string | undefined> {
   return undefined
 }
 
-function registeredJavisCommand(agent: Agent, output: string, commandPath: string): boolean {
+function registeredJavisCommand(agent: Agent, output: string, launch: { command: string; args: string[] }): boolean {
   const command = /^\s*command:\s*(.+)\s*$/im.exec(output)?.[1]?.trim()
   const args = /^\s*args:\s*(.+)\s*$/im.exec(output)?.[1]?.trim()
   const userScope = agent !== 'claude' || /^\s*Scope:\s*User config\b/im.test(output)
-  return command === commandPath && args === 'mcp' && userScope
+  return command === launch.command && args === launch.args.join(' ') && userScope
 }
 
 function execute(command: string, args: string[]): Promise<Result> {
@@ -61,13 +63,36 @@ function execute(command: string, args: string[]): Promise<Result> {
   })
 }
 
+export async function readAgentInstallStatus(agent: Agent, options: Options = {}): Promise<{
+  agent: Agent; available: boolean; mcp: boolean; skill: boolean
+}> {
+  const home = options.home ?? homedir()
+  const paths = resolveAgentInstallPaths(process.platform, home, process.env)
+  const source = options.skillSource ?? paths.skillSource
+  const commandPath = options.commandPath ?? paths.commandPath
+  const launch = mcpLaunchCommand(process.platform, commandPath, source, process.execPath)
+  const run = options.run ?? execute
+  const result = await run(agent, ['mcp', 'get', 'javis'])
+  const target = join(home, agent === 'codex' ? '.agents' : '.claude', 'skills', 'javis', 'SKILL.md')
+  let skill = false
+  try {
+    const info = await lstat(target)
+    if (info.isFile() && !info.isSymbolicLink()) skill = await readFile(target, 'utf8') === await readFile(source, 'utf8')
+  } catch { skill = false }
+  return {
+    agent,
+    available: result.code !== 127,
+    mcp: result.code === 0 && registeredJavisCommand(agent, result.stdout + result.stderr, launch),
+    skill
+  }
+}
+
 export async function installAgent(kind: Agent | 'all', options: Options = {}): Promise<void> {
   const home = options.home ?? homedir()
-  const source = options.skillSource ?? join(
-    process.env.JAVIS_APP_PATH ?? join(home, 'Applications', 'Javis.app'),
-    'Contents', 'Resources', 'skills', 'javis', 'SKILL.md'
-  )
-  const commandPath = options.commandPath ?? join(home, '.local', 'bin', 'javis')
+  const paths = resolveAgentInstallPaths(process.platform, home, process.env)
+  const source = options.skillSource ?? paths.skillSource
+  const commandPath = options.commandPath ?? paths.commandPath
+  const launch = mcpLaunchCommand(process.platform, commandPath, source, process.execPath)
   const run = options.run ?? execute
   const agents: Agent[] = kind === 'all' ? ['codex', 'claude'] : [kind]
   if (agents.some((agent) => agent !== 'codex' && agent !== 'claude')) {
@@ -101,15 +126,15 @@ export async function installAgent(kind: Agent | 'all', options: Options = {}): 
   for (const { agent } of targets) {
     const existing = await run(agent, ['mcp', 'get', 'javis'])
     if (existing.code === 0) {
-      if (!registeredJavisCommand(agent, existing.stdout + existing.stderr, commandPath)) {
+      if (!registeredJavisCommand(agent, existing.stdout + existing.stderr, launch)) {
         throw new Error(`${agent} has an existing javis MCP server that is not this Javis command`)
       }
       continue
     }
     if (existing.code === 127) throw new Error(`${agent} command is unavailable: ${existing.stderr}`)
     const args = agent === 'codex'
-      ? ['mcp', 'add', 'javis', '--', commandPath, 'mcp']
-      : ['mcp', 'add', '-s', 'user', 'javis', '--', commandPath, 'mcp']
+      ? ['mcp', 'add', 'javis', '--', launch.command, ...launch.args]
+      : ['mcp', 'add', '-s', 'user', 'javis', '--', launch.command, ...launch.args]
     const added = await run(agent, args)
     if (added.code !== 0) throw new Error(`${agent} MCP registration failed: ${added.stderr || added.stdout}`)
   }

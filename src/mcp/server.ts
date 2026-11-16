@@ -2,21 +2,25 @@ import { randomUUID } from 'node:crypto'
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { z } from 'zod'
+import { callTarget, type JavisTarget } from '../runtime/target-router.js'
 import { callJavis } from '../runtime/public.js'
-import { readJavisPermissionStatus } from '../permissions.js'
+import { normalizeWorktreeContext } from '../runtime/workspace-context.js'
+import { JavisError } from '../runtime/error.js'
+import { callRemoteJavis } from '../runtime/remote-stdio.js'
 import { queryComputerTreeText } from '../cli/tree-query.js'
 import { toMcpError, toMcpResult } from './result.js'
 
 export function createJavisMcpServer(): McpServer {
-  const sessionId = randomUUID()
+  const sessions = new Map<string, string>()
   const server = new McpServer({ name: 'javis', version: '0.1.0' })
-  const target = { app: z.string().min(1), windowId: z.number().int().optional(), windowIndex: z.number().int().nonnegative().optional() }
+  const destination = { host: z.string().min(1).optional(), worktree: z.string().min(1).optional() }
+  const target = { ...destination, app: z.string().min(1), windowId: z.number().int().nonnegative().optional(), windowIndex: z.number().int().nonnegative().optional() }
   const common = { ...target, noScreenshot: z.boolean().optional(), restoreWindow: z.boolean().optional() }
   const point = z.number().finite()
   const element = z.number().int().nonnegative()
   const definitions = [
-    ['capabilities', 'capabilities', {}, false],
-    ['list_apps', 'listApps', {}, false],
+    ['capabilities', 'capabilities', { host: destination.host }, false],
+    ['list_apps', 'listApps', { host: destination.host }, false],
     ['list_windows', 'listWindows', target, false],
     ['get_app_state', 'getAppState', { ...common, query: z.string().optional(), maxElements: z.number().int().positive().optional() }, true],
     ['click', 'click', { ...common, elementIndex: element.optional(), x: point.optional(), y: point.optional(), mouseButton: z.enum(['left', 'right', 'middle']).optional(), modifiers: z.string().optional(), clickCount: z.number().int().min(1).max(3).optional() }, true],
@@ -30,10 +34,23 @@ export function createJavisMcpServer(): McpServer {
     ['perform_secondary_action', 'performSecondaryAction', { ...common, elementIndex: element, action: z.string().min(1) }, true]
   ] as const
   for (const [name, method, inputSchema, usesSession] of definitions) {
-    server.registerTool(`javis_${name}`, { description: `Javis ${name.replaceAll('_', ' ')}. Uses background operation by default; restoreWindow=true explicitly restores and activates the target window.`, inputSchema }, async (params: Record<string, unknown>) => {
+    server.registerTool(`javis_${name}`, { description: `Javis ${name.replaceAll('_', ' ')}. Check platform capabilities before actions; restoreWindow=true explicitly requests foreground control.`, inputSchema }, async (params: Record<string, unknown>) => {
       try {
-        const { query, maxElements, ...runtimeParams } = params
-        const value = await callJavis(method, usesSession ? { ...runtimeParams, sessionId } : runtimeParams)
+        if (params.windowId !== undefined && params.windowIndex !== undefined) {
+          throw new JavisError('invalid_argument', 'Choose either windowId or windowIndex')
+        }
+        const { query, maxElements, host, worktree, ...runtimeParams } = params
+        const destination: JavisTarget = {
+          ...(typeof host === 'string' ? { host } : {}),
+          ...(typeof worktree === 'string' ? { context: normalizeWorktreeContext(worktree) } : {})
+        }
+        const sessionKey = JSON.stringify([host ?? null, worktree ?? null])
+        let sessionId = sessions.get(sessionKey)
+        if (!sessionId) { sessionId = randomUUID(); sessions.set(sessionKey, sessionId) }
+        const action = usesSession && method !== 'getAppState'
+        const value = await callTarget(method, usesSession
+          ? { ...runtimeParams, ...(worktree === undefined ? { sessionId } : {}), ...(action ? { treeDiff: true } : {}) }
+          : runtimeParams, destination)
         if (method === 'getAppState' && (query !== undefined || maxElements !== undefined)) {
           const result = value as { snapshot: { treeText: string } }
           return toMcpResult({ ...result, snapshot: { ...result.snapshot, treeText: queryComputerTreeText(result.snapshot.treeText, { ...(typeof query === 'string' ? { query } : {}), ...(typeof maxElements === 'number' ? { maxElements } : {}) }) } })
@@ -43,8 +60,8 @@ export function createJavisMcpServer(): McpServer {
       catch (error) { return toMcpError(error) }
     })
   }
-  server.registerTool('javis_permissions_status', { description: 'Read macOS Accessibility and screenshot permission status.', inputSchema: {} }, async () => {
-    try { return toMcpResult(await readJavisPermissionStatus()) }
+  server.registerTool('javis_permissions_status', { description: 'Read macOS Accessibility and screenshot permission status on the local or selected SSH host.', inputSchema: { host: z.string().min(1).optional() } }, async (params: { host?: string }) => {
+    try { return toMcpResult(params.host ? await callRemoteJavis('permissionsStatus', {}, params.host) : await callJavis('permissionsStatus', {})) }
     catch (error) { return toMcpError(error) }
   })
   return server

@@ -3124,13 +3124,15 @@ private final class AgentRuntime: NSObject, NSApplicationDelegate {
     private let socketPath: String
     private let token: String?
     private let controllerPID: pid_t
+    private let trustedController: TrustedJavisController
     private var listener: SocketListener?
     private var unclaimedSessionTimeout: DispatchWorkItem?
 
-    init(socketPath: String, token: String?, controllerPID: pid_t) {
+    init(socketPath: String, token: String?, controllerPID: pid_t, trustedController: TrustedJavisController) {
         self.socketPath = socketPath
         self.token = token
         self.controllerPID = controllerPID
+        self.trustedController = trustedController
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -3144,6 +3146,7 @@ private final class AgentRuntime: NSObject, NSApplicationDelegate {
                 socketPath: socketPath,
                 token: token,
                 controllerPID: controllerPID,
+                trustedController: trustedController,
                 onSessionClaimed: {
                     timeout.cancel()
                 },
@@ -4152,6 +4155,7 @@ private final class SocketListener: @unchecked Sendable {
     private let socketPath: String
     private let token: String?
     private let controllerPID: pid_t
+    private let trustedController: TrustedJavisController
     private let onSessionClaimed: () -> Void
     private let onSessionClosed: () -> Void
     private let provider = Provider()
@@ -4166,12 +4170,14 @@ private final class SocketListener: @unchecked Sendable {
         socketPath: String,
         token: String?,
         controllerPID: pid_t,
+        trustedController: TrustedJavisController,
         onSessionClaimed: @escaping () -> Void,
         onSessionClosed: @escaping () -> Void
     ) throws {
         self.socketPath = socketPath
         self.token = token
         self.controllerPID = controllerPID
+        self.trustedController = trustedController
         self.onSessionClaimed = onSessionClaimed
         self.onSessionClosed = onSessionClosed
         try bindSocket()
@@ -4277,10 +4283,11 @@ private final class SocketListener: @unchecked Sendable {
             }
             close(fd)
         }
+        let peerPID = peerProcessId(fd)
         let authorizedPeer = isAuthorizedAgentPeer(
-            peerPID: peerProcessId(fd), peerUID: peerUserId(fd),
+            peerPID: peerPID, peerUID: peerUserId(fd),
             controllerPID: controllerPID, helperUID: getuid()
-        )
+        ) && peerPID.map(trustedController.contains) == true
         let decoder = JSONDecoder()
         AgentConnectionRequestLoop.run(readLine: { readLine(from: fd) }) { line in
             guard let data = line.data(using: .utf8),
@@ -4368,9 +4375,9 @@ private func peerUserId(_ fd: Int32) -> uid_t? {
 }
 
 @MainActor
-private func runAgent(socketPath: String, token: String?, controllerPID: pid_t) {
+private func runAgent(socketPath: String, token: String?, controllerPID: pid_t, trustedController: TrustedJavisController) {
     let app = NSApplication.shared
-    let delegate = AgentRuntime(socketPath: socketPath, token: token, controllerPID: controllerPID)
+    let delegate = AgentRuntime(socketPath: socketPath, token: token, controllerPID: controllerPID, trustedController: trustedController)
     app.delegate = delegate
     // Why: SCK is reliable once this code runs as a signed app with a real TCC identity.
     setenv("JAVIS_COMPUTER_USE_SCK_SCREENSHOTS", "1", 1)
@@ -4538,7 +4545,11 @@ if arguments.first == "--agent" {
         fputs("javis-helper --agent requires a positive --controller-pid\n", stderr)
         exit(2)
     }
-    runAgent(socketPath: arguments[1], token: token, controllerPID: controllerPID)
+    guard let trustedController = TrustedJavisController.currentBundle(), trustedController.contains(controllerPID) else {
+        fputs("javis-helper --agent requires a trusted Javis daemon from this signed app\n", stderr)
+        exit(13)
+    }
+    runAgent(socketPath: arguments[1], token: token, controllerPID: controllerPID, trustedController: trustedController)
 } else if arguments.first == "--permissions" {
     runPermissionCheck(copy: permissionCopy)
 } else if arguments.first == "--permission" {
