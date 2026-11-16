@@ -2,7 +2,7 @@
 
 Javis is an independent macOS computer-use runtime for local agents. It reads app accessibility trees, captures window screenshots, and performs element or coordinate actions. It provides a CLI, an MCP stdio server, and an Agent Skill. No Orca process or files are required after building the project.
 
-Project references: [design](docs/design.md) · [architecture](docs/architecture.md) · [CLI and MCP protocol](docs/protocol.md) · [testing](docs/testing.md) · [operations](docs/operations.md) · [agent instructions](AGENTS.md).
+Project references: [usage examples](docs/examples.md) · [design](docs/design.md) · [architecture](docs/architecture.md) · [CLI and MCP protocol](docs/protocol.md) · [testing](docs/testing.md) · [operations](docs/operations.md) · [agent instructions](AGENTS.md).
 
 ## Requirements
 
@@ -48,7 +48,7 @@ This installs the Javis Skill and a user-level MCP stdio registration for Codex 
 ```bash
 javis list-apps --json
 javis get-app-state --app com.apple.finder --json
-javis click --app com.apple.finder --session <result.sessionId> --element-index 42 --json
+javis click --app com.apple.finder --session <result.sessionId> --element-index <index-from-tree> --json
 ```
 
 An observation returns a session ID. Every action requires that ID so multiple agents cannot mix cached element indexes. Actions return a fresh snapshot and normally a compact tree diff. `--full-tree` returns the complete tree. Screenshots are saved to a private temporary file in CLI JSON output. MCP returns screenshots as image content.
@@ -56,6 +56,8 @@ An observation returns a session ID. Every action requires that ID so multiple a
 The default macOS input path targets the app in the background. `--restore-window` explicitly brings it forward when an app cannot accept background input. Inspect `action.verification` and the returned snapshot before assuming an action succeeded. The Javis Skill contains the full agent workflow and safety guidance.
 
 When an action is delivered but the app closes or cannot be observed afterwards, Javis returns `result.observationError` with the action metadata and no snapshot. Reobserve before deciding what happened; do not repeat the action from that result.
+
+For step-by-step CLI and MCP workflows, see the [usage examples](docs/examples.md).
 
 ## Project boundaries
 

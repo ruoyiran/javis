@@ -1,5 +1,7 @@
 # CLI and MCP protocol
 
+For end-to-end workflows using these commands, see the [usage examples](examples.md).
+
 ## CLI entry points
 
 ```text
