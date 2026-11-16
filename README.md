@@ -2,6 +2,8 @@
 
 Javis is an independent macOS computer-use runtime for local agents. It reads app accessibility trees, captures window screenshots, and performs element or coordinate actions. It provides a CLI, an MCP stdio server, and an Agent Skill. No Orca process or files are required after building the project.
 
+Project references: [design](docs/design.md) · [architecture](docs/architecture.md) · [CLI and MCP protocol](docs/protocol.md) · [testing](docs/testing.md) · [operations](docs/operations.md) · [agent instructions](AGENTS.md).
+
 ## Requirements
 
 - Apple Silicon Mac running macOS 14 or newer.
