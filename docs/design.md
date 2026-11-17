@@ -6,6 +6,8 @@ Javis makes desktop computer use available to agents without an Orca checkout or
 
 The desktop scope follows Orca computer use at commit `729f757b592244176420a86114c1ea23911eeeba`: app and window discovery, observation, nine actions, capabilities, and permission status/setup where the platform supplies it. Javis owns its public names and result envelopes. The original MIT notice remains in [LICENSE](../LICENSE).
 
+The [command parity matrix](orca-cua-parity.md) records every Orca desktop CUA CLI command. Javis supports the `computer` command namespace and retains flat aliases; CLI and MCP share action controls and runtime validation.
+
 ## Decisions
 
 | Decision | Reason and consequence |

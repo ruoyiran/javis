@@ -2,6 +2,8 @@
 
 ## macOS build, sign, and install
 
+Release `0.2.0` adopts the “协作之手” Javis logo. The canonical resources are in `assets/branding`: the app package copies `Javis.icns` and declares it in `CFBundleIconFile`, while the CLI bundle embeds the SVG for settings/mobile headers and favicons. Cross-platform builds copy all branding into `dist/branding`. The CLI, MCP server and macOS bundle read their release version from `package.json`.
+
 The current app package targets arm64 and x64 macOS 14+; build on the target architecture to produce its architecture-specific app. Install Xcode command line tools, Swift 6, npm with Node 22+, and an architecture-matched Node 24+ executable. The packaging script selects an eligible Node on `PATH`; set `JAVIS_NODE_PATH` to choose one explicitly. Set `JAVIS_SIGN_IDENTITY` to override the first Apple Development certificate found by `security find-identity`.
 
 ```bash
@@ -39,9 +41,11 @@ javis agent install all
 
 The macOS signed app owns Accessibility for UI trees/actions and Screen Recording for PNG capture. Only the user can grant permissions. `javis permissions open [--id accessibility|screenshots]` opens setup deliberately. `javis permissions reset` resets both grants for the verified `com.royran.javis` identity, then refreshes status; it is a deliberate operation, not part of normal observation. The loopback settings page shows both statuses, refresh/setup/reset, and Codex/Claude installation state. Its token and origin checks protect mutating requests. Permission status probes are paced and coalesced in the daemon; reset invalidates cached state, and timed-out helpers are reaped.
 
+`javis computer permissions` is the compatible setup command. It checks current grants first; when both are granted, default setup completes without opening UI. An explicit `--id` opens the selected permission's setup. Results include grant states, a next step, and whether a helper was launched. Pending repeated requests use the latest selection; reset, shutdown and caller loss cancel delivery. Existing setup helpers are replaced using exact same-user command matches, preserving passive status probes and authenticated controller helpers.
+
 `javis agent install all` installs the Javis Skill and a user-level stdio MCP registration for Codex and Claude Code. It can be scoped to one agent. It updates managed Skill copies, refuses user edits or unsafe links, and does not replace an unrelated MCP registration named `javis`.
 
-On Linux and Windows, macOS TCC commands and the macOS settings permission controls do not supply desktop authorization. Use the active graphical login and OS-specific permissions, then check capabilities and a read-only observation.
+On Linux and Windows, macOS TCC commands and the macOS settings permission controls do not supply desktop authorization. Permission setup returns unsupported macOS grant states without opening a helper; reset is unavailable. Use the active graphical login and OS-specific permissions, then check capabilities and a read-only observation.
 
 ## Remote host and phone gateway
 

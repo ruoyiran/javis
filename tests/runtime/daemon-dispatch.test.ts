@@ -19,3 +19,13 @@ test('rejects an invalid permission setup ID before opening UI', async () => {
   await expect(dispatch('permissionsOpen', { id: 'unknown' })).rejects.toMatchObject({ code: 'invalid_argument' })
   expect(open).not.toHaveBeenCalled()
 })
+
+test('preserves detailed permission setup status alongside legacy open fields', async () => {
+  const setup = {
+    platform: 'darwin', helperAppPath: '/Applications/Javis.app', permissionId: 'screenshots',
+    launchedHelper: false, openedSettings: false,
+    permissions: [{ id: 'accessibility', status: 'granted' }, { id: 'screenshots', status: 'granted' }], nextStep: null
+  }
+  const dispatch = createDaemonDispatch(async () => ({}), { status: async () => ({}), open: async () => setup, reset: async () => ({}) })
+  expect(await dispatch('permissionsOpen', { id: 'screenshots' })).toEqual({ opened: true, ...setup })
+})

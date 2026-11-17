@@ -1,8 +1,12 @@
 # Javis
 
+<img src="assets/branding/javis.svg" alt="Javis" width="96" height="96">
+
 Javis is an independent computer-use runtime for desktop agents on macOS, Linux, and Windows. It reads app accessibility trees, captures supported window screenshots, and performs element or coordinate actions through a CLI, an MCP stdio server, and an Agent Skill. It can target a Javis installation on another desktop through SSH. A separately paired HTTPS page lets a phone browser control that desktop. Javis builds and runs without an Orca checkout or process.
 
 Project references: [usage examples](docs/examples.md) · [design](docs/design.md) · [architecture](docs/architecture.md) · [CLI and MCP protocol](docs/protocol.md) · [testing](docs/testing.md) · [operations](docs/operations.md) · [agent instructions](AGENTS.md).
+
+All 14 Orca desktop CUA commands are available under `javis computer`, with the existing flat Javis commands retained. See the [command parity matrix](docs/orca-cua-parity.md); use `javis computer --help` for the full command list or `javis computer click --help` for action flags.
 
 ## Platform requirements
 

@@ -24,3 +24,21 @@ test('includes a concrete recovery step for uncertain action delivery', () => {
     'Action delivery may be uncertain. Inspect the current app or destination with a fresh observation; do not automatically repeat the action.'
   ])
 })
+
+test('uses the provider message to preserve uncertain delivery recovery', () => {
+  const result = toMcpError({ code: 'window_not_focused', message: 'input may already have been delivered' })
+  const details = JSON.parse((result.content[0] as { text: string }).text)
+  expect(details.nextSteps).toEqual([
+    'Action delivery may be uncertain. Inspect the current app or destination with a fresh observation; do not automatically repeat the action.'
+  ])
+})
+
+test('preserves delivered action metadata and null state after observation failure', () => {
+  const value = {
+    sessionId: 'existing-session',
+    action: { path: 'accessibility', delivery: 'background', verification: { state: 'unverified', reason: 'window_changed' } },
+    observationError: { code: 'window_not_found', message: 'window closed' },
+    snapshot: null, screenshot: null
+  }
+  expect(toMcpResult(value)).toEqual({ content: [{ type: 'text', text: JSON.stringify(value) }] })
+})

@@ -1,5 +1,5 @@
 import { build } from 'esbuild'
-import { copyFile, mkdir } from 'node:fs/promises'
+import { copyFile, cp, mkdir } from 'node:fs/promises'
 import { join } from 'node:path'
 
 await build({
@@ -9,6 +9,7 @@ await build({
   target: 'node22',
   format: 'cjs',
   outfile: 'dist/cli.cjs',
+  loader: { '.svg': 'text' },
   logLevel: 'info'
 })
 
@@ -20,3 +21,4 @@ for (const [directory, file] of [['javis-linux', 'runtime.py'], ['javis-windows'
 
 await mkdir(join('dist', 'skills', 'javis'), { recursive: true })
 await copyFile(join('skills', 'javis', 'SKILL.md'), join('dist', 'skills', 'javis', 'SKILL.md'))
+await cp(join('assets', 'branding'), join('dist', 'branding'), { recursive: true })

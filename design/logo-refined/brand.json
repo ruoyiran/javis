@@ -1,0 +1,19 @@
+{
+  "name": "Javis",
+  "selectedConcept": "10 — 协作之手",
+  "status": "adopted",
+  "colors": {
+    "plum": "#6C326A",
+    "coral": "#FB5E75",
+    "blush": "#FDECE4"
+  },
+  "meaning": "紫色 J 像托举的手臂，珊瑚色方块代表被操作的应用窗口。",
+  "changes": [
+    "保留选中方案的整体形象和 16 度窗口倾角。",
+    "以平整的矢量色块替代生成图中的细微色彩波动。",
+    "整理 J 的外轮廓与托举弧线。",
+    "扩大窗口与 J 内侧之间的留白，提高小尺寸辨识度。",
+    "应用图标外侧使用透明圆角，独立标志不带底板。"
+  ],
+  "canonicalAssets": "assets/branding"
+}

@@ -68,3 +68,64 @@ it('uses a stable worktree context session and rejects mixed targeting',async()=
  await expect(runtime.call('click',{app:'Finder',elementIndex:0,worktree:'/repo/other'})).rejects.toMatchObject({code:'stale_snapshot'})
  await expect(runtime.call('getAppState',{app:'Finder',worktree:'/repo/task',sessionId:'explicit'})).rejects.toMatchObject({code:'invalid_argument'})
 })
+
+it.each([
+ {app:'Finder',windowId:1,windowIndex:0},
+ {app:'Finder',windowId:-1},
+ {app:'Finder',windowIndex:0.5},
+ {app:'Finder',restoreWindow:'true'},
+ {app:'Finder',noScreenshot:1},
+ {app:'Finder',treeDiff:'false'},
+ {app:''},
+])('rejects malformed observation targets before provider delivery: %j',async params=>{
+ const native=vi.fn(async()=>({snapshot:{id:'one',app:{pid:1},window:{id:1},treeText:'0 window'},screenshot:null}))
+ const runtime=new SessionRuntime(native)
+ await expect(runtime.call('getAppState',params)).rejects.toMatchObject({code:'invalid_argument'})
+ expect(native).not.toHaveBeenCalled()
+})
+
+it('rejects invalid action observation flags before delivering input',async()=>{
+ const native=vi.fn(async()=>({snapshot:{id:'one',app:{pid:1},window:{id:1},treeText:'0 window\n1 button'},screenshot:null}))
+ const runtime=new SessionRuntime(native)
+ const observed=await runtime.call('getAppState',{app:'Finder'}) as {sessionId:string}
+ await expect(runtime.call('click',{app:'Finder',sessionId:observed.sessionId,elementIndex:1,restoreWindow:'true'})).rejects.toMatchObject({code:'invalid_argument'})
+ expect(native).toHaveBeenCalledTimes(1)
+})
+
+it('invalidates old indexes and tree baseline when a fresh observation fails',async()=>{
+ const tree=Array.from({length:20},(_,index)=>`${index} AXButton Item ${index}`).join('\n')
+ let failObservation=false
+ const native=vi.fn(async()=>{
+  if(failObservation)throw Object.assign(new Error('Observed window disappeared'),{code:'window_not_found'})
+  return {snapshot:{id:'one',app:{pid:1},window:{id:42},treeText:tree},screenshot:null}
+ })
+ const runtime=new SessionRuntime(native)
+ const observed=await runtime.call('getAppState',{app:'Finder'}) as {sessionId:string}
+ failObservation=true
+ await expect(runtime.call('getAppState',{app:'Finder',sessionId:observed.sessionId})).rejects.toMatchObject({code:'window_not_found'})
+ failObservation=false
+ await expect(runtime.call('click',{app:'Finder',elementIndex:1,sessionId:observed.sessionId})).rejects.toMatchObject({code:'stale_snapshot'})
+ const refreshed=await runtime.call('getAppState',{app:'Finder',sessionId:observed.sessionId,treeDiff:true}) as {snapshot:{treeDiff?:unknown;treeText:string}}
+ expect(refreshed.snapshot.treeDiff).toBeUndefined()
+ expect(refreshed.snapshot.treeText).toBe(tree)
+ expect(native).toHaveBeenCalledTimes(3)
+})
+
+it.each(['capabilities','listApps','listWindows'] as const)('rejects unsupported discovery parameters for %s',async method=>{
+ const native=vi.fn(async()=>({}))
+ const runtime=new SessionRuntime(native)
+ await expect(runtime.call(method,{app:'Finder',windowIndex:0})).rejects.toMatchObject({code:'invalid_argument'})
+ expect(native).not.toHaveBeenCalled()
+})
+
+it('invalidates old indexes when the provider resolves a null observation result',async()=>{
+ let malformed=false
+ const native=vi.fn(async()=>malformed ? null : {snapshot:{id:'one',app:{pid:1},window:{id:42},treeText:'0 window\n1 button'},screenshot:null})
+ const runtime=new SessionRuntime(native)
+ const observed=await runtime.call('getAppState',{app:'Finder'}) as {sessionId:string}
+ malformed=true
+ await expect(runtime.call('getAppState',{app:'Finder',sessionId:observed.sessionId})).rejects.toMatchObject({code:'provider_incompatible'})
+ malformed=false
+ await expect(runtime.call('click',{app:'Finder',elementIndex:1,sessionId:observed.sessionId})).rejects.toMatchObject({code:'stale_snapshot'})
+ expect(native).toHaveBeenCalledTimes(2)
+})

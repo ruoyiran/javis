@@ -11,7 +11,7 @@ export function queryComputerTreeText(
   const { header, elements, footer } = parseComputerTreeText(treeText)
   const needle = options.query?.toLowerCase()
   const candidates = needle
-    ? elements.filter((element) => element.lines[0].trimStart().toLowerCase().includes(needle))
+    ? elements.filter((element) => element.lines[0].trimStart().replace(/^\d+ ?/u, '').toLowerCase().includes(needle))
     : elements
   const shown = options.maxElements === undefined
     ? candidates

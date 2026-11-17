@@ -1,4 +1,4 @@
-export function computerUseNextSteps(code: string): string[] {
+export function computerUseNextSteps(code: string, message?: string): string[] {
   switch (code) {
     case 'action_timeout':
       return [
@@ -25,7 +25,8 @@ export function computerUseNextSteps(code: string): string[] {
       ]
     case 'app_not_found':
       return [
-        'Run javis list-apps --json on the selected host, then use the returned app name, bundle ID, or pid:N.'
+        'Run javis list-apps --json on the selected host, then use the returned app name, bundle ID, or pid:N.',
+        'For a website or web app, select the running desktop browser and its window with javis list-windows --app <browser> --json; website names are not desktop app selectors.'
       ]
     case 'app_blocked':
       return ['Stop using Javis on this protected app.']
@@ -40,7 +41,19 @@ export function computerUseNextSteps(code: string): string[] {
         'On Linux, install python3, python3-gi, gir1.2-atspi-2.0, and at-spi2-core for the interpreter Javis uses; install any optional desktop tool named in the error.'
       ]
     case 'background_unavailable':
+      return [
+        ...(/popup|<select>/i.test(message ?? '') ? ['Observe the popup element again and use javis set-value to select its option when supported.'] : []),
+        'Observe the target again. If taking desktop focus is acceptable, request --restore-window explicitly for a new action.'
+      ]
     case 'window_not_focused':
+      if (message?.includes('may already have been delivered')) {
+        return computerUseNextSteps('action_timeout')
+      }
+      if (/restore(?:-window|Window) was requested/i.test(message ?? '')) {
+        return [
+          'Observe the target again. Bring it forward manually or check desktop permissions before choosing a new action; use set-value for an editable field when supported.'
+        ]
+      }
       return [
         'Observe the target again. If taking desktop focus is acceptable, request --restore-window explicitly for a new action.'
       ]

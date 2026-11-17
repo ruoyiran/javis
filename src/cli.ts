@@ -7,12 +7,14 @@ import { startJavisSettings } from './settings/server.js'
 import { startMobileGateway } from './mobile/gateway.js'
 import { spawn } from 'node:child_process'
 import { callJavis } from './runtime/public.js'
+import { JAVIS_VERSION } from './version.js'
 
 const argv = process.argv.slice(2)
 
 const help = `Javis computer use
 
 Usage:
+  javis computer <command> [flags] (run javis computer --help for the command list)
   javis capabilities [--json]
   javis permissions status [--host SSH_ALIAS] [--json]
   javis permissions open [--id accessibility|screenshots] [--json]
@@ -117,12 +119,13 @@ async function main(): Promise<number> {
     console.log(`Installed Javis MCP and Skill for ${argv[2]}.`)
     return 0
   }
+  if (argv.length > 1 && ['help', '--help', '-h'].includes(argv[0])) return runCli(argv)
   if (argv.length === 0 || argv[0] === 'help' || argv[0] === '--help' || argv[0] === '-h') {
     console.log(help)
     return 0
   }
   if (argv[0] === '--version') {
-    console.log('0.1.0')
+    console.log(JAVIS_VERSION)
     return 0
   }
   return runCli(argv)

@@ -1,9 +1,10 @@
 import { spawnSync } from 'node:child_process'
-import { copyFileSync, existsSync, mkdirSync, rmSync, writeFileSync, chmodSync, realpathSync, readdirSync } from 'node:fs'
+import { copyFileSync, existsSync, mkdirSync, rmSync, writeFileSync, chmodSync, realpathSync, readFileSync, readdirSync } from 'node:fs'
 import { resolve, join, dirname } from 'node:path'
 import { selectNodeRuntime } from './select-node-runtime.mjs'
 
 const root = resolve(import.meta.dirname, '..')
+const { version } = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'))
 const app = join(root, 'build', 'Javis.app')
 const macos = join(app, 'Contents', 'MacOS')
 const resources = join(app, 'Contents', 'Resources')
@@ -23,6 +24,7 @@ mkdirSync(join(resources, 'licenses'), { recursive: true })
 copyFileSync(helper, join(macos, 'javis-helper'))
 copyFileSync(nodeRuntime, join(resources, 'node'))
 copyFileSync(cli, join(resources, 'cli.cjs'))
+copyFileSync(join(root, 'assets', 'branding', 'Javis.icns'), join(resources, 'Javis.icns'))
 copyFileSync(join(root, 'skills', 'javis', 'SKILL.md'), join(resources, 'skills', 'javis', 'SKILL.md'))
 copyFileSync(join(root, 'LICENSE'), join(resources, 'licenses', 'orca-LICENSE'))
 const nodeLicense = join(dirname(dirname(realpathSync(nodeRuntime))), 'LICENSE')
@@ -31,7 +33,7 @@ copyFileSync(nodeLicense, join(resources, 'licenses', 'node-LICENSE'))
 copyPackageLicenses(join(root, 'node_modules'), join(resources, 'licenses', 'npm'))
 chmodSync(join(macos, 'javis-helper'), 0o755)
 chmodSync(join(resources, 'node'), 0o755)
-writeFileSync(join(app, 'Contents', 'Info.plist'), infoPlist())
+writeFileSync(join(app, 'Contents', 'Info.plist'), infoPlist(version))
 run('codesign', ['--force', '--sign', identity, '--identifier', 'com.royran.javis.node', join(resources, 'node')])
 run('codesign', ['--force', '--sign', identity, '--identifier', 'com.royran.javis', app])
 run('codesign', ['--verify', '--deep', '--strict', '--verbose=2', app])
@@ -62,7 +64,7 @@ function copyPackageLicenses(source, target) {
   }
 }
 
-function infoPlist() {
+function infoPlist(version) {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict>
@@ -71,8 +73,9 @@ function infoPlist() {
 <key>CFBundleName</key><string>Javis</string>
 <key>CFBundleDisplayName</key><string>Javis</string>
 <key>CFBundlePackageType</key><string>APPL</string>
-<key>CFBundleShortVersionString</key><string>0.1.0</string>
-<key>CFBundleVersion</key><string>1</string>
+<key>CFBundleIconFile</key><string>Javis</string>
+<key>CFBundleShortVersionString</key><string>${version}</string>
+<key>CFBundleVersion</key><string>${version}</string>
 <key>LSMinimumSystemVersion</key><string>14.0</string>
 <key>LSUIElement</key><true/>
 <key>NSAccessibilityUsageDescription</key><string>Javis needs Accessibility permission to inspect and operate apps you ask it to use.</string>

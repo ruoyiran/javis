@@ -46,6 +46,32 @@ describe('computerUseNextSteps', () => {
     ])
   })
 
+  it('requires inspection when a focus error reports possibly delivered input', () => {
+    expect(computerUseNextSteps('window_not_focused', '2 press(es) may already have been delivered; inspect state')).toEqual([
+      'Action delivery may be uncertain. Inspect the current app or destination with a fresh observation; do not automatically repeat the action.'
+    ])
+  })
+
+  it('does not recommend another restore when explicit restoration failed', () => {
+    expect(computerUseNextSteps('window_not_focused', '--restore-window was requested but the target is still not focused')).toEqual([
+      'Observe the target again. Bring it forward manually or check desktop permissions before choosing a new action; use set-value for an editable field when supported.'
+    ])
+  })
+
+  it('offers a semantic option for popup controls blocked from background clicks', () => {
+    expect(computerUseNextSteps('background_unavailable', 'a background click on a popup menu or web <select> is unavailable')).toEqual([
+      'Observe the popup element again and use javis set-value to select its option when supported.',
+      'Observe the target again. If taking desktop focus is acceptable, request --restore-window explicitly for a new action.'
+    ])
+  })
+
+  it('explains that website targets require a running desktop browser', () => {
+    expect(computerUseNextSteps('app_not_found')).toEqual([
+      'Run javis list-apps --json on the selected host, then use the returned app name, bundle ID, or pid:N.',
+      'For a website or web app, select the running desktop browser and its window with javis list-windows --app <browser> --json; website names are not desktop app selectors.'
+    ])
+  })
+
   it('explains provider setup and unknown codes without guessing', () => {
     expect(computerUseNextSteps('provider_incompatible')).toEqual([
       'Install matching Javis CLI and provider versions on the selected host, then restart the Javis daemon.'

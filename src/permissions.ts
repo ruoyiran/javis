@@ -10,6 +10,14 @@ import { reapHelper } from './runtime/helper-reaping.js';
 type PermissionId = 'accessibility' | 'screenshots';
 type PermissionStatus = 'granted' | 'not-granted' | 'unsupported';
 export type JavisPermissionStatus = { platform: NodeJS.Platform; permissions: { id: PermissionId; status: PermissionStatus }[] };
+export type JavisPermissionSetupResult = JavisPermissionStatus & {
+  helperAppPath: string | null;
+  permissionId: PermissionId | null;
+  openedSettings: boolean;
+  launchedHelper: boolean;
+  launchSuperseded?: boolean;
+  nextStep: string | null;
+};
 const permissionIds: PermissionId[] = ['accessibility', 'screenshots'];
 const bundleId = 'com.royran.javis';
 const minimumLaunchGapMs = 5000;
@@ -23,6 +31,18 @@ let statusInFlight: Promise<JavisPermissionStatus> | undefined;
 let resetInFlight: Promise<JavisPermissionStatus> | undefined;
 let activeStatus: AbortController | undefined;
 let epoch = 0;
+let setupSequence = 0;
+type SetupRequest = {
+  sequence: number;
+  version: number;
+  result: JavisPermissionSetupResult;
+  canDeliver: () => boolean;
+  resolve: (result: JavisPermissionSetupResult) => void;
+  reject: (error: unknown) => void;
+};
+let queuedSetup: SetupRequest | undefined;
+let setupWorker: Promise<void> | undefined;
+let activeSetup: AbortController | undefined;
 
 function assertPermissionDelivery(version: number, canDeliver: () => boolean): void {
   if (version !== epoch || !canDeliver()) {
@@ -35,10 +55,88 @@ export function cancelJavisPermissionOperations(): void {
   cachedStatus = undefined;
   activeStatus?.abort();
   statusInFlight = undefined;
+  cancelQueuedSetup();
+}
+
+function permissionCancelled(): JavisError {
+  return new JavisError('action_timeout', 'Permission request was cancelled before delivery');
+}
+
+function cancelQueuedSetup(): void {
+  activeSetup?.abort();
+  queuedSetup?.reject(permissionCancelled());
+  queuedSetup = undefined;
+}
+
+function supersedeQueuedSetup(): void {
+  queuedSetup?.resolve({ ...queuedSetup.result, launchSuperseded: true });
+  queuedSetup = undefined;
+}
+
+function startSetupWorker(): void {
+  if (setupWorker || !queuedSetup) return;
+  const controller = new AbortController();
+  const version = epoch;
+  activeSetup = controller;
+  const pending = serialized(async () => {
+    try {
+      while (queuedSetup && !controller.signal.aborted) {
+        await pace(controller.signal);
+        const request = queuedSetup;
+        queuedSetup = undefined;
+        if (!request) continue;
+        try {
+          assertPermissionDelivery(request.version, request.canDeliver);
+          // A newer request may still be preflighting status behind this worker.
+          // Its arrival already supersedes this queued UI even before it can enqueue.
+          if (request.sequence !== setupSequence) {
+            request.resolve({ ...request.result, launchSuperseded: true });
+            continue;
+          }
+          await closeSetupHelpers(request.result.helperAppPath!);
+          assertPermissionDelivery(request.version, request.canDeliver);
+          if (request.sequence !== setupSequence) {
+            request.resolve({ ...request.result, launchSuperseded: true });
+            continue;
+          }
+          await command('/usr/bin/open', ['-n', request.result.helperAppPath!, '--args', ...(
+            request.result.permissionId === null ? ['--permissions'] : ['--permission', request.result.permissionId]
+          )], 5000, controller.signal);
+          cachedStatus = undefined;
+          request.resolve({
+            ...request.result,
+            launchedHelper: true,
+            openedSettings: request.result.permissionId !== null,
+          });
+        } catch (error) {
+          request.reject(controller.signal.aborted || request.version !== epoch ? permissionCancelled() : error);
+        }
+      }
+    } catch (error) {
+      if (queuedSetup?.version === version) {
+        queuedSetup.reject(controller.signal.aborted || version !== epoch ? permissionCancelled() : error);
+        queuedSetup = undefined;
+      }
+    }
+  });
+  const worker = pending.finally(() => {
+    if (activeSetup === controller) activeSetup = undefined;
+    if (setupWorker === worker) setupWorker = undefined;
+    startSetupWorker();
+  });
+  setupWorker = worker;
 }
 
 function appPath(): string {
   return resolve(process.env.JAVIS_APP_PATH || join(homedir(), 'Applications', 'Javis.app'));
+}
+
+async function closeSetupHelpers(helperAppPath: string): Promise<void> {
+  const executable = join(helperAppPath, 'Contents/MacOS/javis-helper');
+  // Full-command, same-UID matching preserves status probes and authenticated agents.
+  for (const args of ['--permissions', '--permission accessibility', '--permission screenshots']) {
+    await reapHelper(`${executable} ${args}`);
+  }
 }
 
 function command(path: string, args: string[], timeout = 5000, signal?: AbortSignal): Promise<string> {
@@ -47,6 +145,7 @@ function command(path: string, args: string[], timeout = 5000, signal?: AbortSig
       if (error) reject(error);
       else resolveCommand(stdout);
     });
+    if (path === '/usr/bin/open') lastLaunchAt = performance.now();
   });
 }
 
@@ -60,7 +159,6 @@ async function pace(signal?: AbortSignal): Promise<void> {
   const remaining = minimumLaunchGapMs - (performance.now() - lastLaunchAt);
   if (remaining > 0) await delay(remaining, undefined, { signal });
   if (signal?.aborted) throw new JavisError('action_timeout', 'Permission status request was cancelled');
-  lastLaunchAt = performance.now();
 }
 
 function parseStatus(text: string): JavisPermissionStatus {
@@ -130,18 +228,29 @@ export async function readJavisPermissionStatus(): Promise<JavisPermissionStatus
   return statusInFlight;
 }
 
-export async function openJavisPermissions(id?: PermissionId, canDeliver: () => boolean = () => true): Promise<void> {
-  if (process.platform !== 'darwin') throw new JavisError('unsupported_platform', 'macOS permission setup is unavailable on this platform');
+export async function openJavisPermissions(id?: PermissionId, canDeliver: () => boolean = () => true): Promise<JavisPermissionSetupResult> {
   if (id !== undefined && !permissionIds.includes(id)) throw new JavisError('invalid_argument', 'Invalid Javis permission');
   const version = epoch;
+  const sequence = ++setupSequence;
   assertPermissionDelivery(version, canDeliver);
-  cachedStatus = undefined;
-  return serialized(async () => {
-    assertPermissionDelivery(version, canDeliver);
-    await pace();
-    assertPermissionDelivery(version, canDeliver);
-    await command('/usr/bin/open', ['-n', appPath(), '--args', ...(id === undefined ? ['--permissions'] : ['--permission', id])]);
-    cachedStatus = undefined;
+  const status = await readJavisPermissionStatus();
+  assertPermissionDelivery(version, canDeliver);
+  const missing = status.permissions.find(permission => permission.status === 'not-granted');
+  const result: JavisPermissionSetupResult = {
+    ...status,
+    helperAppPath: process.platform === 'darwin' ? appPath() : null,
+    permissionId: id ?? null,
+    openedSettings: false,
+    launchedHelper: false,
+    nextStep: missing ? `Grant ${missing.id === 'accessibility' ? 'Accessibility' : 'Screen Recording'} to Javis in System Settings, then retry get-app-state.` : null,
+  };
+  if (process.platform !== 'darwin') return result;
+  if (sequence !== setupSequence) return { ...result, launchSuperseded: true };
+  supersedeQueuedSetup();
+  if (id === undefined && !missing) return result;
+  return new Promise<JavisPermissionSetupResult>((resolveSetup, reject) => {
+    queuedSetup = { sequence, version, result, canDeliver, resolve: resolveSetup, reject };
+    startSetupWorker();
   });
 }
 
@@ -154,11 +263,14 @@ export async function resetJavisPermissions(canDeliver: () => boolean = () => tr
   lastLaunchAt = -Infinity;
   activeStatus?.abort();
   statusInFlight = undefined;
+  cancelQueuedSetup();
   const pending = serialized(async () => {
     assertPermissionDelivery(version, canDeliver);
     const plist = join(appPath(), 'Contents/Info.plist');
     const identity = (await command('/usr/bin/plutil', ['-extract', 'CFBundleIdentifier', 'raw', '-o', '-', plist])).trim();
     if (identity !== bundleId) throw new JavisError('access_denied', 'Installed app bundle ID does not match Javis');
+    assertPermissionDelivery(version, canDeliver);
+    await closeSetupHelpers(appPath());
     assertPermissionDelivery(version, canDeliver);
     await command('/usr/bin/tccutil', ['reset', 'Accessibility', bundleId]);
     await command('/usr/bin/tccutil', ['reset', 'ScreenCapture', bundleId]);

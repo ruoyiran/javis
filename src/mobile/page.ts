@@ -1,3 +1,5 @@
+import { javisLogoDataUrl, javisLogoMarkup } from '../branding.js'
+
 export const mobileHtml = `<!doctype html>
 <html lang="en">
 <head>
@@ -5,11 +7,12 @@ export const mobileHtml = `<!doctype html>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="color-scheme" content="light dark">
   <title>Javis Mobile</title>
+  <link rel="icon" type="image/svg+xml" href="${javisLogoDataUrl}">
   <link rel="stylesheet" href="/mobile.css">
   <script src="/mobile.js" defer></script>
 </head>
 <body>
-  <header><h1>Javis Mobile</h1><p>Control the desktop running Javis</p></header>
+  <header class="brand"><div class="brand-icon">${javisLogoMarkup}</div><div><h1>Javis Mobile</h1><p>Control the desktop running Javis</p></div></header>
   <p id="status" role="status" aria-live="polite">Connecting…</p>
   <section id="pair-panel" hidden>
     <h2>Pair this phone</h2>
@@ -58,6 +61,10 @@ export const mobileCss = `
 body { max-width: 1100px; margin: 0 auto; padding: max(16px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom)); }
 header h1 { margin: 0; font-size: 1.5rem; }
 header p { margin: 4px 0 16px; opacity: .75; }
+.brand { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+.brand-icon { width: 52px; height: 52px; flex: 0 0 auto; }
+.brand-icon svg { display: block; width: 100%; height: 100%; }
+.brand p { margin-bottom: 0; }
 h2 { font-size: 1.15rem; }
 h3 { font-size: 1rem; margin: 0 0 8px; }
 section { margin: 16px 0 24px; }

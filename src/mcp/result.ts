@@ -15,5 +15,6 @@ export function toMcpResult(value: unknown): CallToolResult {
 export function toMcpError(error: unknown): CallToolResult {
   const details = error as { code?: unknown; message?: unknown } | null
   const code = typeof details?.code === 'string' ? details.code : 'internal_error'
-  return { isError: true, content: [{ type: 'text', text: JSON.stringify({ code, message: typeof details?.message === 'string' ? details.message : String(error), nextSteps: computerUseNextSteps(code) }) }] }
+  const message = typeof details?.message === 'string' ? details.message : String(error)
+  return { isError: true, content: [{ type: 'text', text: JSON.stringify({ code, message, nextSteps: computerUseNextSteps(code, message) }) }] }
 }

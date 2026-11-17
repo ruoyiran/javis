@@ -2,9 +2,12 @@ node_modules/
 __pycache__/
 *.pyc
 dist/
-build/
+/build/
 native/javis-macos/.build/
 native/javis-macos/.swiftpm/
 .superpowers/
 *.log
 .DS_Store
+design/**/*.zip
+design/logo-concepts/javis-logo-concepts/
+design/logo-refined/javis-logo-10-refined/

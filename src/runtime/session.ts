@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto'
 import { JavisError } from './error.js'
 import { validateComputerProviderActionParams } from './computer-provider-action-validation.js'
+import { validateComputerRequestParams } from './computer-request-validation.js'
 import { ComputerTreeBaselines } from './computer-snapshot-tree-diff.js'
 import { normalizeComputerActionResult, rejectContradictedComputerAction } from './computer-action-verification-normalization.js'
 import type { JavisProvider } from './provider.js'
@@ -13,6 +14,7 @@ export class SessionRuntime {
   constructor(private native: JavisProvider | ((method: string, params: Record<string, unknown>) => Promise<unknown>)) {}
   async call(method: JavisMethod, params: Record<string, unknown>): Promise<unknown> {
     if (!['capabilities','listApps','listWindows','getAppState','click','performSecondaryAction','scroll','drag','typeText','pressKey','hotkey','pasteText','setValue'].includes(method)) throw new JavisError('invalid_argument','Unknown method')
+    validateComputerRequestParams(method, params)
     const action = !['capabilities','listApps','listWindows','getAppState'].includes(method)
     let sessionId = params.sessionId
     const worktree=params.worktree
@@ -39,6 +41,9 @@ export class SessionRuntime {
     const nativeCall=typeof this.native==='function' ? this.native : this.native.call.bind(this.native)
     try {
     const result = await nativeCall(method === 'capabilities' ? 'handshake' : method, nativeParams)
+    if (sessionId && (!result || typeof result !== 'object' || Array.isArray(result))) {
+      throw new JavisError('provider_incompatible','Computer provider returned an invalid observation result')
+    }
     if (method === 'capabilities') {
       const capabilities=result as ComputerProviderCapabilities
       return {...capabilities,supports:{...capabilities.supports,observation:{...capabilities.supports.observation,treeDiff:true}}}
@@ -57,13 +62,16 @@ export class SessionRuntime {
           windowIndex:normalized.snapshot.window.index ?? params.windowIndex as number | undefined
         })
         normalized = this.baselines.apply(nativeParams,normalized)
-      } else this.sessions.delete(sessionId as string)
+      } else {
+        this.sessions.delete(sessionId as string)
+        this.baselines.forget(nativeParams)
+      }
       for (const [id,target] of this.sessions) if (Date.now()-target.observedAt > 120_000) this.sessions.delete(id)
       return {...normalized, sessionId}
     }
     return result
     } catch (error) {
-      if (action && sessionId) {
+      if ((action || method === 'getAppState') && sessionId) {
         this.sessions.delete(sessionId as string)
         this.baselines.forget(nativeParams)
       }

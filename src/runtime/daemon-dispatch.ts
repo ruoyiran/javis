@@ -26,8 +26,8 @@ export function createDaemonDispatch(
       if (id !== undefined && id !== 'accessibility' && id !== 'screenshots') {
         throw new JavisError('invalid_argument', 'Permission ID must be accessibility or screenshots')
       }
-      await permissions.open(id as PermissionId | undefined, canDeliver)
-      return { opened: true, permissionId: id ?? null }
+      const result = await permissions.open(id as PermissionId | undefined, canDeliver)
+      return { opened: true, permissionId: id ?? null, ...(result && typeof result === 'object' ? result : {}) }
     }
     return computer(method, params)
   }

@@ -1,4 +1,11 @@
 import type { JavisMethod } from '../runtime/public.js'
+import {
+  computerUseClickModifiersValidationMessage,
+  computerUseHotkeyValidationMessage,
+  computerUsePressKeyValidationMessage
+} from '../contract/computer-use-key-spec.js'
+import { CliArgumentError, splitCliArguments } from './arguments.js'
+export { CliArgumentError } from './arguments.js'
 
 export type ParsedCall = {
   method: JavisMethod
@@ -7,10 +14,6 @@ export type ParsedCall = {
   host?: string
   query?: string
   maxElements?: number
-}
-
-export class CliArgumentError extends Error {
-  readonly code = 'invalid_argument'
 }
 
 const methods: Record<string, JavisMethod> = {
@@ -29,32 +32,7 @@ const methods: Record<string, JavisMethod> = {
   'set-value': 'setValue'
 }
 
-const booleanFlags = new Set(['json', 'no-screenshot', 'restore-window', 'full-tree', 'text-stdin', 'value-stdin'])
-const valueFlags = new Set([
-  'app', 'host', 'worktree', 'session', 'window-id', 'window-index', 'element-index', 'from-element-index',
-  'to-element-index', 'x', 'y', 'from-x', 'from-y', 'to-x', 'to-y', 'click-count',
-  'mouse-button', 'modifiers', 'action', 'direction', 'pages', 'text', 'key',
-  'value', 'query', 'max-elements'
-])
-
 function fail(message: string): never { throw new CliArgumentError(message) }
-
-function flagsOf(argv: string[]): Map<string, string | true> {
-  const flags = new Map<string, string | true>()
-  for (let i = 0; i < argv.length; i++) {
-    const token = argv[i]
-    if (!token.startsWith('--')) fail(`Unexpected argument: ${token}`)
-    const name = token.slice(2)
-    if (flags.has(name)) fail(`Duplicate flag --${name}`)
-    if (booleanFlags.has(name)) flags.set(name, true)
-    else if (valueFlags.has(name)) {
-      const value = argv[++i]
-      if (value === undefined || value.startsWith('--')) fail(`Missing value for --${name}`)
-      flags.set(name, value)
-    } else fail(`Unknown flag --${name}`)
-  }
-  return flags
-}
 
 function value(flags: Map<string, string | true>, name: string): string | undefined {
   const raw = flags.get(name)
@@ -71,7 +49,7 @@ function number(flags: Map<string, string | true>, name: string, integer = false
   const raw = value(flags, name)
   if (raw === undefined) return undefined
   const result = Number(raw)
-  if (!Number.isFinite(result) || (integer && (!Number.isInteger(result) || result < 0))) {
+  if (!raw.trim() || !Number.isFinite(result) || (integer && (!Number.isInteger(result) || result < 0))) {
     fail(`--${name} must be ${integer ? 'a non-negative integer' : 'a finite number'}`)
   }
   return result
@@ -89,13 +67,16 @@ function elementOrCoordinates(params: Record<string, unknown>, prefix = ''): voi
 }
 
 export function parseCall(argv: string[], stdinText?: string): ParsedCall {
-  const name = argv[0]
+  const { command, flags } = splitCliArguments(argv)
+  const path = command[0] === 'computer' ? command.slice(1) : command
+  const name = path[0]
   const method = methods[name]
   if (!method) fail(`Unknown command: ${name ?? '(none)'}`)
-  const flags = flagsOf(argv.slice(1))
+  if (path.length !== 1) fail(`Unexpected argument after ${name}`)
   const params: Record<string, unknown> = {}
   const json = flags.has('json')
   const host = value(flags, 'host')
+  for (const flag of ['host', 'worktree', 'session']) if (flags.has(flag) && !value(flags, flag)) fail(`--${flag} requires a non-empty value`)
   const action = !['capabilities', 'listApps', 'listWindows', 'getAppState'].includes(method)
   if (method !== 'capabilities' && method !== 'listApps') params.app = required(flags, 'app')
   if (method === 'listWindows' || method === 'capabilities' || method === 'listApps') {
@@ -145,10 +126,22 @@ export function parseCall(argv: string[], stdinText?: string): ParsedCall {
     }
   }
   if (method === 'setValue' && (params.elementIndex === undefined || params.value === undefined)) fail('set-value needs --element-index and --value or --value-stdin')
-  if (method === 'performSecondaryAction' && (params.elementIndex === undefined || params.action === undefined)) fail('perform-secondary-action needs --element-index and --action')
+  if (method === 'performSecondaryAction' && (params.elementIndex === undefined || !params.action)) fail('perform-secondary-action needs --element-index and --action')
   if ((method === 'typeText' || method === 'pasteText') && !params.text) fail(`${name} needs --text or --text-stdin`)
   if ((method === 'pressKey' || method === 'hotkey') && !params.key) fail(`${name} needs --key`)
   if (method === 'scroll' && !params.direction) fail('scroll needs --direction')
+  if (params.clickCount !== undefined && Number(params.clickCount) < 1) fail('--click-count must be a positive integer')
+  if (params.pages !== undefined && Number(params.pages) <= 0) fail('--pages must be a positive number')
+  if (params.mouseButton !== undefined && !['left', 'right', 'middle'].includes(String(params.mouseButton))) fail('--mouse-button must be left, right, or middle')
+  if (params.direction !== undefined && !['up', 'down', 'left', 'right'].includes(String(params.direction))) fail('--direction must be up, down, left, or right')
+  const keyMessage = method === 'hotkey'
+    ? computerUseHotkeyValidationMessage(String(params.key))
+    : method === 'pressKey' ? computerUsePressKeyValidationMessage(String(params.key)) : null
+  if (keyMessage) fail(keyMessage)
+  if (params.modifiers !== undefined) {
+    const message = computerUseClickModifiersValidationMessage(String(params.modifiers))
+    if (message) fail(message)
+  }
 
   const query = value(flags, 'query')
   const maxElements = number(flags, 'max-elements', true)

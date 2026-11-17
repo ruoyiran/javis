@@ -4,6 +4,8 @@ For end-to-end workflows using these commands, see the [usage examples](examples
 
 ## CLI entry points
 
+The complete Orca CUA command family is also available as `javis computer <command>`; see the [command mapping](orca-cua-parity.md). Existing flat commands remain supported. `javis computer permissions [--id accessibility|screenshots]` opens local setup, while `javis computer permissions status` reads status. Use `javis computer --help` or `javis computer <command> --help` for command-specific flags. Value flags accept `--flag=value`, and `--json` can precede the command.
+
 ```text
 javis capabilities [--host <SSH-alias>] --json
 javis permissions status [--host <SSH-alias>] --json
@@ -21,7 +23,7 @@ javis daemon stop
 javis agent install codex|claude|all
 ```
 
-The other action names are `set-value`, `type-text`, `press-key`, `hotkey`, `paste-text`, `scroll`, `drag`, and `perform-secondary-action`. Every action requires `--app` and `--session`. Its target flags are:
+The other action names are `set-value`, `type-text`, `press-key`, `hotkey`, `paste-text`, `scroll`, `drag`, and `perform-secondary-action`. Every action requires `--app` and a fresh observation in its explicit session, worktree, or current-folder context. Its target flags are:
 
 | Action | Required action flags | Optional action flags |
 | --- | --- | --- |
@@ -57,13 +59,17 @@ An action that was delivered before a later observation failure is a successful 
 
 Do not repeat that action from this response. Inspect the target or destination with a new observation. Ordinary `ok:false` errors occur before delivery or when the action itself fails.
 
+Permission setup returns grant states, `nextStep`, `helperAppPath`, `permissionId`, `launchedHelper`, and `openedSettings`, alongside the existing `opened` compatibility field. Default setup checks status and opens UI only while grants are missing; explicit `--id` opens the selected permission's setup. Non-macOS reports unsupported grant states without launching a helper. Repeated pending requests use the latest request; a replaced response has `launchSuperseded:true` and `launchedHelper:false`. Setup waits through pacing and checks cancellation before delivery, so no delayed UI opens after caller loss or reset.
+
 ## MCP surface
 
 `javis mcp` speaks MCP over stdio. The 14 tools are `javis_capabilities`, `javis_permissions_status`, `javis_list_apps`, `javis_list_windows`, `javis_get_app_state`, `javis_click`, `javis_set_value`, `javis_type_text`, `javis_press_key`, `javis_hotkey`, `javis_paste_text`, `javis_scroll`, `javis_drag`, and `javis_perform_secondary_action`.
 
 `javis_permissions_status` accepts an optional `host` SSH alias. It reads the selected host's macOS permission state through the allowlisted stdio bridge. Local status, setup, and reset share the long-lived daemon's paced permission gate; remote setup and reset require an explicit command on the remote host.
 
-Tool inputs use camelCase JSON fields such as `app`, `windowId`, `elementIndex`, `noScreenshot`, and `restoreWindow`. Computer tools accept optional `host` and `worktree`; MCP keeps a separate session per connection, host, and worktree. A worktree never selects an SSH host. Each reply includes a JSON text content block. Captured screenshots add an MCP `image/png` block; the text omits PNG base64. Failed calls return an MCP error result with the Javis error code, message, and concrete next steps for recognized codes. The permission tool reads status only; opening the macOS setup UI is a deliberate CLI or local settings operation.
+Tool inputs use camelCase JSON fields such as `app`, `windowId`, `elementIndex`, `noScreenshot`, and `restoreWindow`. Computer tools accept optional `host`; observation and action tools also accept `worktree`. MCP keeps a separate session per connection, host, and worktree. A worktree never selects an SSH host. Each reply includes a JSON text content block. Captured screenshots add an MCP `image/png` block; the text omits PNG base64. Failed calls return an MCP error result with the Javis error code, message, and concrete next steps for recognized codes. Schema failures and unknown fields/tools return sanitized `invalid_argument` JSON without echoing supplied input. The permission tool reads status only; opening the macOS setup UI is a deliberate CLI or local settings operation.
+
+Action tools default to `treeDiff:true`. Use `fullTree:true` or `treeDiff:false` for the complete post-action tree; `fullTree:true` conflicts with `treeDiff:true`. Observation accepts optional `treeDiff`. Discovery inputs reflect their actual operation: listing windows accepts `app` and optional `host`, without window selectors or worktree state. Invalid action target combinations, key chords and modifiers are rejected before routing. Runtime calls additionally enforce numeric window selectors and boolean observation flags. A failed observation invalidates any previous snapshot and tree baseline in that session.
 
 ## SSH and mobile gateway
 

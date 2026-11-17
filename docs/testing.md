@@ -15,6 +15,10 @@ git diff --check
 
 `npm test` covers the shared contract, CLI, MCP, session isolation, SSH framing and routing, provider selection, helper lifecycle, settings requests, and loopback mobile gateway with fake Javis calls. Linux Python unit tests use fake GI objects and can run on macOS or Linux; they do not prove a real AT-SPI desktop session. Tests should assert observable behavior with hard-coded expected results at the owning layer, not mirror source text or copy translations.
 
+Command parity tests exercise every Orca computer command through the namespaced Javis parser, existing aliases, inline value flags, stdin validation, tree query semantics and human output. MCP tests cover full-tree controls, action validation and truthful discovery inputs. Runtime tests verify rejection before provider delivery and invalidation after failed observation. The reference and complete command mapping are recorded in [Orca CUA parity](orca-cua-parity.md).
+
+Run npm with a normal development Node executable. A hardened app-bundled Node can reject npm native bindings with a macOS Team ID mismatch, surfaced by Vitest as a missing rolldown binding. Select the development Node through `PATH` before running npm; on this Homebrew host, `PATH=/opt/homebrew/bin:$PATH npm test` uses Node 22. Do not re-sign dependencies or disable library validation to run tests.
+
 On a macOS build host with an Apple Development identity, also run:
 
 ```bash
@@ -24,6 +28,8 @@ codesign --verify --deep --strict build/Javis.app
 ```
 
 The app build compiles and signs the Swift helper, bundles Node, and assembles the installer input. The signature and macOS permission identity require macOS verification.
+
+After a branding or release-version change, check that `build/Javis.app/Contents/Resources/Javis.icns` matches `assets/branding/Javis.icns`, the app's `CFBundleIconFile` is `Javis`, and both bundle version fields match `package.json`. The packaged CLI's `--version` and the MCP initialization response must report the same version. Branding tests also exercise real settings/mobile HTML responses and an isolated JavaScript-build fixture, without opening desktop apps or permissions UI.
 
 On Windows CI or a Windows desktop test machine, run the TypeScript checks and PowerShell provider test with Windows PowerShell 5.1, then exercise the actual UI Automation provider in an isolated interactive graphical login. `npm run build` and `npm run install:local` create the user-local Windows launcher, which references the install-time Node executable by absolute path. For example:
 

@@ -37,6 +37,8 @@ The provider chooses an app by supported identifier, then a window by ID or inde
 
 ## Actions and outcomes
 
+The runtime validates app/window targeting and boolean observation flags before calling a provider. A failed observation or an invalid null provider result clears the session's old element state and tree baseline, so a subsequent action requires a new successful observation.
+
 The nine actions are click, perform secondary action, scroll, drag, type text, press key, hotkey, paste text, and set value. Providers prefer semantic accessibility actions and report the actual path, delivery, and verification state. Background delivery is attempted only where supported; `restoreWindow` is an explicit foreground request. A value mismatch is a verification failure. If input was delivered and the next observation fails, the result retains `action` and `observationError` with `snapshot: null` and `screenshot: null`. A timeout or SSH disconnect may also leave delivery uncertain. The caller must inspect the target before deciding whether another action is safe.
 
 ## Settings and mobile boundaries

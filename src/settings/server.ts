@@ -47,7 +47,7 @@ export async function startJavisSettings(options: SettingsOptions): Promise<Sett
       response.setHeader('cache-control', 'no-store')
       response.setHeader('referrer-policy', 'no-referrer')
       response.setHeader('x-content-type-options', 'nosniff')
-      response.setHeader('content-security-policy', `default-src 'none'; style-src 'unsafe-inline'; script-src 'nonce-${nonce}'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'`)
+      response.setHeader('content-security-policy', `default-src 'none'; style-src 'unsafe-inline'; script-src 'nonce-${nonce}'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'`)
       if (request.headers.host !== expectedHost || !request.url?.startsWith(prefix)) {
         json(response, 404, { error: 'Not found' })
         return

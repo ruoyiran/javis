@@ -2,6 +2,44 @@ import { expect, it } from 'vitest'
 import { runCli } from '../../src/cli/run-cli.js'
 import { JavisError } from '../../src/runtime/public.js'
 
+it.each([
+  ['help', 'computer', 'drag'],
+  ['computer', 'help', 'drag'],
+  ['--help', 'computer', 'drag'],
+  ['computer', 'drag', '--help=true']
+])('resolves a command help path from %j', async (...argv) => {
+  const lines: string[] = []
+  expect(await runCli(argv as string[], { stdout: line => lines.push(line), stderr: () => {} })).toBe(0)
+  expect(lines[0]).toContain('javis computer drag')
+  expect(lines[0]).toContain('--from-element-index')
+})
+
+it('uses JSON envelopes with inline global flags before a command', async () => {
+  const lines: string[] = []
+  expect(await runCli(['--json=true', 'computer', 'list-apps'], { call: async () => ({ apps: [] }), stdout: line => lines.push(line), stderr: () => {} })).toBe(0)
+  expect(JSON.parse(lines[0])).toEqual({ ok: true, result: { apps: [] } })
+})
+
+it('rejects malformed stdin commands before consuming the payload', async () => {
+  let read = false
+  const lines: string[] = []
+  expect(await runCli(['computer', 'click', '--app', 'Finder', '--text-stdin', '--json'], {
+    stdin: async () => { read = true; return 'private input' }, stdout: line => lines.push(line), stderr: () => {}
+  })).toBe(1)
+  expect(read).toBe(false)
+  expect(JSON.parse(lines[0])).toMatchObject({ ok: false, error: { code: 'invalid_argument' } })
+})
+
+it('shows computer command help without contacting a desktop provider or reading stdin', async () => {
+  const lines: string[] = []
+  expect(await runCli(['computer', 'click', '--help'], { stdout: line => lines.push(line), stderr: () => {} })).toBe(0)
+  expect(lines[0]).toContain('javis computer click')
+  expect(lines[0]).toContain('--element-index')
+  expect(lines[0]).toContain('--modifiers')
+  expect(lines[0]).toContain('--session')
+  expect(lines[0]).toContain('--full-tree')
+})
+
 it('returns a session and a snapshot in the JSON command result', async () => {
   const lines: string[] = []
   const status = await runCli(

@@ -12,6 +12,7 @@ import { parseDaemonRequest } from './daemon-request.js'
 import { JavisError } from './error.js'
 import { createProviderForPlatform } from './provider-selection.js'
 import { validateComputerProviderActionParams } from './computer-provider-action-validation.js'
+import { validateComputerRequestParams } from './computer-request-validation.js'
 import { SessionRuntime, type JavisMethod } from './session.js'
 import { JsonLineDecoder, DeliveryQueue } from './transport.js'
 import { readJavisPermissionStatus, openJavisPermissions, resetJavisPermissions, cancelJavisPermissionOperations } from '../permissions.js'
@@ -100,6 +101,7 @@ async function readDaemonToken(target: DaemonEndpoint): Promise<string | undefin
 }
 
 export async function callJavis(method: JavisDaemonMethod, params: Record<string, unknown>): Promise<unknown> {
+  if (!permissionMethods.has(method)) validateComputerRequestParams(method as JavisMethod, params)
   if (actions.has(method)) await validateComputerProviderActionParams(method as Parameters<typeof validateComputerProviderActionParams>[0], params)
   const target = endpoint()
   await privateDirectory(target.directory)
