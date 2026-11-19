@@ -21,6 +21,7 @@ try {
     ['typecheck', 'npm', ['run', 'typecheck']],
     ['tests', 'npm', ['test']],
     ['build', 'npm', ['run', 'build']],
+    ['packaged-licenses', process.execPath, ['-e', "const fs=require('node:fs');for(const name of ['Javis-MIT.txt','Orca-MIT.txt','SymbolsNerdFontMono-OFL.txt','Electron-LICENSE.txt','Chromium-LICENSES.html','agent-browser-LICENSE.txt']){if(!fs.statSync('dist/browser/licenses/'+name).size)throw Error('Empty packaged notice: '+name)}console.log('Packaged browser notices are present')"]],
     ['hidden-browser', process.execPath, ['tests/browser/runtime/hidden-browser-acceptance.mjs']]
   ]) {
     const log = join(artifacts, `${name}.log`)
