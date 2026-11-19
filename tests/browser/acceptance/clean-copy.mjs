@@ -13,7 +13,7 @@ const results = []
 try {
   await cp(repository, copy, { recursive: true, verbatimSymlinks: true, filter: path => {
     const parts = relative(repository, path).split(sep)
-    return !parts.some(part => ['.git', 'node_modules', 'dist', 'build', '.superpowers'].includes(part)) && !(parts[0] === 'native' && parts.includes('.build'))
+    return !['.git', 'node_modules', 'dist', 'build', '.superpowers'].includes(parts[0]) && !parts.includes('node_modules') && !(parts[0] === 'native' && parts.includes('.build'))
   } })
   const lock = JSON.parse(await readFile(join(copy, 'package-lock.json'), 'utf8'))
   for (const entry of Object.values(lock.packages)) {
