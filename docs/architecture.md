@@ -17,6 +17,16 @@ flowchart LR
   Provider --> Windows[PowerShell UI Automation]
 ```
 
+## Browser process
+
+The native CUA provider remains separate from the independently launched Javis Browser process. The same private daemon routes `browser.*` calls to its Electron service. Page/profile/context state lives beneath Javis's own `browser/` data directory. Electron and the browser renderer/preload code are bundled locally; a sibling Orca checkout and an Orca runtime are unnecessary.
+
+The daemon authenticates the browser's private channel with its owned child PID and one-time token. Source guest registration, command queues, URL/ref checks, profiles, extension/password/site permissions, leases and frame credit operate inside this process. Persistent daemon and SSH browser streams share that same process, preserving page and profile ownership. The paired mobile gateway binds browser page, context, profile, displayed frame and geometry to a device; it never trusts a different target supplied in an action body.
+
+Source network subscriptions are admitted by the engine's actual authority and grant, before opening local or selected SSH resources. Revocation stops egress immediately and releases authority separately. File/document requests use context roots and canonical document grants; remote paths are interpreted on the selected host.
+
+The macOS distribution keeps the signed Swift helper and Node controller identity and adds a separately signed `com.royran.javis.browser` bundle. Linux/Windows distribution includes its own Electron and matching automation binary. A configured external Chromium provider is available after safe Electron startup failure; its source capability limitations remain explicit.
+
 ## Process ownership
 
 The CLI starts the local daemon on demand. It serializes provider requests, owns sessions and tree baselines, and stops after idle time. The daemon endpoint is a user-private Unix socket on macOS/Linux or a token-authenticated per-user named pipe on Windows; neither is a network listener. A request deadline closes the current provider generation and reaps its child after timeout. A later request starts a fresh generation. No action is automatically replayed after uncertain delivery.

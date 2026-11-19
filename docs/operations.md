@@ -83,6 +83,16 @@ javis mobile serve --bind "$LAN_IP" --port 8787 \
 
 Replace the example IP before running the commands. The phone browser or OS must trust or explicitly accept the self-signed certificate; an untrusted certificate can prevent pairing or secure-cookie use. The server prints an HTTPS URL and a one-time code valid for five minutes. Use a private LAN or tunnel. A non-loopback bind requires TLS; loopback HTTP is for testing or a trusted local reverse proxy. Pairing yields an HttpOnly, SameSite=Strict cookie with Secure on HTTPS; local loopback HTTP omits Secure for browser compatibility. Authenticated mutations also require origin and CSRF checks. Responses are no-store and do not log trees, screenshot bytes, or input text. The gateway is a separate network service; stop its process when finished. The phone controls the desktop host, not phone apps, and the page cannot supply an arbitrary SSH destination.
 
+## Browser build and recovery
+
+The browser runtime is pinned to Electron 43.8.6. Its npm package uses an explicit binary installer; the browser build installs that pinned runtime when absent and copies it into `dist/browser/electron`. Native automation binaries are packaged for the target platform. The macOS packager signs nested browser libraries/helpers and its own bundle before verifying the original Javis outer bundle; it preserves framework symlinks and the existing CUA identity.
+
+Windows additionally builds the migrated security/registry modules and the pinned, patched node-pty strict-job export against Electron headers. Install Visual Studio C++ build tools and the Node/native build prerequisites before a Windows release build. No Windows native execution is established by a Mac build.
+
+`javis daemon stop` shuts down the daemon-owned browser, native provider and connection-bound resources. Browser state lives under the selected Javis state directory's `browser/` root. Use `javis browser status --json` to inspect the process and `javis browser tab list --json` to select a page. A disconnected or timed-out action requires a fresh observation; do not replay it automatically.
+
+`JAVIS_BROWSER_EXECUTABLE` selects the source external Chromium fallback only when Electron startup fails safely. It uses its own profile and retains source capability refusals. It is not a substitute for the desktop provider when extensions, profile operations or streaming are required.
+
 ## Diagnosis and cleanup
 
 Use `javis capabilities --json` on the selected host. On macOS, use `javis permissions status --json` for TCC grants. `permission_denied` may indicate a missing macOS grant, Linux graphical session/AT-SPI problem, or unavailable Windows interactive desktop. `unsupported_capability` calls for checking installed Linux dependencies or choosing a supported action. `element_not_found`, `stale_snapshot`, and `window_stale` require a fresh observation in the same host and context. `background_unavailable` or `window_not_focused` requires a fresh observation and an explicit foreground choice if taking focus is acceptable. A timeout, transport loss, or post-action `observationError` requires inspection before any retry. Error envelopes include next-step guidance for recognized codes.

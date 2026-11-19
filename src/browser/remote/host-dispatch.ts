@@ -8,6 +8,7 @@ import { JavisError, runtimeErrorDetails } from '../../runtime/error.js'
 import { BrowserWorkspaceFiles } from '../main/workspace-files.js'
 import { readAuthorizedDocPreviewFile, readAuthorizedDocPreviewFileChunk, type DocPreviewFileTarget } from '../source/shared/document-preview/doc-preview-file-access.js'
 import type { BrowserStream } from './framed-channel.js'
+import { installAgent, readAgentInstallStatus } from '../../agent/install.js'
 
 export type BrowserHostRequest = { target: string; method: string; params: Record<string, unknown> }
 const connections = new Map<string, Promise<BrowserStream>>()
@@ -51,6 +52,18 @@ export async function dispatchBrowserHostRequest(request: BrowserHostRequest): P
     await mkdir(root(context), { recursive: true, mode: 0o700 })
     let result: unknown
     switch (method) {
+      case 'agent.status': {
+        const agent = params.agent
+        if (agent !== undefined && agent !== 'codex' && agent !== 'claude') throw new JavisError('invalid_argument', 'Unknown Javis agent')
+        result = agent === undefined ? await Promise.all([readAgentInstallStatus('codex'), readAgentInstallStatus('claude')]) : await readAgentInstallStatus(agent)
+        break
+      }
+      case 'agent.install': {
+        if (params.agent !== 'codex' && params.agent !== 'claude' && params.agent !== 'all') throw new JavisError('invalid_argument', 'Unknown Javis agent')
+        await installAgent(params.agent)
+        result = { installed: params.agent }
+        break
+      }
       case 'files.readDocPreview': result = await readAuthorizedDocPreviewFile({ ...previewTarget(params, root(context)), maxTextBytes: 10 * 1024 * 1024, maxBinaryBytes: 20 * 1024 * 1024 }); break
       case 'files.readDocPreviewChunk': result = await readAuthorizedDocPreviewFileChunk(previewTarget(params, root(context)), number(params.offset), number(params.length)); break
       case 'files.readChunk': result = await files.readFileExplorerChunk(context, text(params.relativePath), number(params.offset), number(params.length)); break

@@ -1,12 +1,13 @@
 import { JavisError } from './error.js'
 import { callJavis } from './public.js'
 import { callRemoteJavis } from './remote-stdio.js'
+import type { BrowserDaemonMethod } from './daemon-dispatch.js'
 import type { JavisMethod } from './session.js'
 
 export type JavisTarget = { host?: string; context?: string }
 
 export async function callTarget(
-  method: JavisMethod,
+  method: JavisMethod | BrowserDaemonMethod,
   params: Record<string, unknown>,
   target: JavisTarget = {}
 ): Promise<unknown> {

@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "target": "ES2024",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "types": [
+      "node",
+      "electron",
+      "chrome",
+      "vite/client"
+    ]
+  },
+  "include": [
+    "src/browser/main/**/*.ts",
+    "src/browser/source/preload/javis-browser.ts",
+    "src/browser/source/preload/browser-guest.ts",
+    "src/browser/source/preload/doc-preview-link.ts",
+    "src/browser/source/preload/browser-extension-preload.ts",
+    "src/browser/source/preload/browser-extension-worker-shim.ts",
+    "src/browser/source/preload/browser-extension-content-script-api.ts",
+    "src/browser/source/main/browser/extensions/native-messaging/browser-extension-native-host-supervisor-entry.ts"
+  ]
+}

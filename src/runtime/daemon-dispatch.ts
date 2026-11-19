@@ -1,7 +1,22 @@
 import { JavisError } from './error.js'
 import type { JavisMethod } from './session.js'
+import { browserMethods, validateBrowserParams, type BrowserMethod } from '../browser/contract/index.js'
 
-export type JavisDaemonMethod = JavisMethod | 'permissionsStatus' | 'permissionsOpen' | 'permissionsReset'
+export type BrowserDaemonMethod = BrowserMethod | 'browser.open' | 'browser.status'
+export type JavisDaemonMethod = JavisMethod | 'permissionsStatus' | 'permissionsOpen' | 'permissionsReset' | BrowserDaemonMethod
+const browserMethodNames = new Set<string>([...browserMethods, 'browser.open', 'browser.status'])
+export function isBrowserDaemonMethod(method: string): method is BrowserDaemonMethod { return browserMethodNames.has(method) }
+export function browserDaemonParams(method: BrowserDaemonMethod, params: Record<string, unknown>): Record<string, unknown> {
+  if (method === 'browser.open') {
+    if (Object.keys(params).some(key => key !== 'worktree') || params.worktree !== undefined && (typeof params.worktree !== 'string' || !params.worktree)) throw new JavisError('invalid_argument', 'Browser open accepts only a non-empty worktree context')
+    return params
+  }
+  if (method === 'browser.status') {
+    if (Object.keys(params).length) throw new JavisError('invalid_argument', 'Browser status does not accept parameters')
+    return params
+  }
+  return validateBrowserParams(method, params)
+}
 
 type PermissionId = 'accessibility' | 'screenshots'
 type PermissionOperations = {
@@ -12,10 +27,16 @@ type PermissionOperations = {
 
 export function createDaemonDispatch(
   computer: (method: JavisMethod, params: Record<string, unknown>) => Promise<unknown>,
-  permissions: PermissionOperations
+  permissions: PermissionOperations,
+  browser?: (method: BrowserDaemonMethod, params: Record<string, unknown>, canDeliver: () => boolean) => Promise<unknown>
 ): (method: JavisDaemonMethod, params: Record<string, unknown>, canDeliver?: () => boolean) => Promise<unknown> {
   return async (method, params, canDeliver = () => true) => {
     if (!canDeliver()) throw new JavisError('action_timeout', 'Caller disconnected before request delivery')
+    if (isBrowserDaemonMethod(method)) {
+      const validated = browserDaemonParams(method, params)
+      if (!browser) throw new JavisError('browser_host_unavailable', 'The browser service is unavailable')
+      return browser(method, validated, canDeliver)
+    }
     if (method === 'permissionsStatus' || method === 'permissionsReset') {
       if (Object.keys(params).length) throw new JavisError('invalid_argument', `${method} does not accept parameters`)
       return method === 'permissionsStatus' ? permissions.status() : permissions.reset(canDeliver)

@@ -10,9 +10,12 @@ import { callRemoteJavis } from '../runtime/remote-stdio.js'
 import { computerHelp } from './help.js'
 import { formatComputerResult, formatPermissionResult } from './computer-format.js'
 import { splitCliArguments } from './arguments.js'
+import { browserInvocationArgs, runBrowserCli } from '../browser/cli/index.js'
+import type { BrowserCall } from '../browser/contract/index.js'
 
 type Deps = {
   call?: (method: JavisMethod, params: Record<string, unknown>, target: JavisTarget) => Promise<unknown>
+  browserCall?: BrowserCall
   cwd?: string
   remotePermissionsStatus?: (host: string) => Promise<unknown>
   permissionCall?: (method: 'permissionsStatus' | 'permissionsOpen' | 'permissionsReset', params: Record<string, unknown>) => Promise<unknown>
@@ -37,6 +40,11 @@ export async function runCli(argv: string[], deps: Deps = {}): Promise<number> {
   const stderr = deps.stderr ?? console.error
   let jsonRequested = argv.some(token => token === '--json' || token.startsWith('--json='))
   try {
+    const browserArgs = browserInvocationArgs(argv)
+    if (browserArgs !== null) return runBrowserCli(browserArgs, {
+      call: deps.browserCall ?? ((method, params, target) => callTarget(method as Parameters<typeof callTarget>[0], params, target)),
+      stdout, stderr, cwd: deps.cwd ?? process.cwd()
+    })
     const args = splitCliArguments(argv)
     jsonRequested = args.flags.has('json')
     const help = computerHelp(args)
