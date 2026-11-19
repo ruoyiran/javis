@@ -28,6 +28,8 @@ try {
   const environment = { ...process.env, ORCA_BACKGROUND_LAUNCH: '1', JAVIS_STATE_DIR: join(directory, 'state'), JAVIS_TEST_ARTIFACT_DIRECTORY: artifacts }
   delete environment.npm_config_registry
   environment.NPM_CONFIG_REGISTRY = 'https://registry.npmjs.org'
+  delete environment.npm_config_cache
+  environment.NPM_CONFIG_CACHE = join(directory, 'npm-cache')
   for (const [name, command, args] of [
     ['npm-ci', 'npm', ['ci']],
     ['typecheck', 'npm', ['run', 'typecheck']],
@@ -39,8 +41,10 @@ try {
     const log = join(artifacts, `${name}.log`)
     const file = await open(log, 'w')
     const started = Date.now()
+    const stageEnvironment = { ...environment }
+    if (name === 'tests') delete stageEnvironment.JAVIS_STATE_DIR
     const exitCode = await new Promise((resolve, reject) => {
-      const child = spawn(command, args, { cwd: copy, env: environment, stdio: ['ignore', file.fd, file.fd], windowsHide: true })
+      const child = spawn(command, args, { cwd: copy, env: stageEnvironment, stdio: ['ignore', file.fd, file.fd], windowsHide: true })
       child.once('error', reject); child.once('exit', code => resolve(code))
     })
     await file.close()
