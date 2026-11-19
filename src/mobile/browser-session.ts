@@ -103,9 +103,15 @@ export class MobileBrowserSession {
     this.requiresRefresh = true
     if (!target) throw new JavisError('stale_snapshot', 'Select a browser page first')
     if (this.subscriptionId) await this.call('browser.screencast.unsubscribe', { subscriptionId: this.subscriptionId })
-    this.subscriptionId = null; this.frameSeq = null; this.streamPage = target.page; this.frameGeometry = undefined
-    const ready = await this.call('browser.screencast', { page: target.page, worktree: target.worktree, format: 'jpeg', quality: 70, maxWidth: 3840, maxHeight: 2160, viewportWidth: params.width, viewportHeight: params.height, deviceScaleFactor: params.deviceScaleFactor, mobile: true, frameAck: 1 }) as Record<string, unknown>
     if (generation !== this.generation || streamGeneration !== this.streamGeneration || this.target !== target) throw new JavisError('stale_snapshot', 'Browser stream selection changed')
+    this.subscriptionId = null; this.frameSeq = null; this.streamPage = target.page; this.frameGeometry = undefined
+    const request = this.call('browser.screencast', { page: target.page, worktree: target.worktree, format: 'jpeg', quality: 70, maxWidth: 3840, maxHeight: 2160, viewportWidth: params.width, viewportHeight: params.height, deviceScaleFactor: params.deviceScaleFactor, mobile: true, frameAck: 1 })
+    const connection = this.opening
+    const ready = await request as Record<string, unknown>
+    if (generation !== this.generation || streamGeneration !== this.streamGeneration || this.target !== target) {
+      if (typeof ready.subscriptionId === 'string') void connection?.then(stream => stream.call('browser.screencast.unsubscribe', { subscriptionId: ready.subscriptionId })).catch(() => {})
+      throw new JavisError('stale_snapshot', 'Browser stream selection changed')
+    }
     this.subscriptionId = String(ready.subscriptionId)
     return ready
   }

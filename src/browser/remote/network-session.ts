@@ -16,6 +16,8 @@ export class BrowserHostNetworkSessions {
 
   call(params: Record<string, unknown>): unknown {
     if (params.action === 'open') {
+      if (typeof params.admissionId !== 'string' || !params.admissionId) throw new JavisError('access_denied', 'Source browser network admission required')
+      if (this.admissions.has(params.admissionId)) throw new JavisError('access_denied', 'Browser network admission was already used')
       if (this.sessions.size >= 32) throw new JavisError('access_denied', 'Browser network route budget exhausted')
       const subscriptionId = randomUUID()
       const tunnelGeneration = params.tunnelGeneration
@@ -31,7 +33,7 @@ export class BrowserHostNetworkSessions {
         onClose: () => { memory.release(); this.sessions.delete(subscriptionId); this.emit({ method: 'network.browserTunnel', params: { subscriptionId, type: 'closed', tunnelGeneration } }) }
       })
       this.sessions.set(subscriptionId, session)
-      if (typeof params.admissionId === 'string') this.admissions.set(params.admissionId, subscriptionId)
+      this.admissions.set(params.admissionId, subscriptionId)
       return { subscriptionId, type: 'ready', tunnelGeneration, capabilities: ['network.browserTunnel.window.v2'] }
     }
     if (typeof params.subscriptionId !== 'string') throw new JavisError('invalid_argument', 'Browser network subscription is required')
@@ -42,6 +44,6 @@ export class BrowserHostNetworkSessions {
     session.handleBinary(Buffer.from(params.bytes, 'base64'))
     return { sent: true }
   }
-  closeAdmission(id: string): void { const subscription = this.admissions.get(id); if (subscription) this.sessions.get(subscription)?.close(); this.admissions.delete(id) }
+  closeAdmission(id: string): void { const subscription = this.admissions.get(id); this.admissions.delete(id); if (subscription) this.sessions.get(subscription)?.close() }
   close(): void { for (const session of [...this.sessions.values()]) session.close(); this.sessions.clear(); this.admissions.clear() }
 }

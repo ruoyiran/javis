@@ -18,7 +18,7 @@ test('executes browser network traffic on the selected host and reports blocked 
     return true
   })
   const next = async () => { while (!queue.length) await new Promise<void>(resolve => wake = resolve); return queue.shift()! }
-  const ready = sessions.call({ action: 'open', tunnelGeneration: 1 }) as { subscriptionId: string }
+  const ready = sessions.call({ action: 'open', admissionId: 'loopback-route', tunnelGeneration: 1 }) as { subscriptionId: string }
   const send = (streamId: number, opcode: BrowserNetworkTunnelOpcode, payload: Uint8Array) => sessions.call({ action: 'send', subscriptionId: ready.subscriptionId, bytes: Buffer.from(encodeBrowserNetworkTunnelFrame({ opcode, tunnelGeneration: 1, streamId, payload })).toString('base64') })
   try {
     send(1, BrowserNetworkTunnelOpcode.Open, encodeBrowserNetworkTunnelOpen({ host: '127.0.0.1', port: address.port }))
@@ -38,4 +38,19 @@ test('executes browser network traffic on the selected host and reports blocked 
     for (const socket of sockets) socket.destroy()
     await new Promise<void>(resolve => destination.close(() => resolve()))
   }
+})
+
+test('an admission cannot open a second session that escapes revocation', () => {
+  const terminal: unknown[] = []
+  const sessions = new BrowserHostNetworkSessions(event => {
+    if (event.params.type === 'closed') terminal.push({ type: event.params.type, tunnelGeneration: event.params.tunnelGeneration })
+    return true
+  })
+  const ready = sessions.call({ action: 'open', admissionId: 'owner-route', tunnelGeneration: 9 }) as { subscriptionId: string }
+  try {
+    expect(() => sessions.call({ action: 'open', admissionId: 'owner-route', tunnelGeneration: 9 })).toThrow('admission was already used')
+    sessions.closeAdmission('owner-route')
+    expect(terminal).toEqual([{ type: 'closed', tunnelGeneration: 9 }])
+    expect(() => sessions.call({ action: 'send', subscriptionId: ready.subscriptionId, bytes: '' })).toThrow('route is offline')
+  } finally { sessions.close() }
 })

@@ -25,12 +25,16 @@ export class BrowserHostSubscriptions {
   private retire(id: string, route: HostRoute, notify = true): Promise<void> {
     if (!route.closed && notify && route.tunnelGeneration !== undefined) void callBrowser('browser.host.subscription', { id, response: { ok: true, result: { type: 'closed', tunnelGeneration: route.tunnelGeneration }, _meta: route.metadata } }).catch(() => {})
     route.closed = true
-    this.routes.delete(id)
+    if (this.routes.get(id) === route) this.routes.delete(id)
     if (route.admitted && route.authority && !route.release) {
-      route.release = route.authority('browser.host.release', { id }).then(() => {}, () => {})
+      route.release = Promise.resolve().then(() => route.authority!('browser.host.release', { id })).then(() => {}, () => {})
     }
-    const released = route.release ?? Promise.resolve()
-    return released.finally(() => route.closeResource?.())
+    const closeResource = route.closeResource
+    route.closeResource = undefined
+    route.stream = undefined
+    route.callResource = undefined
+    closeResource?.()
+    return Promise.resolve()
   }
 
   async accept(event: BrowserStreamEvent): Promise<void> {
@@ -128,5 +132,5 @@ export class BrowserHostSubscriptions {
       if (!cancelled) await callBrowser('browser.host.subscription', { id, response: { ok: false, error: runtimeErrorDetails(error) } })
     }
   }
-  async close(): Promise<void> { this.stopped = true; await Promise.all([...this.routes].map(([id, route]) => this.retire(id, route))) }
+  async close(): Promise<void> { this.stopped = true; await Promise.allSettled([...this.routes].map(async ([id, route]) => this.retire(id, route))) }
 }

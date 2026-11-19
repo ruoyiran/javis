@@ -129,3 +129,53 @@ test('remote renderer stream preserves packet admission and invokes frame acknow
   expect(emitted[2]).toEqual({ method: 'browser.host.invokeReply', params: { id: 'renderer-stream', requestId: 'ack-1', response: { ok: true, result: { credited: true }, _meta: { runtimeId: 'remote-authority' } } } })
   await subscriptions.close()
 })
+
+import net from 'node:net'
+import { encodeBrowserNetworkTunnelFrame, encodeBrowserNetworkTunnelOpen, BrowserNetworkTunnelOpcode } from '../../../src/browser/source/shared/browser/network/tunnels/browser-network-tunnel-protocol.js'
+
+test('revocation closes actual native egress while authority release remains unresolved', async () => {
+  let opened!: () => void; let closed!: () => void; let release!: () => void
+  const connected = new Promise<void>(resolve => opened = resolve)
+  const disconnected = new Promise<void>(resolve => closed = resolve)
+  const releasePending = new Promise<void>(resolve => release = resolve)
+  const sockets = new Set<net.Socket>()
+  const destination = net.createServer(socket => { sockets.add(socket); opened(); socket.once('close', () => { sockets.delete(socket); closed() }) })
+  await new Promise<void>(resolve => destination.listen(0, '127.0.0.1', resolve))
+  hooks.dispatch = async method => {
+    if (method === 'browser.host.admit') return { admitted: true, tunnelGeneration: 7, _meta: { runtimeId: 'authority-1' } }
+    if (method === 'browser.host.release') await releasePending
+    return { accepted: true }
+  }
+  const subscriptions = new BrowserHostSubscriptions()
+  try {
+    await subscriptions.accept({ method: 'browser.host.subscribe', params: { ...networkRequest, id: 'route-active' } })
+    const bytes = encodeBrowserNetworkTunnelFrame({ opcode: BrowserNetworkTunnelOpcode.Open, tunnelGeneration: 7, streamId: 1, payload: encodeBrowserNetworkTunnelOpen({ host: '127.0.0.1', port: (destination.address() as net.AddressInfo).port }) })
+    await subscriptions.accept({ method: 'browser.host.sendBinary', params: { id: 'route-active', bytes: Buffer.from(bytes).toString('base64') } })
+    await connected
+    await subscriptions.accept({ method: 'browser.host.revoked', params: { id: 'route-active', reason: 'released' } })
+    await disconnected
+    release()
+  } finally {
+    release(); await subscriptions.close()
+    for (const socket of sockets) socket.destroy()
+    await new Promise<void>(resolve => destination.close(() => resolve()))
+  }
+})
+
+test('revocation closes the selected SSH resource before its pending authority release', async () => {
+  let release!: () => void
+  const releasePending = new Promise<void>(resolve => release = resolve)
+  const terminal: { type: string; host: string }[] = []
+  hooks.dispatch = async () => ({ accepted: true })
+  hooks.connect = async () => ({ close: () => terminal.push({ type: 'closed', host: 'fixture-ssh' }), call: async (method, params) => {
+    if (method === '__browserAuthority' && params.method === 'browser.host.admit') return { admitted: true, tunnelGeneration: 4, _meta: { runtimeId: 'remote-authority' } }
+    if (method === '__browserAuthority' && params.method === 'browser.host.release') await releasePending
+    return { subscriptionId: 'remote-route', tunnelGeneration: 4 }
+  } })
+  const subscriptions = new BrowserHostSubscriptions()
+  try {
+    await subscriptions.accept({ method: 'browser.host.subscribe', params: { ...networkRequest, target: 'fixture-ssh', id: 'remote-route' } })
+    await subscriptions.accept({ method: 'browser.host.revoked', params: { id: 'remote-route' } })
+    expect(terminal).toEqual([{ type: 'closed', host: 'fixture-ssh' }])
+  } finally { release(); await subscriptions.close() }
+})

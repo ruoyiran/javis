@@ -76,3 +76,46 @@ test('a disconnected observation cannot reopen a channel or restore action fresh
   await expect(observation).rejects.toThrow('observation was cancelled')
   await expect(browser.act('browser.type', { input: 'unsafe' })).rejects.toThrow('Refresh before acting')
 })
+
+test('closing while old unsubscribe is pending prevents the restart continuation from opening another stream', async () => {
+  let unsubscribed!: () => void
+  const unsubscribePending = new Promise<void>(resolve => unsubscribed = resolve)
+  let entered!: () => void
+  const unsubscribeEntered = new Promise<void>(resolve => entered = resolve)
+  let cancelled = false
+  const browser = new MobileBrowserSession(async options => {
+    if (cancelled) throw new Error('Closed session reopened a browser connection')
+    return { close() { cancelled = true }, call: async method => {
+    if (method === 'browser.screencast.unsubscribe') { entered(); await unsubscribePending; return { unsubscribed: true } }
+    if (method === 'browser.screencast') {
+      options.onEvent({ method, params: { type: 'ready', browserPageId: 'page-a', subscriptionId: 'original-stream' } })
+      return { subscriptionId: 'original-stream' }
+    }
+    throw new Error('Unexpected browser operation')
+  } } })
+  browser.target = { page: 'page-a', worktree: 'default', sessionId: 'session-a', url: '', width: 0, height: 0, observedAt: 0 }
+  await browser.startStream({ width: 400, height: 800 })
+  const restart = browser.startStream({ width: 800, height: 400 })
+  await unsubscribeEntered
+  browser.close(); unsubscribed()
+  await expect(restart).rejects.toThrow('stream selection changed')
+  await expect(browser.act('browser.type', { input: 'unsafe' })).rejects.toThrow('Refresh before acting')
+})
+
+test('a late stream result is unsubscribed on its original connection after page selection changes', async () => {
+  let ready!: (value: unknown) => void
+  const startPending = new Promise(resolve => ready = resolve)
+  const terminal: unknown[] = []
+  const browser = new MobileBrowserSession(async () => ({ close() {}, call: async (method, params) => {
+    if (method === 'browser.screencast') return startPending
+    if (method === 'browser.screencast.unsubscribe') { terminal.push({ method, params }); return { unsubscribed: true } }
+    throw new Error('Unexpected browser operation')
+  } }))
+  browser.target = { page: 'page-a', worktree: 'default', sessionId: 'session-a', url: '', width: 0, height: 0, observedAt: 0 }
+  const starting = browser.startStream({ width: 400, height: 800 })
+  await browser.select({ page: 'page-b', worktree: 'default', sessionId: 'session-b', url: '', width: 0, height: 0, observedAt: 0 })
+  ready({ subscriptionId: 'late-stream-a' })
+  await expect(starting).rejects.toThrow('stream selection changed')
+  expect(terminal).toEqual([{ method: 'browser.screencast.unsubscribe', params: { subscriptionId: 'late-stream-a' } }])
+  browser.close()
+})
