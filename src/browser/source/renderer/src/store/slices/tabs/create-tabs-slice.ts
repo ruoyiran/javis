@@ -1,3 +1,4 @@
+import { editorTabRetirement } from '../editor/tabs/editor-tab-retirement'
 import { createTabsLabelActions } from './tabs-label-actions'
 import { hasUnsentBrowserNotes } from '../browser/annotations/browser-page-annotation'
 import type { StateCreator } from 'zustand'
@@ -47,7 +48,7 @@ export const createTabsSlice: StateCreator<AppState, [], [], TabsSlice> = (set, 
     if (!found) return null
     const { tab, worktreeId: context } = found
     if (tab.contentType==='browser' && get().browserTabsByWorktree[context]?.some((row)=>row.id===tab.entityId)) { get().closeBrowserTab(tab.entityId); return {closedTabId:id,wasLastTab:!(get().unifiedTabsByWorktree[context]?.length),worktreeId:context} }
-    if (tab.contentType==='editor' && !options?.editorRetirementHandled && get().openFiles.some((file)=>file.id===tab.entityId)) { get().closeFile(tab.entityId); return {closedTabId:id,wasLastTab:!(get().unifiedTabsByWorktree[context]?.length),worktreeId:context} }
+    const retireEditor=tab.contentType==='editor' && !options?.editorRetirementHandled ? editorTabRetirement(set,get,get(),tab) : undefined
     set((state) => {
       const tabs = (state.unifiedTabsByWorktree[context] ?? []).filter((item) => item.id !== id)
       const groups = (state.groupsByWorktree[context] ?? []).map((group) => {
@@ -58,6 +59,7 @@ export const createTabsSlice: StateCreator<AppState, [], [], TabsSlice> = (set, 
       const next = { unifiedTabsByWorktree: { ...state.unifiedTabsByWorktree, [context]: tabs }, groupsByWorktree: { ...state.groupsByWorktree, [context]: groups } }
       return { ...next, ...buildActiveSurfacePatch({ ...state, ...next }, context, state.activeGroupIdByWorktree[context]) }
     })
+    retireEditor?.()
     return { closedTabId: tab.id, wasLastTab: !(get().unifiedTabsByWorktree[context]?.length), worktreeId: context }
   },
   closeUnifiedTabs: (ids) => { for (const id of ids) get().closeUnifiedTab(id) },

@@ -1,3 +1,6 @@
+import { BackgroundBrowserContexts } from './background-browser-contexts'
+import { closeGuardedTab } from './guarded-tab-close'
+import { hasUnsentBrowserNotes } from '../source/renderer/src/store/slices/browser/annotations/browser-page-annotation'
 import { FLOATING_TERMINAL_WORKTREE_ID } from '../source/shared/constants'
 import BrowserPaneOverlayLayer from '../source/renderer/src/components/browser-pane/assemble-chrome/BrowserPaneOverlayLayer'
 import { useJavisContexts } from '../source/renderer/src/store/workspaces/javis-context-catalog'
@@ -36,8 +39,17 @@ export const BrowserDragContext = createContext<ReturnType<typeof useTabDragSpli
 function BrowserGroup({ context, groupId }: { context: string; groupId: string }): React.JSX.Element {
   const state = useAppStore()
   const confirm = useConfirmationDialog()
-  const closeSource = async (tabId: string): Promise<void> => { const tab = useAppStore.getState().getTab(tabId); if (!tab) return; const file = useAppStore.getState().openFiles.find((file) => file.id === tab.entityId); if (!file) return; if (file.isDirty && !await confirm({title:'Discard unsaved changes?',description:file.relativePath,confirmLabel:'Discard',confirmVariant:'destructive'})) return; useAppStore.getState().closeFile(file.id) }
-  useEffect(() => { const close = (event: Event) => { const id=(event as CustomEvent<{tabId:string}>).detail.tabId; if (useAppStore.getState().getTab(id)?.groupId===groupId) void closeSource(id) }; window.addEventListener('javis-close-source',close); return () => window.removeEventListener('javis-close-source',close) }, [groupId,confirm])
+  const closeTab = async (tabId:string,bulk=false):Promise<void> => {
+    const latest=useAppStore.getState(),tab=latest.getTab(tabId);if(!tab)return
+    const file=latest.openFiles.find((file)=>file.id===tab.entityId)
+    await closeGuardedTab(tab,{pinned:tab.isPinned===true,dirty:file?.isDirty===true,unsentNotes:tab.contentType==='browser' && hasUnsentBrowserNotes(latest,tab.entityId)},bulk,{
+      confirmPinned:()=>latest.settings?.confirmClosePinnedTab===false?Promise.resolve(true):confirm({title:'Close pinned tab?',description:tab.label,confirmLabel:'Close',confirmVariant:'destructive'}),
+      confirmDirty:()=>confirm({title:'Discard unsaved changes?',description:file?.relativePath,confirmLabel:'Discard',confirmVariant:'destructive'}),
+      confirmNotes:()=>confirm({title:'Discard unsent notes?',description:tab.label,confirmLabel:'Discard',confirmVariant:'destructive'}),
+      retire:(id)=>useAppStore.getState().closeUnifiedTab(id)
+    })
+  }
+  useEffect(()=>{const close=(event:Event)=>{const {tabId,bulk}=(event as CustomEvent<{tabId:string;bulk?:boolean}>).detail;if(useAppStore.getState().getTab(tabId)?.groupId===groupId)void closeTab(tabId,bulk)};window.addEventListener('javis-close-source',close);return()=>window.removeEventListener('javis-close-source',close)},[groupId,confirm])
   const drag = useContext(BrowserDragContext)
   const { setNodeRef } = useDroppable({ id: getTabPaneBodyDroppableId(groupId), data: { kind: 'pane-body', groupId, worktreeId: context }, disabled: !drag?.activeDrag })
   const bodyRef = useCallback((node: HTMLDivElement | null) => { setNodeRef(node); return node ? registerTabGroupBody(groupId, node) : undefined }, [setNodeRef, groupId])
@@ -48,7 +60,7 @@ function BrowserGroup({ context, groupId }: { context: string; groupId: string }
   const tabs = (state.unifiedTabsByWorktree[context] ?? []).filter((tab) => tab.groupId === groupId).sort((a, b) => a.sortOrder - b.sortOrder)
   const focused = state.activeGroupIdByWorktree[context] === groupId
   const active = tabs.find((tab) => tab.id === group?.activeTabId) ?? tabs[0]
-  const close = (id: string, bulk = false): void => { dispatchWorkspaceTabCommand({ type: 'close', target: { kind: 'browser-source', sourceId: id }, bulk }) }
+  const close = (id:string,bulk=false):void => {const tab=tabs.find((tab)=>tab.entityId===id);if(tab)void closeTab(tab.id,bulk)}
   return <section className="flex min-h-0 min-w-0 flex-1 flex-col" onPointerDown={() => state.focusGroup(context, groupId)}>
     <div className="flex h-9 shrink-0 items-center border-b border-border bg-background">
       <div className="scrollbar-sleek flex min-w-0 flex-1 overflow-x-auto">
@@ -58,8 +70,8 @@ function BrowserGroup({ context, groupId }: { context: string; groupId: string }
             if (!browser) {
               const file = state.openFiles.find((file) => file.id === tab.entityId)
               if (!file) return null
-              const closeFile = () => { void closeSource(tab.id) }
-              return <EditorFileTab key={tab.id} file={{...file, tabId: tab.id}} isActive={active?.id === tab.id} isPinned={tab.isPinned === true} hasTabsToLeft={index > 0} hasTabsToRight={index < tabs.length - 1} tabCount={tabs.length} gitStatus={null} onActivate={() => state.activateTab(tab.id)} onClose={closeFile} onCloseOthers={() => state.closeOtherTabs(tab.id)} onCloseToLeft={() => state.closeTabsToLeft(tab.id)} onCloseToRight={() => state.closeTabsToRight(tab.id)} onCloseAll={() => state.closeUnifiedTabs(tabs.map((entry) => entry.id))} onTogglePin={() => tab.isPinned ? state.unpinTab(tab.id) : state.pinTab(tab.id)} dragData={{kind:'tab', tabType:'editor', visibleTabId:tab.id, unifiedTabId:tab.id, groupId, worktreeId:context, label:tab.label}} dropIndicator={drag?.hoveredTabInsertion?.visibleTabId === tab.id ? drag.hoveredTabInsertion.side : undefined} />
+              const closeFile = () => { void closeTab(tab.id) }
+              return <EditorFileTab key={tab.id} file={{...file, tabId: tab.id}} isActive={active?.id === tab.id} isPinned={tab.isPinned === true} hasTabsToLeft={index > 0} hasTabsToRight={index < tabs.length - 1} tabCount={tabs.length} gitStatus={null} onActivate={() => state.activateTab(tab.id)} onClose={closeFile} onCloseOthers={() => state.closeOtherTabs(tab.id)} onCloseToLeft={() => state.closeTabsToLeft(tab.id)} onCloseToRight={() => state.closeTabsToRight(tab.id)} onCloseAll={() => tabs.forEach((entry)=>void closeTab(entry.id,true))} onTogglePin={() => tab.isPinned ? state.unpinTab(tab.id) : state.pinTab(tab.id)} dragData={{kind:'tab', tabType:'editor', visibleTabId:tab.id, unifiedTabId:tab.id, groupId, worktreeId:context, label:tab.label}} dropIndicator={drag?.hoveredTabInsertion?.visibleTabId === tab.id ? drag.hoveredTabInsertion.side : undefined} />
             }
             return <BrowserTab key={browser.id} tab={{...browser,title:tab.customLabel??browser.title}} isActive={active?.id === tab.id} isPinned={tab.isPinned === true}
               hasTabsToLeft={index > 0} hasTabsToRight={index < tabs.length - 1} tabCount={tabs.length}
@@ -120,6 +132,7 @@ export function BrowserWorkspaceApp(): React.JSX.Element {
     <div className={view==='settings' ? 'pointer-events-none absolute inset-x-0 top-9 bottom-0 flex min-h-0 flex-col opacity-0' : 'relative flex min-h-0 flex-1'}>
     <BrowserDragContext.Provider value={drag}><DndContext sensors={drag.sensors} collisionDetection={drag.collisionDetection} onDragStart={drag.onDragStart} onDragMove={drag.onDragMove} onDragOver={drag.onDragOver} onDragEnd={drag.onDragEnd} onDragCancel={drag.onDragCancel}><div ref={drag.setDragRootNode} className="relative flex min-h-0 flex-1">{layout ? <BrowserLayout context={context} node={layout} /> : group ? <BrowserGroup context={context} groupId={group.id} /> : null}<BrowserPaneOverlayLayer worktreeId={context} isWorktreeActive={view!=='settings'} /></div></DndContext></BrowserDragContext.Provider>
     </div>
+    <BackgroundBrowserContexts />
     <FloatingBrowserWorkspace />
   </div>
 }

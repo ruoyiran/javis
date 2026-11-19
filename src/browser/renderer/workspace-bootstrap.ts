@@ -23,7 +23,7 @@ export async function bootstrapBrowserWorkspace(): Promise<WorkspaceLifetime> {
   if (!bootstrap.context || !Number.isSafeInteger(bootstrap.generation)) throw new Error('Javis browser ownership revision is missing')
   carried = bootstrap.session ?? getDefaultWorkspaceSession()
   const contexts = bootstrap.contexts ?? [{ id: bootstrap.context, owner: { kind: 'local' as const } }]
-  hydrateJavisContexts([...contexts, { id: FLOATING_TERMINAL_WORKTREE_ID, owner: { kind: 'local' } }])
+  hydrateJavisContexts(contexts.some((context)=>context.id===FLOATING_TERMINAL_WORKTREE_ID) ? contexts : [...contexts, {id:FLOATING_TERMINAL_WORKTREE_ID,owner:{kind:'local'}}])
   useAppStore.setState({ ...(bootstrap.ui ?? await window.api.ui.get()), settings: bootstrap.settings, activeWorktreeId: bootstrap.context, activeView: 'terminal', persistedUIReady: true, runtimeEnvironments: bootstrap.runtimeEnvironments ?? [], runtimeEnvironmentCatalogHydrated: true } as Partial<AppState>)
   useAppStore.setState(hydrateWorkspaceSession(useAppStore.getState(), carried, bootstrap.context, new Set([...contexts.map((row) => row.id), FLOATING_TERMINAL_WORKTREE_ID])))
   await useAppStore.getState().fetchBrowserSessionProfiles()
