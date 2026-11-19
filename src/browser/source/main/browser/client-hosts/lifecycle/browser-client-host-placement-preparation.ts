@@ -16,7 +16,7 @@ type BrowserClientHostPlacementPreparationOptions = {
   preference: BrowserClientHostPlacementPreference
   enabled: boolean
   resolveEnvironment: (selector: string) => KnownRuntimeEnvironment
-  getStatus: (environmentId: string) => Promise<RuntimeRpcResponse<RuntimeStatus>>
+  getStatus: (environmentId: string) => Promise<RuntimeRpcResponse<Pick<RuntimeStatus, 'runtimeId' | 'capabilities' | 'deviceScope' | 'graphStatus'>>>
   startHost: (options: {
     environment: KnownRuntimeEnvironment
     authorityRuntimeId: string

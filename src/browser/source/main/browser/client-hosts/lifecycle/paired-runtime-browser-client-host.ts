@@ -120,6 +120,8 @@ export class PairedRuntimeBrowserClientHost {
     return this.lease.sendFileChannelRequest(method, params, timeoutMs)
   }
 
+  sendRequest(method: string, params: unknown, timeoutMs: number) { if (this.closed) throw new Error('Browser client host is closed'); return this.lease.sendRequest(method, params, timeoutMs) }
+
   sendPageMetadataRequest(
     params: unknown,
     timeoutMs: number

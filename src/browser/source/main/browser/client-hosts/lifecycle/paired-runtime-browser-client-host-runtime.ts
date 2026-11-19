@@ -47,6 +47,8 @@ import {
   browserRouteWebContentsRegistry
 } from '../../routing/sessions/browser-route-session-runtime'
 
+const connectedHosts = new Map<string, PairedRuntimeBrowserClientHost>()
+export function invokePairedRuntimeBrowser(environmentId: string, method: string, params: unknown) { const host = connectedHosts.get(environmentId); if (!host) return null; return host.sendRequest(method, params, 30000) }
 export type ClientHostRouteIdentity = BrowserClientPageAuthorityIdentity & {
   orcaProfileId: string
   /** Pairs with `authorityConnectionIdentity` and `pairingAuthorityConnectionIdentity`. */
@@ -136,6 +138,7 @@ const browserClientHosts =
             onReconnected,
             onError
           })
+          connectedHosts.set(input.environmentId, host)
           fileChannel.bind(host)
           routes.pageMetadata.bind(host)
           return host
@@ -164,6 +167,8 @@ export async function startPairedRuntimeBrowserClientHost(options: {
   }
   const pairingRevision = options.environment.pairingRevision ?? options.environment.createdAt
   const connection = getPreferredPairedRuntimeConnection(options.environment)
+  connection.javisEnvironmentId = options.environment.id
+  if (connection.ssh) connection.javisCaller = { connectionId: `client-host:${getBrowserClientHostId()}`, pairedDeviceId: getBrowserClientHostId(), clientKind: 'runtime' }
   const storageScope = deriveBrowserRoutePartitionStorageScope({
     orcaProfileId,
     environmentId: options.environment.id
@@ -224,6 +229,7 @@ export function closePairedRuntimeBrowserClientHostEnvironment(
   environmentId: string,
   error?: Error
 ): Promise<boolean> {
+  connectedHosts.delete(environmentId)
   if (clientHostRouteIdentities.delete(environmentId)) {
     notifyRouteProfilesChanged()
   }
@@ -235,6 +241,7 @@ export function retirePairedRuntimeBrowserClientHostEnvironment(
   environmentId: string,
   error?: Error
 ): Promise<boolean> {
+  connectedHosts.delete(environmentId)
   if (clientHostRouteIdentities.delete(environmentId)) {
     notifyRouteProfilesChanged()
   }
@@ -242,6 +249,7 @@ export function retirePairedRuntimeBrowserClientHostEnvironment(
 }
 
 export function shutdownPairedRuntimeBrowserClientHosts(): Promise<void> {
+  connectedHosts.clear()
   if (clientHostRouteIdentities.size > 0) {
     clientHostRouteIdentities.clear()
     notifyRouteProfilesChanged()

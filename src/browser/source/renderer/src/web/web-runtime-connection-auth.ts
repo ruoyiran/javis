@@ -1,3 +1,4 @@
+import { requireEncryptedRuntimeConnection } from '../../../shared/remote-runtime/pairing/paired-runtime-connection'
 import type {
   PairedE2EEAuthReply,
   PairedE2EEClientHandshake
@@ -56,14 +57,14 @@ export class WebRuntimeConnectionAuth {
     }
   ) {
     // Why: an invalid host key fails construction, not the first connect.
-    WEB_PAIRED_E2EE_PRIMITIVES.publicKeyFromBase64(connection.hostPublicKeyB64)
-    const deviceToken = connection.credential.deviceToken
+    WEB_PAIRED_E2EE_PRIMITIVES.publicKeyFromBase64(requireEncryptedRuntimeConnection(connection).hostPublicKeyB64)
+    const deviceToken = requireEncryptedRuntimeConnection(connection).credential.deviceToken
     this.retryLater = options.retryLater
     // Absent: the pairing token over legacy framing, as before device keys.
     this.credential = options.credential ?? tokenOnlyCredentialSource(deviceToken)
     this.allowKeyMigration = options.allowKeyMigration === true
     this.tokenFraming = new WebTokenFraming(
-      connection.hostPublicKeyB64,
+      requireEncryptedRuntimeConnection(connection).hostPublicKeyB64,
       this.credential.tryV2Token === true &&
         options.reconnect !== false &&
         options.crewAttempt !== true

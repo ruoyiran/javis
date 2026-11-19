@@ -1,3 +1,4 @@
+import { requireEncryptedRuntimeConnection } from '../../../shared/remote-runtime/pairing/paired-runtime-connection'
 import type { WebRuntimeConnectionTransport } from './web-runtime-connection-transport'
 import type {
   WebRuntimeConnectionLifecycle,
@@ -124,7 +125,7 @@ export function sendWebRuntimeSocketAuth(
   const socket = owner.ws
   const auth = authOwner.sendAuth({
     handshake,
-    fallbackToken: connection.credential.deviceToken,
+    fallbackToken: requireEncryptedRuntimeConnection(connection).credential.deviceToken,
     // Why: the socket may have closed or been replaced while the auth step ran.
     isCurrent: () =>
       owner.handshake === handshake &&

@@ -53,6 +53,9 @@ export async function sendRemoteRuntimeRequestOnSocket<TResult>(
   // Internal: the framing fallback's legacy status check on a latched host uses exactly this dial.
   latchedHostCheck?: RemoteRuntimeClientHandshake
 ): Promise<RuntimeRpcResponse<TResult>> {
+  const credential = connection.credential
+  const hostPublicKey = connection.hostPublicKeyB64
+  if (!credential || !hostPublicKey) throw new RemoteRuntimeClientError('invalid_argument', 'SSH connections require the authenticated Javis stream')
   throwIfSignalAborted(signal)
   if (!isSafeTimerDelayMs(timeoutMs)) {
     throw new RemoteRuntimeClientError(
@@ -65,7 +68,7 @@ export async function sendRemoteRuntimeRequestOnSocket<TResult>(
   const serializedStatusRequest = statusRequestId
     ? serializeRemoteRuntimePayload({
         id: statusRequestId,
-        deviceToken: connection.credential.deviceToken,
+        deviceToken: credential.deviceToken,
         method: 'status.get'
       })
     : null
@@ -75,7 +78,7 @@ export async function sendRemoteRuntimeRequestOnSocket<TResult>(
   ) =>
     serializeRemoteRuntimeRpcRequest({
       requestId,
-      deviceToken: connection.credential.deviceToken,
+      deviceToken: credential.deviceToken,
       method,
       params: selectedParams,
       envelope: selectedEnvelope
@@ -190,7 +193,7 @@ export async function sendRemoteRuntimeRequestOnSocket<TResult>(
         handshake,
         sealAuth: () =>
           handshake.sealAuth(
-            { kind: 'token', deviceToken: connection.credential.deviceToken },
+            { kind: 'token', deviceToken: credential.deviceToken },
             { clientCapabilities: remoteRuntimeClientCapabilities(clientCapabilities) }
           ),
         isSettled: () => settled,
@@ -264,7 +267,7 @@ export async function sendRemoteRuntimeRequestOnSocket<TResult>(
     })
   const dialed = latchedHostCheck
     ? attempt(latchedHostCheck)
-    : withRemoteRuntimeFramingFallback(connection.hostPublicKeyB64, {
+    : withRemoteRuntimeFramingFallback(hostPublicKey, {
         attempt,
         signal,
         readStatus: (handshake) =>

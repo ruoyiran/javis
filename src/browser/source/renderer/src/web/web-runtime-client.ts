@@ -1,3 +1,4 @@
+import { requireEncryptedRuntimeConnection } from '../../../shared/remote-runtime/pairing/paired-runtime-connection'
 import {
   subscribeDedicatedWebRuntime,
   observeCrewSubscriptionSetup,
@@ -238,7 +239,7 @@ export class WebRuntimeClient {
       subscriptions: this.subscriptions,
       sendEncrypted: (message) => this.sendEncrypted(message),
       sendBinary: (bytes) => this.sendEncryptedBinary(bytes),
-      deviceToken: this.connection.credential.deviceToken
+      deviceToken: requireEncryptedRuntimeConnection(this.connection).credential.deviceToken
     })
   }
 

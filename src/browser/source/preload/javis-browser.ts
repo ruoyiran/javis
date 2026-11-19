@@ -30,6 +30,10 @@ ipcRenderer.on('javis:browser:subscription', (_event, message) => {
   }
 })
 const runtimeEnvironments = {
+  prepareBrowserClientHostPlacement: (args: unknown) => ipcRenderer.invoke('javis:browser:prepare-client-host', args),
+  refresh: () => call('browser.catalog.refresh'),
+  onCatalogChanged: (callback:()=>void) => on('javis:browser:event',event=>{if(event.method==='browser.runtimeCatalogChanged')callback()}),
+  list: async () => (await ipcRenderer.invoke('javis:browser:bootstrap')).runtimeEnvironments,
   invoke: (args: { selector: string; method: string; params?: unknown }) => ipcRenderer.invoke('javis:browser:runtime-invoke', args),
   subscribe: async (args: { subscriptionId?: string; selector: string; method: string; params?: unknown }, callbacks: SubscriptionCallbacks) => {
     const id = args.subscriptionId ?? crypto.randomUUID()
@@ -39,6 +43,7 @@ const runtimeEnvironments = {
   }
 }
 contextBridge.exposeInMainWorld('api', {
+  fs: {stat:(args:unknown)=>ipcRenderer.invoke('javis:browser:fs-stat',args),readFile:(args:unknown)=>ipcRenderer.invoke('javis:browser:fs-read',args)},
   runtimeEnvironments,
   keybindings: keybindingsApi,
   browser: browserApi,

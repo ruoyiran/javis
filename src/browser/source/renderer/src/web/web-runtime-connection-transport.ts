@@ -1,3 +1,4 @@
+import { requireEncryptedRuntimeConnection } from '../../../shared/remote-runtime/pairing/paired-runtime-connection'
 import type { PairedRuntimeConnection } from '../../../shared/remote-runtime/pairing/paired-runtime-connection'
 import { withReconnectJitter } from '../../../shared/reconnect-jitter'
 import { WebRuntimeConnectionHeartbeat } from './web-runtime-connection-heartbeat'
@@ -63,13 +64,13 @@ export class WebRuntimeConnectionTransport {
       isIntentionallyClosed: () => this.intentionallyClosed
     })
     this.subscriptionRegistry = new WebRuntimeSubscriptionRegistry({
-      deviceToken: connection.credential.deviceToken,
+      deviceToken: requireEncryptedRuntimeConnection(connection).credential.deviceToken,
       nextId: () => this.nextId(),
       sendEncrypted: (message) => this.sendEncrypted(message)
     })
     this.subscriptions = this.subscriptionRegistry.subscriptions
     this.requestRegistry = new WebRuntimeRequestRegistry({
-      deviceToken: connection.credential.deviceToken,
+      deviceToken: requireEncryptedRuntimeConnection(connection).credential.deviceToken,
       nextId: () => this.nextId(),
       waitForConnected: (timeoutMs, signal) => this.connectionWaiters.wait(timeoutMs, signal),
       sendEncrypted: (message) => this.sendEncrypted(message)
@@ -82,7 +83,7 @@ export class WebRuntimeConnectionTransport {
       sendProbe: () =>
         this.sendEncrypted({
           id: `web-heartbeat-${this.nextId()}`,
-          deviceToken: this.connection.credential.deviceToken,
+          deviceToken: requireEncryptedRuntimeConnection(this.connection).credential.deviceToken,
           method: 'status.get'
         }),
       handleDeadSocket: (socket) => this.handleSocketClosed(socket)

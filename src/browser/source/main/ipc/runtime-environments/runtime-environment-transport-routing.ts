@@ -1,7 +1,7 @@
 import type { RemoteRuntimeTransportSubscription, RemoteRuntimeTransportSubscriptionCallbacks, RemoteRuntimeSubscriptionOptions } from '../../../shared/remote-runtime/requests/remote-runtime-subscription-contract'
 import type { RuntimeRpcResponse } from '../../../shared/runtime-rpc-envelope'
 export type BrowserHostTransport = (target: string, method: string, params: unknown, timeoutMs?: number) => Promise<RuntimeRpcResponse<unknown>>
-export type BrowserHostSubscriptionOptions = RemoteRuntimeSubscriptionOptions & { javisCaller?: { connectionId: string; pairedDeviceId: string; clientKind: 'runtime' | 'mobile'; clientCapabilities?: string[] } }
+export type BrowserHostSubscriptionOptions = RemoteRuntimeSubscriptionOptions & { javisEnvironmentId?:string; javisCaller?: { connectionId: string; pairedDeviceId: string; clientKind: 'runtime' | 'mobile'; clientCapabilities?: string[] } }
 export type BrowserHostCallbacks = RemoteRuntimeTransportSubscriptionCallbacks & { onPacket?: (packet: { id: string; bytes: string; packetId?: string; subscriptionId?: string; __javisConnectionId?: string }) => void }
 export type BrowserHostSubscribe = (target: string, method: string, params: unknown, callbacks: BrowserHostCallbacks, options?: BrowserHostSubscriptionOptions) => Promise<RemoteRuntimeTransportSubscription>
 let transport: BrowserHostTransport | null = null

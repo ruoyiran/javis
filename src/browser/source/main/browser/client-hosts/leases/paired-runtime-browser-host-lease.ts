@@ -79,6 +79,8 @@ export class PairedRuntimeBrowserHostLease {
   }
 
   /** Unversioned, unlike the file channel: an older runtime answers with a reportable error. */
+  sendRequest(method: string, params: unknown, timeoutMs: number) { return requireBrowserHostLeaseSendRequest(this.connection?.sendRequest, 'Remote browser host is unavailable')(method, params, timeoutMs) }
+
   sendPageMetadataRequest(params: unknown, timeoutMs: number) {
     // close drops the connection synchronously.
     return requireBrowserHostLeaseSendRequest(

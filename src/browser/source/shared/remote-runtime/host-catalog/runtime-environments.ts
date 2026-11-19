@@ -94,7 +94,8 @@ export const PersistedRuntimeEnvironmentSchema = z.object({
   runtimeId: z.string().min(1).nullable(),
   source: RuntimeEnvironmentSourceSchema.optional(),
   connectionDependency: z.literal('ssh-tunnel').optional(),
-  endpoints: z.array(RuntimeAccessEndpointSchema).min(1),
+  javisSsh: z.object({ alias: z.string().min(1),hostInstanceId:z.string().min(1).optional() }).optional(),
+  endpoints: z.array(RuntimeAccessEndpointSchema),
   preferredEndpointId: z.string().min(1)
 })
 
@@ -274,7 +275,7 @@ export function isListedRemoteServer(
 
 type PreferredEndpointSource = Pick<
   KnownRuntimeEnvironment,
-  'name' | 'endpoints' | 'preferredEndpointId' | 'pairedDeviceId'
+  'name' | 'endpoints' | 'preferredEndpointId' | 'pairedDeviceId' | 'javisSsh'
 >
 
 export function preferredEndpoint(environment: PreferredEndpointSource) {
@@ -290,6 +291,7 @@ export function preferredEndpoint(environment: PreferredEndpointSource) {
 export function getPreferredPairedRuntimeConnection(
   environment: PreferredEndpointSource
 ): PairedRuntimeConnection {
+  if (environment.javisSsh) return { endpoint: `ssh://${environment.javisSsh.alias}`, ssh: environment.javisSsh, javisHostTarget: environment.javisSsh.alias, pairedDeviceId: environment.pairedDeviceId }
   const endpoint = preferredEndpoint(environment)
   return pairedRuntimeConnectionFromOffer({
     endpoint: endpoint.endpoint,

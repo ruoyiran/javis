@@ -45,7 +45,7 @@ function pairingAuthorityConnectionIdentity(
     orcaProfileId,
     environmentId,
     pairingRevision,
-    connection.hostPublicKeyB64,
+    connection.ssh ? `ssh:${connection.ssh.alias}:${connection.ssh.hostInstanceId}` : connection.hostPublicKeyB64,
     connection.pairedDeviceId ?? null
   ])
 }
@@ -60,7 +60,7 @@ function deployedAuthorityConnectionIdentity(
     'paired-runtime-browser-deployed',
     orcaProfileId,
     environmentId,
-    connection.hostPublicKeyB64
+    connection.ssh ? `ssh:${connection.ssh.alias}:${connection.ssh.hostInstanceId}` : connection.hostPublicKeyB64
   ])
 }
 
@@ -78,7 +78,7 @@ function legacyAuthorityConnectionIdentity(
     environmentId,
     pairingRevision,
     authorityRuntimeId,
-    connection.hostPublicKeyB64,
+    connection.ssh ? `ssh:${connection.ssh.alias}:${connection.ssh.hostInstanceId}` : connection.hostPublicKeyB64,
     connection.pairedDeviceId ?? null
   ])
 }

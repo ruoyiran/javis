@@ -8,7 +8,7 @@ import {
   BROWSER_CLIENT_PAGE_METADATA_RUNTIME_CAPABILITY
 } from '../../../../shared/browser/runtime/browser-runtime-capabilities'
 import '../../../../shared/remote-runtime/requests/remote-runtime-request-socket'
-import { subscribeRemoteRuntimeTransport } from '../../../../shared/remote-runtime/requests/remote-runtime-subscription-transport'
+import { subscribeBrowserHostTransport } from '../../../ipc/runtime-environments/runtime-environment-transport-routing'
 import type {
   RemoteRuntimeTransportSubscription,
   RemoteRuntimeTransportSubscriptionCallbacks
@@ -63,14 +63,15 @@ export class PairedRuntimeBrowserHostLeaseConnection {
     try {
       let subscription: RemoteRuntimeTransportSubscription
       try {
-        subscription = await subscribeRemoteRuntimeTransport(
-          this.options.lease.connection,
+        subscription = await subscribeBrowserHostTransport(
+          this.options.lease.connection.javisHostTarget ?? this.options.lease.connection.endpoint,
           'browser.clientHost.attach',
           request.params,
-          this.options.timeoutMs,
           this.callbacks(request),
           {
             ...this.options.lease.subscription,
+            javisCaller: this.options.lease.connection.javisCaller,
+            javisEnvironmentId:this.options.lease.connection.javisEnvironmentId,
             // The runtime accepts page metadata only on the lease connection declaring this capability.
             clientCapabilities: [
               ...(this.options.lease.subscription?.clientCapabilities ?? []),
