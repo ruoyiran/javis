@@ -25,13 +25,13 @@ export type WorkspaceTabCommand =
   | { type: 'previous-recent'; floatingPanelOwned?: boolean }
 
 
-export function dispatchWorkspaceTabCommand(command: WorkspaceTabCommand): boolean {
+export function dispatchWorkspaceTabCommand(command: WorkspaceTabCommand, contextOverride?: string): boolean {
   const state = useAppStore.getState()
-  const context = command.type === 'close' && command.target?.kind === 'tab' ? command.target.worktreeId : state.activeWorktreeId
+  const context = contextOverride ?? (command.type === 'close' && command.target?.kind === 'tab' ? command.target.worktreeId : state.activeWorktreeId)
   if (!context) return false
   const groupId = state.activeGroupIdByWorktree[context]
   const group = state.groupsByWorktree[context]?.find((item) => item.id === groupId)
-  const tabs = (state.unifiedTabsByWorktree[context] ?? []).filter((tab) => tab.contentType === 'browser' && tab.groupId === groupId)
+  const tabs = (state.unifiedTabsByWorktree[context] ?? []).filter((tab) => (tab.contentType === 'browser' || tab.contentType === 'editor') && tab.groupId === groupId)
   if (command.type !== 'close') {
     const current = tabs.findIndex((tab) => tab.id === group?.activeTabId)
     const recent = group?.recentTabIds?.filter((id) => id !== group.activeTabId).at(-1)
@@ -41,7 +41,9 @@ export function dispatchWorkspaceTabCommand(command: WorkspaceTabCommand): boole
   }
   const owner = command.target?.kind === 'browser-source' ? resolveBrowserWorkspaceOwner(state, command.target.sourceId) : null
   const tab = command.target?.kind === 'tab' ? state.getTab(command.target.tabId) : owner ? (state.unifiedTabsByWorktree[owner.worktreeId] ?? []).find((item) => item.entityId === owner.workspaceId) : state.getActiveTab(context)
-  if (!tab || tab.contentType !== 'browser') return false
+  if (!tab) return false
+  if (tab.contentType === 'editor') { window.dispatchEvent(new CustomEvent('javis-close-source', {detail:{tabId:tab.id}})); return true }
+  if (tab.contentType !== 'browser') return false
   const unsentNotes = hasUnsentBrowserNotes(state, tab.entityId)
   if (command.bulk && (tab.isPinned || unsentNotes)) return true
   guardPinnedTabClose({ isPinned: tab.isPinned === true, tabLabel: resolvePinnedTabLabel(state, tab.worktreeId, tab.id), unsentNotes, onClose: () => state.closeBrowserTab(tab.entityId) })

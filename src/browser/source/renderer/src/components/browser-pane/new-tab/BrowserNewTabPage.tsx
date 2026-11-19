@@ -1,3 +1,4 @@
+import { useJavisContexts } from '@/store/workspaces/javis-context-catalog'
 import { useMemo } from 'react'
 import { Globe } from 'lucide-react'
 import { toast } from 'sonner'
@@ -46,6 +47,7 @@ export function BrowserNewTabPage({
   /** Local session profile to import logins into; omitted where the session isn't local. */
   importProfileId?: string | null
 }): React.JSX.Element {
+  const context = useJavisContexts((state)=>state.contexts[worktreeId])
   const worktree = useWorktreeById(worktreeId)
   const repo = useRepoById(worktree?.repoId ?? null) ?? undefined
   const runtimeTarget = useWorktreeRuntimeTarget(worktreeId)
@@ -54,7 +56,7 @@ export function BrowserNewTabPage({
     runtimeTarget,
     openInPlace: !serversElsewhere
   }
-  return worktree ? (
+  return context ? <BrowserNewTabPageLayout linkedItems={NO_LINKED_ITEMS} servers={servers} onOpenUrl={onOpenUrl} importProfileId={importProfileId} /> : worktree ? (
     <BrowserNewTabWorktreePage
       worktree={worktree}
       repo={repo}

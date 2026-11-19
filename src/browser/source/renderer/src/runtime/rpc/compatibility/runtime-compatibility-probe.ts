@@ -1,3 +1,4 @@
+import { isJavisBrowserTransport, verifyJavisBrowserHost } from './javis-browser-compatibility'
 import type { RuntimeRpcResponse } from '../../../../../shared/runtime-rpc-envelope'
 import type { RuntimeStatus } from '../../../../../shared/runtime-session-contracts'
 import { assertRuntimeStatusCompatible } from './runtime-protocol-compat'
@@ -18,6 +19,7 @@ export async function ensureRuntimeEnvironmentCompatible(
     expectedEnvironmentPairingRevision?: number
   } = {}
 ): Promise<RuntimeStatus | null> {
+  if (isJavisBrowserTransport()) { await verifyJavisBrowserHost(environmentId,options.timeoutMs); return null }
   const cached = getCachedRuntimeCompatibilityCheck(environmentId, options)
   if (cached) {
     await cached.check

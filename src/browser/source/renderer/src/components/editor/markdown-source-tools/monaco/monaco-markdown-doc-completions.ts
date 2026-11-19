@@ -30,7 +30,7 @@ export function ensureMarkdownDocCompletionProvider(monaco: MonacoApi): void {
 
   provider = monaco.languages.registerCompletionItemProvider('markdown', {
     triggerCharacters: ['['],
-    provideCompletionItems(model, position) {
+    provideCompletionItems(model: import('monaco-editor').editor.ITextModel, position: import('monaco-editor').Position) {
       const line = model.getLineContent(position.lineNumber)
       const context = getMarkdownDocCompletionContext(line.slice(0, position.column - 1))
       if (!context) {

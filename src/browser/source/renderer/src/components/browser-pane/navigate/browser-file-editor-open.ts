@@ -1,7 +1,7 @@
 import { getConnectionIdFromState } from '@/lib/workspace/ownership/connection-owner-resolution'
 import { getRuntimeTargetForWorktreeOwner } from '@/lib/files/access/file-owner-runtime-target'
 import { getRelativePathInsideRoot } from '@/lib/path'
-import { statUserOpenedPath } from '@/lib/files/access/user-opened-local-path'
+import { javisContextHost } from '@/store/workspaces/javis-context-catalog'
 import { toast } from 'sonner'
 import type { AppState } from '@/store/types'
 import { useAppStore } from '@/store'
@@ -22,10 +22,10 @@ export async function openBrowserFileSource(worktreeId: string, filePath: string
   }
   const worktreeRoot = state.getKnownWorktreeById(worktreeId)?.path ?? null
   try {
-    const stat = await statUserOpenedPath(
-      { target: { kind: 'local' }, worktreeId, worktreePath: worktreeRoot },
-      filePath
-    )
+    const relativePath = getRelativePathInsideRoot(filePath,worktreeRoot)
+    if (relativePath===null || !javisContextHost(worktreeId)) throw new Error('The source path is outside this context')
+    const api=(window.api as unknown as {javisBrowser:{call(method:string,params:Record<string,unknown>):Promise<unknown>}}).javisBrowser
+    const stat = await api.call('browser.host.call',{target:'local',method:'files.stat',params:{worktree:worktreeId,relativePath}}) as {isDirectory:boolean;escapesWorktree?:boolean}
     if (
       stat.isDirectory ||
       !canOpenBrowserFileInWorkspaceEditor(useAppStore.getState(), worktreeId)

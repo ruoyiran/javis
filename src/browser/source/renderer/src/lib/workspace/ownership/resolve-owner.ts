@@ -1,3 +1,4 @@
+import { javisContext, javisContextHost } from '@/store/workspaces/javis-context-catalog'
 /**
  * The owner of a workspace as a {@link HostAuthority}, decided from the rows alone.
  */
@@ -103,6 +104,12 @@ export function resolveOwner(
   state: WorktreeOperationRouteState,
   ref: WorkspaceOwnerRef
 ): ExecutionHostOwnerMatch<HostAuthority> {
+  const context = javisContext(ref.workspaceId)
+  if (context) {
+    if (context.available === false || (ref.hostId && ref.hostId!==javisContextHost(ref.workspaceId))) return { kind: 'missing' }
+    const owner = context.owner
+    return { kind: 'resolved', owner: owner.kind === 'local' ? SELF_LOCAL_AUTHORITY : { endpoint: owner.kind === 'runtime' ? { kind: 'environment', environmentId: owner.environmentId } : { kind: 'self' }, at: owner.kind === 'ssh' ? `ssh:${owner.connectionId}` : 'local' } }
+  }
   if (getFloatingWorkspaceOperationRoute(ref.workspaceId)) {
     return { kind: 'resolved', owner: SELF_LOCAL_AUTHORITY }
   }

@@ -1,3 +1,4 @@
+import { javisContext } from '@/store/workspaces/javis-context-catalog'
 import type { DocPreviewGrantRequest } from '../../../../../preload/api/doc-preview-api'
 import { basename, dirname, getRelativePathInsideRoot } from '@/lib/path'
 import { getConnectionIdForFileFromState } from '@/lib/workspace/ownership/connection-owner-resolution'
@@ -49,6 +50,8 @@ export function buildDocPreviewGrantRequest(
         }
       : chatScratchFileAddress(filePath)
   if (!environmentId) {
+    const context = javisContext(worktreeId)
+    if (context?.owner.kind === 'local' && context.available !== false && worktreeRoot && worktreeRelativePath) return { owner: {kind:'runtime',environmentId:'local',worktreeSelector:toRuntimeWorktreeSelector(worktreeId),worktreeRoot},requestBase:worktreeRoot,root:worktreeRoot,entryRelativePath:worktreeRelativePath }
     return null
   }
   if (!base) {

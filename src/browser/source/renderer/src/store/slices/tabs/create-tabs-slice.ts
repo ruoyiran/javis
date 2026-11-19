@@ -1,3 +1,5 @@
+import { createTabsLabelActions } from './tabs-label-actions'
+import { hasUnsentBrowserNotes } from '../browser/annotations/browser-page-annotation'
 import type { StateCreator } from 'zustand'
 import type { AppState } from '../../types'
 import type { TabsSlice } from './tabs-slice-contract'
@@ -16,8 +18,9 @@ import type { Tab } from '../../../../../shared/tab-types'
 export const createTabsSlice: StateCreator<AppState, [], [], TabsSlice> = (set, get, api) => ({
   unifiedTabsByWorktree: {}, groupsByWorktree: {}, activeGroupIdByWorktree: {}, splitLandingGroupIds: {}, layoutByWorktree: {},
   ...createTabsFocusActions(set, get), ...createTabsGroupActions(set, get), ...createTabsMoveActions(set, get), ...createTabsDropActions(set, get), ...createTabsSplitRatioActions(set), ...createTabsDragPreviewActions(set),
+  ...createTabsLabelActions(set,get),
   createUnifiedTab: (context, contentType, options) => {
-    if (contentType !== 'browser') throw new Error('Javis browser workspaces accept browser and document pages')
+    if (contentType !== 'browser' && contentType !== 'editor') throw new Error('Javis browser workspaces accept browser and document pages')
     options?.validatePlacement?.(get())
     const id = options?.id ?? crypto.randomUUID()
     let created!: Tab
@@ -29,7 +32,7 @@ export const createTabsSlice: StateCreator<AppState, [], [], TabsSlice> = (set, 
       const order = group.tabOrder.slice()
       const afterIndex = options?.afterTabId ? order.indexOf(options.afterTabId) : -1
       order.splice(afterIndex >= 0 ? afterIndex + 1 : order.length, 0, id)
-      created = { id, entityId: options?.entityId ?? id, groupId: group.id, worktreeId: context, contentType, label: options?.label ?? 'New Tab', customLabel: null, color: null, sortOrder: order.indexOf(id), createdAt: Date.now(), isPinned: options?.isPinned, executionHostId: options?.executionHostId }
+      created = { id, entityId: options?.entityId ?? id, groupId: group.id, worktreeId: context, contentType, label: options?.label ?? 'New Tab', customLabel: options?.customLabel ?? null, color: options?.color ?? null, sortOrder: order.indexOf(id), createdAt: Date.now(), isPinned: options?.isPinned, executionHostId: options?.executionHostId }
       const activate = options?.activate !== false
       const groups = (split?.groups ?? state.groupsByWorktree[context] ?? []).filter((item) => item.id !== group.id)
       groups.push({ ...group, tabOrder: order, activeTabId: activate ? id : group.activeTabId, recentTabIds: activate ? [...(group.recentTabIds ?? []), id] : group.recentTabIds })
@@ -39,10 +42,12 @@ export const createTabsSlice: StateCreator<AppState, [], [], TabsSlice> = (set, 
     return created
   },
   createUnifiedTabInSplit: (context, contentType, target, options) => get().createUnifiedTab(context, contentType, { ...options, split: target }),
-  closeUnifiedTab: (id) => {
+  closeUnifiedTab: (id, options) => {
     const found = findTabAndWorktree(get().unifiedTabsByWorktree, id)
     if (!found) return null
     const { tab, worktreeId: context } = found
+    if (tab.contentType==='browser' && get().browserTabsByWorktree[context]?.some((row)=>row.id===tab.entityId)) { get().closeBrowserTab(tab.entityId); return {closedTabId:id,wasLastTab:!(get().unifiedTabsByWorktree[context]?.length),worktreeId:context} }
+    if (tab.contentType==='editor' && !options?.editorRetirementHandled && get().openFiles.some((file)=>file.id===tab.entityId)) { get().closeFile(tab.entityId); return {closedTabId:id,wasLastTab:!(get().unifiedTabsByWorktree[context]?.length),worktreeId:context} }
     set((state) => {
       const tabs = (state.unifiedTabsByWorktree[context] ?? []).filter((item) => item.id !== id)
       const groups = (state.groupsByWorktree[context] ?? []).map((group) => {
@@ -56,13 +61,8 @@ export const createTabsSlice: StateCreator<AppState, [], [], TabsSlice> = (set, 
     return { closedTabId: tab.id, wasLastTab: !(get().unifiedTabsByWorktree[context]?.length), worktreeId: context }
   },
   closeUnifiedTabs: (ids) => { for (const id of ids) get().closeUnifiedTab(id) },
-  setTabLabel: (id, label) => set((state) => ({ unifiedTabsByWorktree: Object.fromEntries(Object.entries(state.unifiedTabsByWorktree).map(([context, tabs]) => [context, tabs.map((tab) => tab.id === id ? { ...tab, label } : tab)])) })),
-  setTabCustomLabel: (id, customLabel) => set((state) => ({ unifiedTabsByWorktree: Object.fromEntries(Object.entries(state.unifiedTabsByWorktree).map(([context, tabs]) => [context, tabs.map((tab) => tab.id === id ? { ...tab, customLabel } : tab)])) })),
-  pinTab: (id) => { const tab = get().getTab(id); if (tab) set((state) => ({ unifiedTabsByWorktree: { ...state.unifiedTabsByWorktree, [tab.worktreeId]: (state.unifiedTabsByWorktree[tab.worktreeId] ?? []).map((item) => item.id === id ? { ...item, isPinned: true } : item) } })) },
-  unpinTab: (id) => { const tab = get().getTab(id); if (tab) set((state) => ({ unifiedTabsByWorktree: { ...state.unifiedTabsByWorktree, [tab.worktreeId]: (state.unifiedTabsByWorktree[tab.worktreeId] ?? []).map((item) => item.id === id ? { ...item, isPinned: false } : item) } })) },
-  reorderUnifiedTabs: (groupId, ids) => {
-    const context = Object.entries(get().groupsByWorktree).find(([, groups]) => groups.some((group) => group.id === groupId))?.[0]
-    if (!context) return
-    set((state) => ({ unifiedTabsByWorktree: { ...state.unifiedTabsByWorktree, [context]: applyTabOrderSortValues(state.unifiedTabsByWorktree[context] ?? [], ids) }, groupsByWorktree: { ...state.groupsByWorktree, [context]: (state.groupsByWorktree[context] ?? []).map((group) => group.id === groupId ? { ...group, tabOrder: ids } : group) } }))
-  }
+  closeOtherTabs: (id) => { const tab=get().getTab(id); if(tab)get().closeUnifiedTabs((get().unifiedTabsByWorktree[tab.worktreeId]??[]).filter((row)=>row.groupId===tab.groupId && row.id!==id && !row.isPinned && !(row.contentType==='browser' && hasUnsentBrowserNotes(get(),row.entityId)) && !get().openFiles.find((file)=>file.id===row.entityId)?.isDirty).map((row)=>row.id)) },
+  closeTabsToLeft: (id) => { const tab=get().getTab(id); if(tab)get().closeUnifiedTabs((get().unifiedTabsByWorktree[tab.worktreeId]??[]).filter((row)=>row.groupId===tab.groupId && row.sortOrder<tab.sortOrder && !row.isPinned && !(row.contentType==='browser' && hasUnsentBrowserNotes(get(),row.entityId)) && !get().openFiles.find((file)=>file.id===row.entityId)?.isDirty).map((row)=>row.id)) },
+  closeTabsToRight: (id) => { const tab=get().getTab(id); if(tab)get().closeUnifiedTabs((get().unifiedTabsByWorktree[tab.worktreeId]??[]).filter((row)=>row.groupId===tab.groupId && row.sortOrder>tab.sortOrder && !row.isPinned && !(row.contentType==='browser' && hasUnsentBrowserNotes(get(),row.entityId)) && !get().openFiles.find((file)=>file.id===row.entityId)?.isDirty).map((row)=>row.id)) }
+
 } as TabsSlice)

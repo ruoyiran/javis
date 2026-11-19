@@ -18,9 +18,9 @@ export function createUiAgentActions(set: UISliceSet, get: UISliceGet): Partial<
       if (!mode || mode.status === 'sending' || !mode.prompt.trim()) return false
       set({ agentSendPopoverTargetMode: { ...mode, status: 'sending' } })
       const bridge = (window.api as unknown as { javisBrowser: { call(method: string, params: Record<string, unknown>): Promise<unknown> } }).javisBrowser
-      const delivery = bridge.call('browser.annotations.enqueue', { context: mode.worktreeId, prompt: mode.prompt, deliveryId: crypto.randomUUID() })
+      const delivery = bridge.call('browser.annotations.enqueue', { context: mode.worktreeId, prompt: mode.prompt, annotations: Object.values(get().browserAnnotationsByPageId).flat(), deliveryId: crypto.randomUUID() })
       mode.onPromptHandedOff?.(delivery)
-      try { await delivery; mode.onPromptDelivered?.(); get().closeAgentSendPopoverTargetMode(mode.id, mode.instanceId); return true }
+      try { const result = await delivery; if (result && typeof result === 'object' && 'status' in result && result.status === 'acknowledged') mode.onPromptDelivered?.(); get().closeAgentSendPopoverTargetMode(mode.id, mode.instanceId); return Boolean(result && typeof result === 'object' && 'status' in result && result.status === 'acknowledged') }
       catch { set({ agentSendPopoverTargetMode: { ...mode, status: 'error', error: 'Feedback delivery could not be confirmed' } }); return false }
     }
   }

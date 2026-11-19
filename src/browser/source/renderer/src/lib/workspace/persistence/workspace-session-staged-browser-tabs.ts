@@ -1,7 +1,7 @@
-import type { WorkspaceSessionSnapshot } from './workspace-session'
+import type { AppState } from '../../../store/types'
 
 type StagedBrowserTabSnapshotFields = Pick<
-  WorkspaceSessionSnapshot,
+  AppState,
   | 'activeBrowserTabIdByWorktree'
   | 'browserPagesByWorkspace'
   | 'browserTabsByWorktree'

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Send, Loader2 } from 'lucide-react'
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu'
 import { useAppStore } from '@/store'
@@ -10,8 +10,10 @@ export function ReviewNotesSendMenuContent({ worktreeId, groupId, prompt, onProm
   onPromptDelivered?: () => void; onPromptHandedOff?: (delivered: Promise<unknown>) => void
 }): React.JSX.Element {
   const [sending, setSending] = useState(false)
+  const [available, setAvailable] = useState(false)
+  useEffect(() => { let current=true; const bridge=(window.api as unknown as {javisBrowser:{call(method:string,params:Record<string,unknown>):Promise<unknown>}}).javisBrowser; void bridge.call('browser.annotations.targets',{context:worktreeId}).then((result)=>{if(current)setAvailable(Boolean(result && typeof result==='object' && 'targets' in result && Array.isArray(result.targets) && result.targets.some((target)=>target.id==='context-queue' && target.available)))},()=>{if(current)setAvailable(false)});return()=>{current=false}},[worktreeId])
   const t = useTranslate()
-  return <DropdownMenuItem disabled={sending || !prompt} onSelect={(event) => {
+  return <DropdownMenuItem disabled={sending || !prompt || !available} onSelect={(event) => {
     event.preventDefault()
     if (sending || !prompt) return
     setSending(true)
@@ -31,7 +33,7 @@ export function ReviewNotesSendMenuContent({ worktreeId, groupId, prompt, onProm
     })()
 
     if (onPromptHandedOff) onPromptHandedOff(delivered)
-    else void delivered.then(() => onPromptDelivered?.(), () => {})
+    else void delivered.then((result) => { if (result.delivered) onPromptDelivered?.() }, () => {})
     void delivered.then(() => { useAppStore.getState().closeAgentSendPopoverTargetMode(); toast.success('Feedback queued for this Javis context') }, () => { toast.error('Feedback delivery could not be confirmed. Refresh the context before sending again.') }).finally(() => setSending(false))
   }}>{sending ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}{t('browser.annotation.sendToContext', 'Send to this context')}</DropdownMenuItem>
 }

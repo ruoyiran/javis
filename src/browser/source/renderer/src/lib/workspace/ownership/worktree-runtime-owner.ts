@@ -1,3 +1,4 @@
+import { javisContextHost, javisContext } from '@/store/workspaces/javis-context-catalog'
 import {
   getRepoExecutionHostId,
   parseExecutionHostId,
@@ -46,6 +47,7 @@ export function getKnownExecutionHostIdForWorktree(
   state: WorktreeRuntimeOwnerState,
   worktreeId: string | null | undefined
 ): ExecutionHostId | null {
+  if (worktreeId) { const contextHost = javisContextHost(worktreeId); if (contextHost) return contextHost }
   if (!worktreeId) {
     return 'local'
   }
@@ -135,6 +137,7 @@ export function resolveOwnerOrLocal(
   state: WorktreeRuntimeOwnerState,
   ref: WorkspaceOwnerRef
 ): ExecutionHostOwnerMatch<HostAuthority> {
+  if (javisContext(ref.workspaceId)) return resolveOwner(state, ref)
   const match = resolveOwner(state, ref)
   if (match.kind !== 'missing' || namedHostForOwnerRef(state, ref)) {
     return match
@@ -161,9 +164,9 @@ export function runtimeEnvironmentIdOrLocalUnlessTwin(
   state: WorktreeRuntimeOwnerState,
   workspaceId: string | null | undefined
 ): string | null {
-  if (!workspaceId) {
-    return null
-  }
+  if (!workspaceId) return null
+  const contextHost = javisContextHost(workspaceId)
+  if (contextHost) return contextHost.startsWith('runtime:') ? contextHost.slice(8) : null
   const match = resolveOwnerOrLocal(state, { workspaceId })
   return match.kind === 'resolved' && match.owner.endpoint.kind === 'environment'
     ? match.owner.endpoint.environmentId

@@ -1,3 +1,4 @@
+import { javisContext, javisContextHost } from '@/store/workspaces/javis-context-catalog'
 import type { AppState } from '@/store/types'
 import { findIndexedRepoOwnerForHost, resolveIndexedRepoOwner } from './repo-owner-index'
 import { resolveIndexedWorktreeOwner } from './worktree-runtime-owner-index'
@@ -63,6 +64,7 @@ export function getConnectionIdFromState(
   state: ConnectionOwnerState,
   worktreeId: string | null
 ): string | null | undefined {
+  if (worktreeId && javisContext(worktreeId)) { const host = javisContextHost(worktreeId); return host?.startsWith('ssh:') ? host.slice(4) : null }
   if (!worktreeId || worktreeId === FLOATING_TERMINAL_WORKTREE_ID) {
     return null
   }

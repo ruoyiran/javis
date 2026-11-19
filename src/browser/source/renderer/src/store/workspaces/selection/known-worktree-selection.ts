@@ -1,3 +1,4 @@
+import { javisContextWorkspace, javisContext } from '../javis-context-catalog'
 import type { AppState } from '../../types'
 import type { ExecutionHostId } from '../../../../../shared/execution-host'
 import { findKnownWorktreeById } from '../../slices/worktrees/listing/detected-worktree-meta'
@@ -25,6 +26,9 @@ export function selectKnownWorktreeById(
   worktreeId: string | null,
   executionHostId?: ExecutionHostId
 ): NonNullable<ReturnType<typeof findKnownWorktreeById>> | null {
+  const context = worktreeId ? javisContextWorkspace(worktreeId,executionHostId) : undefined
+  if (context) return context
+  if (worktreeId && javisContext(worktreeId)) return null
   return worktreeId
     ? (findKnownWorktreeById(
         state,

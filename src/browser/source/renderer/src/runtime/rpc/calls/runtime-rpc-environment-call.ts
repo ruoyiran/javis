@@ -1,3 +1,4 @@
+import { isJavisBrowserTransport, invokeJavisBrowser } from '../compatibility/javis-browser-compatibility'
 import { callAbortableRuntimeEnvironment } from './abortable-runtime-environment-call'
 import { observePairingRefusal } from '../environment-revisions/runtime-environment-pairing-refresh'
 
@@ -16,6 +17,7 @@ async function callRuntimeEnvironmentOnce(args: {
   expectedEnvironmentPairingRevision?: number
   expectedEnvironmentRuntimeId?: string
 }): Promise<unknown> {
+  if (isJavisBrowserTransport()) { if(args.signal?.aborted) throw new Error('Browser request canceled before delivery'); return invokeJavisBrowser(args.environmentId,args.method,args.params,args.timeoutMs) }
   if (args.signal) {
     return callAbortableRuntimeEnvironment(
       args.environmentId,
