@@ -1,3 +1,4 @@
+import type { MobileBrowserSession } from './browser-session.js'
 import type { ComputerScreenshotData } from '../contract/computer-use-runtime-types.js'
 
 export type DeviceTarget = {
@@ -10,6 +11,7 @@ export type DeviceTarget = {
 }
 
 export class DeviceSession {
+  browser?: MobileBrowserSession
   target: DeviceTarget | null = null
   requiresRefresh = true
   readonly csrfToken: string

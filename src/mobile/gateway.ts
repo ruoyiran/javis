@@ -1,3 +1,7 @@
+import { mobileBrowserJavaScript } from './browser-page.js'
+import { connectJavisBrowserStream } from '../runtime/public.js'
+import { MobileBrowserSession } from './browser-session.js'
+import type { BrowserStreamOptions, BrowserStream } from '../browser/remote/framed-channel.js'
 import { randomUUID } from 'node:crypto'
 import { readFile } from 'node:fs/promises'
 import http, { type IncomingMessage, type ServerResponse } from 'node:http'
@@ -11,6 +15,7 @@ import { MobilePairing } from './pairing.js'
 import { mobileCss, mobileHtml, mobileJavaScript } from './page.js'
 
 export type MobileGatewayOptions = {
+  browserConnect?: (options: BrowserStreamOptions) => Promise<BrowserStream>
   bind: string
   port: number
   cert?: string
@@ -71,6 +76,7 @@ export async function startMobileGateway(options: MobileGatewayOptions): Promise
     const path = new URL(request.url ?? '/', url)
     const method = request.method
     if (method === 'GET' && path.pathname === '/') return sendText(response, mobileHtml, 'text/html; charset=utf-8')
+    if (method === 'GET' && path.pathname === '/browser-mobile.js') return sendText(response, mobileBrowserJavaScript, 'text/javascript; charset=utf-8')
     if (method === 'GET' && path.pathname === '/mobile.js') return sendText(response, mobileJavaScript, 'text/javascript; charset=utf-8')
     if (method === 'GET' && path.pathname === '/mobile.css') return sendText(response, mobileCss, 'text/css; charset=utf-8')
     if (method === 'GET' && path.pathname === '/api/pair-token') {
@@ -97,6 +103,50 @@ export async function startMobileGateway(options: MobileGatewayOptions): Promise
       return sendJson(response, 200, await options.call('listWindows', { app }))
     }
     if (method === 'POST') requireCsrf(request, device)
+    if (path.pathname.startsWith('/api/browser/')) {
+      device.browser ??= new MobileBrowserSession(options.browserConnect ?? connectJavisBrowserStream)
+      const browser = device.browser
+      if (method === 'GET' && path.pathname === '/api/browser/events') {
+        response.setHeader('Content-Type', 'text/event-stream')
+        response.flushHeaders()
+        const detachViewer = browser.attachViewer(event => {
+          if (response.destroyed) return
+          if (response.writableLength > 8 * 1024 * 1024) { browser.close(); response.destroy(); return }
+          response.write(`data: ${JSON.stringify(event)}\n\n`)
+          if (event.params.type === 'end') response.end()
+        })
+        response.once('close', detachViewer)
+        return
+      }
+      if (method === 'GET' && path.pathname === '/api/browser/pages') return sendJson(response, 200, await browser.call('browser.tabList', {}))
+      if (method !== 'POST') throw new HttpError(404, 'Not found')
+      const body = await readJson(request)
+      return device.run(async () => {
+        if (path.pathname === '/api/browser/select') {
+          if (typeof body.page !== 'string' || !body.page || Object.keys(body).some(key => key !== 'page')) throw new HttpError(400, 'Invalid page selection')
+          const result = await browser.call('browser.tabList', {}) as { tabs?: Record<string, unknown>[] }
+          const page = result.tabs?.find(tab => tab.pageId === body.page || tab.browserPageId === body.page)
+          if (!page) throw new HttpError(404, 'Browser page is unavailable')
+          browser.target = { page: body.page, worktree: typeof page.worktreeId === 'string' ? page.worktreeId : 'default', profileId: typeof page.profileId === 'string' ? page.profileId : undefined, sessionId: randomUUID(), url: '', width: 0, height: 0, observedAt: 0 }
+          browser.requiresRefresh = true
+          return sendJson(response, 200, await browser.observe())
+        }
+        if (path.pathname === '/api/browser/observe') return sendJson(response, 200, await browser.observe())
+        if (path.pathname === '/api/browser/stream') {
+          for (const key of ['width', 'height', 'deviceScaleFactor']) if (typeof body[key] !== 'number' || !Number.isFinite(body[key]) || (body[key] as number) <= 0 || (body[key] as number) > 3840) throw new HttpError(400, 'Invalid browser stream geometry')
+          const ready = await browser.startStream(body)
+          const observation = await browser.observe()
+          return sendJson(response, 200, { ready, ...observation })
+        }
+        if (path.pathname === '/api/browser/ack') return sendJson(response, 200, await browser.ack(body.seq as number))
+        if (path.pathname === '/api/browser/action') {
+          if (typeof body.method !== 'string' || !record(body.params) || typeof body.requestId !== 'string' || !/^[a-zA-Z0-9-]{1,80}$/.test(body.requestId)) throw new HttpError(400, 'Invalid browser action')
+          if (!device.acceptRequestId(body.requestId)) throw new HttpError(409, 'Action request already used')
+          return sendJson(response, 200, await browser.act(body.method, body.params))
+        }
+        throw new HttpError(404, 'Not found')
+      })
+    }
     if (method === 'POST' && path.pathname === '/api/observe') {
       const body = await readJson(request)
       const target = observationTarget(body)
@@ -147,6 +197,7 @@ export async function startMobileGateway(options: MobileGatewayOptions): Promise
     close: async () => {
       if (closed) return
       closed = true
+      pairing.close()
       await new Promise<void>((resolve, reject) => {
         server.close(error => error ? reject(error) : resolve())
         server.closeAllConnections()

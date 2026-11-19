@@ -1,16 +1,19 @@
 import { spawn } from 'node:child_process'
 import { Readable, Writable } from 'node:stream'
 import { JavisError } from './error.js'
-import { callJavis } from './public.js'
+import { callJavis, connectJavisBrowserStream } from './public.js'
 import type { JavisMethod } from './session.js'
+import { publicBrowserMethods, type BrowserMethod } from '../browser/contract/index.js'
+import { isBrowserDaemonMethod, type JavisDaemonMethod } from './daemon-dispatch.js'
+import { runtimeErrorDetails } from './error.js'
 
-export type RemoteMethod = JavisMethod | 'permissionsStatus'
+export type RemoteMethod = JavisMethod | 'permissionsStatus' | BrowserMethod | 'browser.open' | 'browser.status'
 const MAX_FRAME_BYTES = 32 * 1024 * 1024
 const REMOTE_DEADLINE_MS = 60_000
 const RPC_METHODS: ReadonlySet<string> = new Set<RemoteMethod>([
   'capabilities', 'listApps', 'listWindows', 'getAppState', 'click',
   'performSecondaryAction', 'scroll', 'drag', 'typeText', 'pressKey',
-  'hotkey', 'pasteText', 'setValue', 'permissionsStatus'
+  'hotkey', 'pasteText', 'setValue', 'permissionsStatus', ...publicBrowserMethods, 'browser.open', 'browser.status'
 ])
 
 export type RemoteStdioOptions = {
@@ -29,7 +32,7 @@ export async function callRemoteJavis(
   if (typeof host !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9._-]{0,252}$/.test(host)) {
     throw new JavisError('invalid_argument', 'host must be an OpenSSH alias without options or whitespace')
   }
-  const deadline = options.timeoutMs ?? REMOTE_DEADLINE_MS
+  const deadline = options.timeoutMs ?? (isBrowserDaemonMethod(method) ? Math.max(90_000, typeof params.timeout === 'number' ? params.timeout + 30_000 : 0) : REMOTE_DEADLINE_MS)
   const maxBytes = options.maxResponseBytes ?? MAX_FRAME_BYTES
   if (!Number.isSafeInteger(deadline) || deadline <= 0 || !Number.isSafeInteger(maxBytes) || maxBytes <= 0) {
     throw new JavisError('invalid_argument', 'Remote transport limits must be positive integers')
@@ -119,7 +122,7 @@ function parseRemoteReply(frame: string): unknown {
   if (response.ok === false && response.error && typeof response.error === 'object') {
     const error = response.error as Record<string, unknown>
     if (typeof error.code === 'string' && typeof error.message === 'string') {
-      throw new JavisError(error.code, error.message)
+      throw new JavisError(error.code, error.message, error.data)
     }
   }
   throw new JavisError('transport_error', 'Remote Javis sent an invalid reply; action delivery may be uncertain')
@@ -128,7 +131,7 @@ function parseRemoteReply(frame: string): unknown {
 export async function runJavisStdioRpc(
   input: Readable = process.stdin,
   output: Writable = process.stdout,
-  callLocal: (method: JavisMethod, params: Record<string, unknown>) => Promise<unknown> = callJavis,
+  callLocal: (method: JavisDaemonMethod, params: Record<string, unknown>) => Promise<unknown> = callJavis,
   permissionStatus: () => Promise<unknown> = () => callJavis('permissionsStatus', {})
 ): Promise<void> {
   let id = 1
@@ -158,7 +161,7 @@ export async function runJavisStdioRpc(
     deliveredToDaemon = true
     const result = request.method === 'permissionsStatus'
       ? await permissionStatus()
-      : await callLocal(request.method as JavisMethod, params as Record<string, unknown>)
+      : await callLocal(request.method as JavisDaemonMethod, params as Record<string, unknown>)
     reply = { id, ok: true, result }
   } catch (error) {
     const typedCode = error && typeof error === 'object' && 'code' in error && typeof error.code === 'string'
@@ -169,7 +172,8 @@ export async function runJavisStdioRpc(
       ok: false,
       error: {
         code: error instanceof JavisError ? error.code : deliveredToDaemon ? typedCode ?? 'internal_error' : 'invalid_argument',
-        message: error instanceof JavisError || deliveredToDaemon && error instanceof Error ? error.message : 'Invalid RPC request'
+        message: error instanceof JavisError || deliveredToDaemon && error instanceof Error ? error.message : 'Invalid RPC request',
+        ...(deliveredToDaemon && runtimeErrorDetails(error).data !== undefined ? { data: runtimeErrorDetails(error).data } : {})
       }
     }
   }
@@ -192,4 +196,54 @@ async function readOneRequest(input: Readable): Promise<string> {
     throw new JavisError('invalid_argument', 'Expected exactly one JSONL request')
   }
   return frame.slice(0, -1)
+}
+
+
+export async function runBrowserRemoteStdioBridge(input: Readable = process.stdin, output: Writable = process.stdout): Promise<void> {
+  const { BrowserFrameDecoder, writeBrowserFrame } = await import('../browser/remote/framed-channel.js')
+  const { browserMethods } = await import('../browser/contract/index.js')
+  const allowed = new Set<string>(browserMethods)
+  let connection: import('../browser/remote/framed-channel.js').BrowserStream | undefined
+  const decoder = new BrowserFrameDecoder()
+  const inFlight = new Set<Promise<void>>()
+  const ids = new Set<number>()
+  try {
+    for await (const chunk of input) {
+      for (const frame of decoder.push(Buffer.from(chunk))) {
+        if (!Number.isSafeInteger(frame.id) || (frame.id as number) < 1 || ids.has(frame.id as number) || typeof frame.method !== 'string' || !frame.params || typeof frame.params !== 'object' || Array.isArray(frame.params)) throw new JavisError('invalid_argument', 'Invalid browser stream request')
+        ids.add(frame.id as number)
+        if (ids.size > 100_000 || inFlight.size >= 2048) throw new JavisError('transport_error', 'Browser channel request budget exhausted')
+        if (!connection) {
+          const identity = frame.params as Record<string, unknown>
+          if (frame.method !== '__browserStreamIdentity' || typeof identity.pairedDeviceId !== 'string' || !identity.pairedDeviceId || identity.pairedDeviceId.length > 256 || !['runtime', 'mobile'].includes(String(identity.clientKind))) throw new JavisError('access_denied', 'SSH browser caller identity is required')
+          connection = await connectJavisBrowserStream({
+            identity: { pairedDeviceId: identity.pairedDeviceId, clientKind: identity.clientKind as 'runtime' | 'mobile', clientCapabilities: Array.isArray(identity.clientCapabilities) ? identity.clientCapabilities.filter((value): value is string => typeof value === 'string') : [] },
+            onEvent: event => { try { writeBrowserFrame(output, { type: 'event', ...event }) } catch { connection?.close(); input.destroy() } },
+            onClose: () => { input.destroy(); output.end() }
+          })
+          writeBrowserFrame(output, { id: frame.id, ok: true, result: { connected: true } })
+          continue
+        }
+        if (!allowed.has(frame.method) && !['__browserHost', '__browserNetwork'].includes(frame.method)) throw new JavisError('access_denied', 'Browser stream method is not allowed')
+        const operation = connection.call(frame.method, frame.params as Record<string, unknown>).then(
+          result => { writeBrowserFrame(output, { id: frame.id, ok: true, result }) },
+          error => { writeBrowserFrame(output, { id: frame.id, ok: false, error: runtimeErrorDetails(error) }) }
+        )
+        inFlight.add(operation)
+        void operation.finally(() => inFlight.delete(operation)).catch(() => { connection?.close(); input.destroy() })
+      }
+    }
+    decoder.finish()
+  } finally { connection?.close(); await Promise.allSettled(inFlight) }
+}
+
+export async function connectRemoteJavisBrowserStream(host: string, options: import('../browser/remote/framed-channel.js').BrowserStreamOptions, transport: RemoteStdioOptions = {}): Promise<import('../browser/remote/framed-channel.js').BrowserStream> {
+  if (!/^[A-Za-z0-9][A-Za-z0-9._-]{0,252}$/.test(host)) throw new JavisError('invalid_argument', 'host must be an OpenSSH alias')
+  const { createBrowserStreamClient } = await import('../browser/remote/framed-channel.js')
+  const child = spawn(transport.sshExecutable ?? 'ssh', [...(transport.sshPrefixArgs ?? []), '-T', '-o', 'BatchMode=yes', host, 'javis', 'rpc', '--stream-stdio'], { shell: false, stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true })
+  child.stderr.resume()
+  const connection = createBrowserStreamClient(child.stdout, child.stdin, { ...options, onClose: error => { child.kill(); options.onClose?.(error) } })
+  child.once('error', () => connection.close()); child.once('close', () => connection.close())
+  try { await connection.call('__browserStreamIdentity', options.identity); return connection }
+  catch (error) { connection.close(); throw error }
 }
