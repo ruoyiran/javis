@@ -163,7 +163,7 @@ async function scopeRequest(
   if (request.method === 'browser.keypress' && isPasteChord(params.key)) {
     throw new BridgeRefusal(
       DESKTOP_BROWSER_BRIDGE_NOT_FORWARDED_CODE,
-      'An SSH host cannot paste from the desktop clipboard. Use orca type or orca fill instead.'
+      'An SSH host cannot paste from the desktop clipboard. Use javis browser type or javis browser fill instead.'
     )
   }
   const requestedWorkspaceId = request.workspaceId ?? null

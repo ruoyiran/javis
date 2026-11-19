@@ -46,7 +46,7 @@ export class BrowserWorkspaceSessions {
   }
   save(context: string, session: WorkspaceSessionState): void { this.state.sessions[browserContextId(context)] = session; if (session.browserTabsByWorktree?.[FLOATING_TERMINAL_WORKTREE_ID] !== undefined) this.state.floating = this.mergeFloating(getDefaultWorkspaceSession(), session); this.persist(); for (const notify of this.listeners) notify('local') }
   updateUI(patch: Record<string, unknown>): void { this.state.ui = { ...this.ui, ...patch }; this.persist() }
-  owner(page: string): string | undefined { return this.contexts().find(context => Object.values(this.session(context).browserPagesByWorkspace ?? {}).some(pages => pages.some(entry => entry.id === page))) }
+  owner(page: string): string | undefined { return this.contexts().find(context => findSavedBrowserPage(this.session(context), context, page) !== null) }
   annotations(page: string): BrowserPageAnnotation[] { const context = this.owner(page); return context === undefined ? [] : this.session(context).browserAnnotationsByPageId?.[page] ?? Object.values(this.session(context).browserPagesByWorkspace ?? {}).flat().find(entry => entry.id === page)?.annotations ?? [] }
   setProfile(page: string, profileId: string): void {
     const context = this.owner(page)

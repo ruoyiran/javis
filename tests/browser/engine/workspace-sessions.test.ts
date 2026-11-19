@@ -46,3 +46,13 @@ it('preserves the floating browser workspace across context switches', () => {
   const restarted = new BrowserWorkspaceSessions(path)
   expect(restarted.session('B').browserPagesByWorkspace?.['floating-page']).toMatchObject([{ id: 'floating-page', url: 'https://floating.example/' }])
 })
+it('leaves a rendered context page to its renderer owner during lazy restore', async () => {
+  const sessions = new BrowserWorkspaceSessions(directory())
+  let rendered = false
+  const backend = { createTab: async () => { throw new Error('Renderer-owned page must not become an offscreen page') }, closeTab: async () => {}, ownsTab: () => false }
+  const restore = new ServeBrowserTabs({ backend: context => rendered && context === 'A' ? null : backend, livePageIds: () => new Set(), savedWorktreeIds: () => sessions.contexts(), session: id => sessions.session(id), hostId: () => 'local', save: (id, session) => sessions.save(id, session) })
+  restore.opened({ worktreeId: 'A', pageId: 'page-a', url: 'https://rendered.example/', title: 'Rendered' })
+  rendered = true
+  expect(await restore.start(undefined, 'page-a')).toBe(false)
+  expect(restore.hasStartable('A')).toBe(true)
+})

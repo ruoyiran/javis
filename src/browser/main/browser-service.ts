@@ -1,3 +1,5 @@
+import { DEFAULT_LOCAL_ORCA_PROFILE_ID } from '../source/shared/orca-profiles'
+import { runWithRequestedPageUrl } from '../source/main/browser/cdp/input/browser-expected-page-url'
 import { BrowserStreamDelivery } from './stream-delivery'
 import { KeybindingService } from '../source/main/keybindings/keybinding-service'
 import { ClientHostedBrowserRowPublisher } from '../source/main/runtime/browser/client-pages/client-hosted-browser-row-publication'
@@ -46,7 +48,7 @@ import { RuntimeBrowserPageRegistry } from '../source/main/runtime/browser/clien
 import { browserSessionRegistry } from '../source/main/browser/sessions/profiles/browser-session-registry'
 import { registerBrowserHandlers, setAgentBrowserBridgeRef } from '../source/main/ipc/browser/browser'
 import { setTrustedBrowserRendererWebContentsId } from '../source/main/ipc/browser/browser-renderer-trust'
-import { watchBrowserMainWindowReadiness } from '../source/main/browser/guest-lifecycle/browser-main-window-readiness'
+import { watchBrowserMainWindowReadiness, whenBrowserMainWindowReady, resetBrowserMainWindowReadiness } from '../source/main/browser/guest-lifecycle/browser-main-window-readiness'
 import { BROWSER_CORE_METHODS } from '../source/main/runtime/rpc/methods/browser/browser-core'
 import { BROWSER_EXTRA_METHODS } from '../source/main/runtime/rpc/methods/browser/browser-extras'
 import { installElectronBrowserCommands } from '../source/main/host/electron-browser-commands'
@@ -97,7 +99,7 @@ export async function createBrowserService(options: BrowserServiceOptions): Prom
     }
   })
   const serveTabs = new ServeBrowserTabs({
-    backend: () => offscreen,
+    backend: context => host.isBrowserWorkspaceRendered?.(context) ? null : offscreen,
     livePageIds: context => new Set(bridge.getRegisteredTabs(context).keys()),
     savedWorktreeIds: () => workspace.contexts(),
     session: context => workspace.session(context),
@@ -107,6 +109,7 @@ export async function createBrowserService(options: BrowserServiceOptions): Prom
   const host: RuntimeBrowserCommandHost = {
     getRuntimeId: () => runtimeId,
     getAgentBrowserBridge: () => bridge,
+    getBrowserPageWorkspaceId: page => browserManager.getWorktreeIdForTab(page) ?? workspace.owner(page),
     resolveWorkspaceSelector: async (selector) => ({ id: browserContextId(selector), hostId: 'local' }),
     resolveBrowserWorkspace: async (selector) => ({ id: browserContextId(selector), hostId: 'local' }),
     resolveBrowserNetworkExecutionHost: () => ({ kind: 'native', runtimeId, revision: startedAt }),
@@ -137,7 +140,7 @@ export async function createBrowserService(options: BrowserServiceOptions): Prom
   const methods = new Map([...BROWSER_CORE_METHODS, ...BROWSER_EXTRA_METHODS, ...BROWSER_IDENTITY_METHODS, ...BROWSER_CLIENT_HOST_METHODS, ...BROWSER_SCREENCAST_METHODS, ...BROWSER_CLIENT_FILE_CHANNEL_METHODS].map(method => [method.name, method]))
   installElectronBrowserCommands()
   initializeBrowserExtensionSupport({ enabled: store.getSettings().browserExtensionsEnabled !== false, savedBrowserTabs: workspace })
-  initializeBrowserSessionsForApp({ orcaProfileId: 'local', profileDirectory: options.dataDirectory })
+  initializeBrowserSessionsForApp({ orcaProfileId: DEFAULT_LOCAL_ORCA_PROFILE_ID, profileDirectory: options.dataDirectory })
   await setMainUiLanguage(store.getSettings().uiLanguage)
   browserSessionRegistry.onProfilesChanged = () => { window?.webContents.send('browser:session:profilesChanged'); emit({ method: 'browser.profilesChanged', params: {} }) }
   installDocPreviewProtocolHandler()
@@ -199,8 +202,10 @@ export async function createBrowserService(options: BrowserServiceOptions): Prom
       return { closed: true }
     }
     if (method === 'browser.host.call') {
-      if (!['files.readChunk', 'files.writeBase64Chunk', 'files.commitUpload'].includes(String(params.method))) throw new BrowserError('invalid_argument', 'Unknown browser file method')
-      return hostBridge.call(String(params.target), String(params.method), params.params)
+      if (!['files.stat', 'files.readChunk', 'files.writeBase64Chunk', 'files.commitUpload'].includes(String(params.method))) throw new BrowserError('invalid_argument', 'Unknown browser file method')
+      const response = await hostBridge.call(String(params.target), String(params.method), params.params)
+      if (!response.ok) throw new BrowserError(response.error.code, response.error.message, response.error.data)
+      return response.result
     }
     if (method === 'browser.host.configure') { hostBridge.configure(params.routes as Record<string, string>); return { configured: true } }
     if (method === 'browser.host.admit') {
@@ -220,7 +225,15 @@ export async function createBrowserService(options: BrowserServiceOptions): Prom
       void handle.whenFenced.then(reason => { if (subscriptions.get(`host-network:${id}`)?.cleanup === handle.release) subscriptions.delete(`host-network:${id}`); emit({ method: 'browser.host.revoked', params: { id, reason, __javisConnectionId: connectionId } }) })
       return { admitted: true, tunnelGeneration: handle.tunnelGeneration, _meta: { runtimeId } }
     }
-    if (method === 'browser.host.release') { const key = `host-network:${params.id}`; subscriptions.get(key)?.cleanup(); subscriptions.delete(key); return { released: true } }
+    if (method === 'browser.host.release') {
+      const key = `host-network:${params.id}`
+      const entry = subscriptions.get(key)
+      const connectionId = String((params.__javisCaller as any)?.connectionId ?? 'javis-controller')
+      if (entry && entry.connectionId !== connectionId) throw new BrowserError('invalid_argument', 'Browser tunnel belongs to another connection')
+      entry?.cleanup()
+      subscriptions.delete(key)
+      return { released: entry !== undefined }
+    }
     if (method === 'browser.host.invokeReply') return { accepted: hostBridge.invocationReply(params as any) }
     if (method === 'browser.host.subscription') return { accepted: hostBridge.subscriptionReply(params as any) }
     if (method === 'browser.host.binary') return { accepted: hostBridge.binary(params as any) }
@@ -234,7 +247,8 @@ export async function createBrowserService(options: BrowserServiceOptions): Prom
       const changed = typeof params.worktree === 'string' && workspace.select(params.worktree)
       // Renderer ownership replaces only the selected context's offscreen guests; their saved rows remain.
       for (const [page] of bridge.getRegisteredTabs(workspace.context)) if (offscreen.ownsTab(page)) await offscreen.closeTab(page)
-      if (!window || window.isDestroyed()) {
+      const createsWindow = !window || window.isDestroyed()
+      if (createsWindow) {
         const directory = __dirname
         window = new BrowserWindow({ show: false, width: 1280, height: 800, webPreferences: { preload: join(directory, '../preload/javis-browser.cjs'), webviewTag: true, sandbox: true, contextIsolation: true, nodeIntegration: false } })
         rendererId = window.webContents.id
@@ -246,8 +260,11 @@ export async function createBrowserService(options: BrowserServiceOptions): Prom
         await window.loadFile(join(directory, '../renderer/index.html'))
         window.webContents.send('javis:browser:event', { method: 'browser.contextChanged', params: { context: workspace.context, generation: workspace.generation } })
       }
-      if (changed) emit({ method: 'browser.contextChanged', params: { context: workspace.context, generation: workspace.generation } })
-      if (process.env.ORCA_BACKGROUND_LAUNCH !== '1' && (params.__javisForeground === true || !options.background)) window.show()
+      if (changed && !createsWindow) { resetBrowserMainWindowReadiness(window!); emit({ method: 'browser.contextChanged', params: { context: workspace.context, generation: workspace.generation } }) }
+      const openedWindow = window
+      const readyWindow = await whenBrowserMainWindowReady(8000)
+      if (!openedWindow || openedWindow.isDestroyed() || readyWindow !== openedWindow || window !== openedWindow) throw new BrowserError('browser_host_unavailable', 'Browser workspace did not finish initializing')
+      if (process.env.ORCA_BACKGROUND_LAUNCH !== '1' && (params.__javisForeground === true || !options.background)) openedWindow.show()
       return { opened: true, background: options.background, context: workspace.context }
     }
     const definition = methods.get(method)
@@ -266,11 +283,11 @@ export async function createBrowserService(options: BrowserServiceOptions): Prom
     }
     const result = (definition as any).streaming ? await new Promise<any>((resolve, reject) => {
       let ready = false
-      Promise.resolve(definition.handler(parsed, context, event => {
+      Promise.resolve(runWithRequestedPageUrl(parsed, () => definition.handler(parsed, context, event => {
         streamEmit(event)
         if (event.type === 'ready') { ready = true; resolve(event) }
-      })).then(value => { if (!ready) resolve(value) }, reject)
-    }) : await definition.handler(parsed, context, streamEmit)
+      }))).then(value => { if (!ready) resolve(value) }, reject)
+    }) : await runWithRequestedPageUrl(parsed, () => definition.handler(parsed, context, streamEmit))
     if (method === 'browser.tabSetProfile' && result) workspace.setProfile(result.browserPageId, result.profileId)
     return result
   }
@@ -278,7 +295,15 @@ export async function createBrowserService(options: BrowserServiceOptions): Prom
     if (!window || event.sender.id !== window.webContents.id) throw new BrowserError('invalid_argument', 'Untrusted browser workspace')
   }
   const trustedPersistence = (event: Electron.IpcMainInvokeEvent) => { if (stopping && event.sender.id === rendererId) return; trusted(event) }
-  ipcMain.handle('javis:browser:call', (event, method, params) => { trusted(event); return call(method, params) })
+  ipcMain.handle('javis:browser:call', async (event, method, params) => {
+    trusted(event)
+    if (method === 'agent.status' || method === 'agent.install') {
+      const response = await hostBridge.call('local', method, params)
+      if (!response.ok) throw new BrowserError(response.error.code, response.error.message)
+      return response.result
+    }
+    return call(method, params)
+  })
   ipcMain.handle('javis:browser:bootstrap', (event) => { trusted(event); return { context: workspace.context, host: 'local', ui: workspace.ui, generation: workspace.generation, settings: store.getSettings(), session: workspace.session(), contexts: workspace.contexts().map(id => ({ id, root: isAbsolute(id.replace(/^cwd:/, '')) ? id.replace(/^cwd:/, '') : join(options.dataDirectory, 'workspaces', encodeURIComponent(id)), owner: { kind: 'local' } })), runtimeEnvironments: [] } })
   ipcMain.handle('javis:browser:persist-workspace', (event, input) => { trustedPersistence(event); workspace.replace(input); return true })
   ipcMain.handle('javis:browser:runtime-invoke', (event, args) => { trusted(event); if (!String(args.method).startsWith('browser.')) throw new BrowserError('invalid_argument', 'Unknown browser runtime method'); return hostBridge.call(args.selector, args.method, args.params) })

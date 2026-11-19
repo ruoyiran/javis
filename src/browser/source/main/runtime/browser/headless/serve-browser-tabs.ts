@@ -36,7 +36,7 @@ export class ServeBrowserTabs {
   constructor(
     private readonly deps: {
       /** The page backend while no window hosts the browser tabs, else null. */
-      backend: () => BrowserBackend | null
+      backend: (worktreeId?: string) => BrowserBackend | null
       livePageIds: (worktreeId: string) => ReadonlySet<string>
       /** Every workspace that holds a saved browser tab, whatever else it holds. */
       savedWorktreeIds: () => Iterable<string>
@@ -104,11 +104,9 @@ export class ServeBrowserTabs {
 
   /** Saved tabs whose page has not started; every worktree's when none is named. */
   private listRestorable(worktreeId: string | undefined): RestorableBrowserPage[] {
-    if (!this.deps.backend()) {
-      return []
-    }
     const worktreeIds = worktreeId ? [worktreeId] : new Set(this.deps.savedWorktreeIds())
     return [...worktreeIds].flatMap((id) => {
+      if (!this.deps.backend(id)) return []
       const live = this.deps.livePageIds(id)
       return this.startableIn(id).filter((page) => !live.has(page.pageId))
     })
@@ -167,7 +165,7 @@ export class ServeBrowserTabs {
 
   // The backend registers the page before it returns, so a second caller finds it running.
   private async restore(page: RestorableBrowserPage): Promise<boolean> {
-    const backend = this.deps.backend()
+    const backend = this.deps.backend(page.worktreeId)
     if (!backend) {
       return false
     }
@@ -185,7 +183,7 @@ export class ServeBrowserTabs {
     applyLayout: LayoutApply
   ): void {
     const { worktreeId, pageId } = page
-    const session = this.deps.backend() ? this.deps.session(worktreeId) : null
+    const session = this.deps.backend(worktreeId) ? this.deps.session(worktreeId) : null
     if (
       !session ||
       findSavedBrowserPage(session, worktreeId, pageId) ||
@@ -227,7 +225,7 @@ export class ServeBrowserTabs {
     if (this.pendingOpens.delete(pageId)) {
       return true
     }
-    const session = this.deps.backend() ? this.deps.session(worktreeId) : null
+    const session = this.deps.backend(worktreeId) ? this.deps.session(worktreeId) : null
     const saved = session ? findSavedBrowserPage(session, worktreeId, pageId) : null
     if (!session || !saved) {
       return false
@@ -270,7 +268,7 @@ export class ServeBrowserTabs {
       session: WorkspaceSessionState
     ) => WorkspaceSessionState | null
   ): boolean {
-    const session = this.deps.backend() ? this.deps.session(worktreeId) : null
+    const session = this.deps.backend(worktreeId) ? this.deps.session(worktreeId) : null
     const next = session ? change(this.deps.hostId(worktreeId), session) : null
     if (!next) {
       return false

@@ -23,6 +23,7 @@ export class RuntimeBrowserTabClose {
       | 'retireRuntimeOwnedBrowserSessionTab'
       | 'notifyHeadlessBrowserSessionTabsChanged'
       | 'getAgentBrowserBridge'
+      | 'getBrowserPageWorkspaceId'
       | 'resolveWorkspaceSelector'
       | 'getAvailableAuthoritativeWindow'
       | 'isBrowserWorkspaceRendered'
@@ -50,9 +51,8 @@ export class RuntimeBrowserTabClose {
       // Even without a live browser session, a retained row may still need retirement.
       if (
         pageParam &&
-        params.worktree &&
         this.targets.retireGhostBrowserSessionRow(
-          (await this.host.resolveWorkspaceSelector(params.worktree)).id,
+          params.worktree ? (await this.host.resolveWorkspaceSelector(params.worktree)).id : this.host.getBrowserPageWorkspaceId?.(pageParam),
           pageParam
         )
       ) {
@@ -72,7 +72,7 @@ export class RuntimeBrowserTabClose {
       : explicitPage
         ? params.worktree
           ? (await this.host.resolveWorkspaceSelector(params.worktree)).id
-          : undefined
+          : this.host.getBrowserPageWorkspaceId?.(namedPageId!) ?? browserManager.getWorktreeIdForTab?.(namedPageId!)
         : await this.targets.resolveBrowserWorktreeId(params.worktree)
 
     let tabId: string | null = null

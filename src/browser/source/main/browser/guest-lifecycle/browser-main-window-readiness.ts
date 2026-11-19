@@ -15,6 +15,7 @@ const waiters = new Set<(window: BrowserWindow | null) => void>()
  * renderer document says it is ready once, so a reload resets this.
  */
 export function watchBrowserMainWindowReadiness(window: BrowserWindow): void {
+  if (watchedWindow === window) return
   watchedWindow = window
   readyWindow = null
   const contents = window.webContents
@@ -37,6 +38,8 @@ export function watchBrowserMainWindowReadiness(window: BrowserWindow): void {
   contents.on('did-navigate', reset)
   contents.on('render-process-gone', reset)
 }
+
+export function resetBrowserMainWindowReadiness(window: BrowserWindow): void { if (watchedWindow === window) readyWindow = null }
 
 /** The main window once its renderer takes tab requests; null if that takes over `timeoutMs`. */
 export function whenBrowserMainWindowReady(timeoutMs: number): Promise<BrowserWindow | null> {
