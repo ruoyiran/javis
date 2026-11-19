@@ -18,7 +18,7 @@ test('executes browser network traffic on the selected host and reports blocked 
     return true
   })
   const next = async () => { while (!queue.length) await new Promise<void>(resolve => wake = resolve); return queue.shift()! }
-  const ready = sessions.call({ action: 'open' }) as { subscriptionId: string }
+  const ready = sessions.call({ action: 'open', tunnelGeneration: 1 }) as { subscriptionId: string }
   const send = (streamId: number, opcode: BrowserNetworkTunnelOpcode, payload: Uint8Array) => sessions.call({ action: 'send', subscriptionId: ready.subscriptionId, bytes: Buffer.from(encodeBrowserNetworkTunnelFrame({ opcode, tunnelGeneration: 1, streamId, payload })).toString('base64') })
   try {
     send(1, BrowserNetworkTunnelOpcode.Open, encodeBrowserNetworkTunnelOpen({ host: '127.0.0.1', port: address.port }))

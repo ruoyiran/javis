@@ -202,11 +202,12 @@ async function readOneRequest(input: Readable): Promise<string> {
 export async function runBrowserRemoteStdioBridge(input: Readable = process.stdin, output: Writable = process.stdout): Promise<void> {
   const { BrowserFrameDecoder, writeBrowserFrame } = await import('../browser/remote/framed-channel.js')
   const { browserMethods } = await import('../browser/contract/index.js')
-  const allowed = new Set<string>(browserMethods)
+  const allowed = new Set<string>([...browserMethods, 'browser.status'])
   let connection: import('../browser/remote/framed-channel.js').BrowserStream | undefined
   const decoder = new BrowserFrameDecoder()
   const inFlight = new Set<Promise<void>>()
   const ids = new Set<number>()
+  output.on('drain', () => connection?.setBacklogged?.(false))
   try {
     for await (const chunk of input) {
       for (const frame of decoder.push(Buffer.from(chunk))) {
@@ -218,13 +219,14 @@ export async function runBrowserRemoteStdioBridge(input: Readable = process.stdi
           if (frame.method !== '__browserStreamIdentity' || typeof identity.pairedDeviceId !== 'string' || !identity.pairedDeviceId || identity.pairedDeviceId.length > 256 || !['runtime', 'mobile'].includes(String(identity.clientKind))) throw new JavisError('access_denied', 'SSH browser caller identity is required')
           connection = await connectJavisBrowserStream({
             identity: { pairedDeviceId: identity.pairedDeviceId, clientKind: identity.clientKind as 'runtime' | 'mobile', clientCapabilities: Array.isArray(identity.clientCapabilities) ? identity.clientCapabilities.filter((value): value is string => typeof value === 'string') : [] },
-            onEvent: event => { try { writeBrowserFrame(output, { type: 'event', ...event }) } catch { connection?.close(); input.destroy() } },
+            forwardDelivery: true,
+            onEvent: event => { try { const result = writeBrowserFrame(output, { type: 'event', ...event }, { dropWhenBacklogged: event.method === 'browser.stream.binary' }); if (result === 'backlogged') void connection?.call('__browserDelivery', { packetId: event.params.packetId, outcome: 'backlogged', backlogged: true }).catch(() => connection?.close()) } catch { connection?.close(); input.destroy() } },
             onClose: () => { input.destroy(); output.end() }
           })
           writeBrowserFrame(output, { id: frame.id, ok: true, result: { connected: true } })
           continue
         }
-        if (!allowed.has(frame.method) && !['__browserHost', '__browserNetwork'].includes(frame.method)) throw new JavisError('access_denied', 'Browser stream method is not allowed')
+        if (!allowed.has(frame.method) && !['__browserHost', '__browserNetwork', '__browserAuthority', '__browserDelivery', '__browserFlow'].includes(frame.method)) throw new JavisError('access_denied', 'Browser stream method is not allowed')
         const operation = connection.call(frame.method, frame.params as Record<string, unknown>).then(
           result => { writeBrowserFrame(output, { id: frame.id, ok: true, result }) },
           error => { writeBrowserFrame(output, { id: frame.id, ok: false, error: runtimeErrorDetails(error) }) }

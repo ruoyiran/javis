@@ -24,7 +24,8 @@ export class BrowserFrameDecoder {
   }
 }
 
-export function writeBrowserFrame(output: Writable, value: unknown): boolean {
+export function writeBrowserFrame(output: Writable, value: unknown, options: { dropWhenBacklogged?: boolean } = {}): boolean | 'backlogged' {
+  if (options.dropWhenBacklogged && output.writableNeedDrain) return 'backlogged'
   const body = Buffer.from(JSON.stringify(value))
   if (body.length > maxFrameBytes || output.writableLength > maxFrameBytes) throw new JavisError('transport_error', 'Browser stream backpressure limit exceeded')
   const header = Buffer.alloc(4)
@@ -34,9 +35,10 @@ export function writeBrowserFrame(output: Writable, value: unknown): boolean {
 }
 
 export type BrowserStreamEvent = { method: string; params: Record<string, unknown> }
-export type BrowserStream = { call(method: string, params: Record<string, unknown>): Promise<unknown>; close(): void }
+export type BrowserEventAdmission = { outcome: boolean | 'backlogged'; backlogged?: boolean }
+export type BrowserStream = { setBacklogged?(backlogged: boolean): void; call(method: string, params: Record<string, unknown>): Promise<unknown>; close(): void }
 export type BrowserCallerIdentity = { pairedDeviceId: string; clientKind: 'runtime' | 'mobile'; clientCapabilities?: string[] }
-export type BrowserStreamOptions = { identity: BrowserCallerIdentity; onEvent(event: BrowserStreamEvent): void; onClose?(error: Error): void }
+export type BrowserStreamOptions = { identity: BrowserCallerIdentity; onEvent(event: BrowserStreamEvent): BrowserEventAdmission | void; forwardDelivery?: boolean; onClose?(error: Error): void }
 
 export function createBrowserStreamClient(input: Readable, output: Writable, options: BrowserStreamOptions, authenticate: (frame: Record<string, unknown>) => Record<string, unknown> = value => value): BrowserStream {
   const decoder = new BrowserFrameDecoder()
@@ -56,7 +58,11 @@ export function createBrowserStreamClient(input: Readable, output: Writable, opt
     try {
       for (const frame of decoder.push(chunk)) {
         if (frame.type === 'event' && typeof frame.method === 'string' && frame.params && typeof frame.params === 'object') {
-          options.onEvent({ method: frame.method, params: frame.params as Record<string, unknown> }); continue
+          const admission = options.onEvent({ method: frame.method, params: frame.params as Record<string, unknown> })
+          if (!options.forwardDelivery && frame.method === 'browser.stream.binary' && typeof (frame.params as Record<string, unknown>).packetId === 'string') {
+            void client.call('__browserDelivery', { packetId: (frame.params as Record<string, unknown>).packetId, outcome: admission?.outcome ?? true, backlogged: admission?.backlogged ?? false }).catch(() => close())
+          }
+          continue
         }
         const request = pending.get(frame.id as number)
         if (!request) throw new JavisError('transport_error', 'Unknown browser response ID')
@@ -72,7 +78,8 @@ export function createBrowserStreamClient(input: Readable, output: Writable, opt
   input.on('data', data); input.once('error', close); output.once('error', close)
   input.once('end', () => { try { decoder.finish(); close() } catch (error) { close(error as JavisError) } })
   input.once('close', () => close())
-  return {
+  const client: BrowserStream = {
+    setBacklogged: backlogged => { void client.call('__browserFlow', { backlogged }).catch(() => close()) },
     call: (method, params) => new Promise((resolve, reject) => {
       if (closed) { reject(new JavisError('transport_error', 'Browser channel is disconnected')); return }
       if (pending.size >= 2048) { reject(new JavisError('transport_error', 'Browser channel request budget exhausted')); return }
@@ -84,4 +91,5 @@ export function createBrowserStreamClient(input: Readable, output: Writable, opt
     }),
     close: () => close()
   }
+  return client
 }

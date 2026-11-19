@@ -1,3 +1,5 @@
+import { browserMethods } from '../contract/index.js'
+import { callBrowser } from '../runtime/browser-process.js'
 import { isAbsolute, join, resolve, relative, sep } from 'node:path'
 import { mkdir } from 'node:fs/promises'
 import { homedir } from 'node:os'
@@ -44,6 +46,7 @@ export async function dispatchBrowserHostRequest(request: BrowserHostRequest): P
       const result = await (await connections.get(target)!).call('__browserHost', { method, params })
       return { ok: true, result }
     }
+    if ((browserMethods as readonly string[]).includes(method) || method === 'browser.status') return { ok: true, result: await callBrowser(method, params) }
     const context = text(params.worktree ?? params.context ?? 'default')
     await mkdir(root(context), { recursive: true, mode: 0o700 })
     let result: unknown

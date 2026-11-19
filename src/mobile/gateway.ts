@@ -27,7 +27,7 @@ class HttpError extends Error {
   constructor(readonly status: number, message: string) { super(message) }
 }
 
-const csp = "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'; object-src 'none'"
+const csp = "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; connect-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'; object-src 'none'"
 const bodyLimit = 32_768
 const observationLifetime = 120_000
 
@@ -112,9 +112,12 @@ export async function startMobileGateway(options: MobileGatewayOptions): Promise
         const detachViewer = browser.attachViewer(event => {
           if (response.destroyed) return
           if (response.writableLength > 8 * 1024 * 1024) { browser.close(); response.destroy(); return }
+          if (response.writableNeedDrain && event.method === 'browser.stream.binary') return { outcome: 'backlogged', backlogged: true }
           response.write(`data: ${JSON.stringify(event)}\n\n`)
           if (event.params.type === 'end') response.end()
+          return { outcome: true, backlogged: response.writableNeedDrain }
         })
+        response.on('drain', () => browser.setBacklogged(false))
         response.once('close', detachViewer)
         return
       }
@@ -127,7 +130,7 @@ export async function startMobileGateway(options: MobileGatewayOptions): Promise
           const result = await browser.call('browser.tabList', {}) as { tabs?: Record<string, unknown>[] }
           const page = result.tabs?.find(tab => tab.pageId === body.page || tab.browserPageId === body.page)
           if (!page) throw new HttpError(404, 'Browser page is unavailable')
-          browser.target = { page: body.page, worktree: typeof page.worktreeId === 'string' ? page.worktreeId : 'default', profileId: typeof page.profileId === 'string' ? page.profileId : undefined, sessionId: randomUUID(), url: '', width: 0, height: 0, observedAt: 0 }
+          await browser.select({ page: body.page, worktree: typeof page.worktreeId === 'string' ? page.worktreeId : 'default', profileId: typeof page.profileId === 'string' ? page.profileId : undefined, sessionId: randomUUID(), url: '', width: 0, height: 0, observedAt: 0 })
           browser.requiresRefresh = true
           return sendJson(response, 200, await browser.observe())
         }
@@ -142,7 +145,7 @@ export async function startMobileGateway(options: MobileGatewayOptions): Promise
         if (path.pathname === '/api/browser/action') {
           if (typeof body.method !== 'string' || !record(body.params) || typeof body.requestId !== 'string' || !/^[a-zA-Z0-9-]{1,80}$/.test(body.requestId)) throw new HttpError(400, 'Invalid browser action')
           if (!device.acceptRequestId(body.requestId)) throw new HttpError(409, 'Action request already used')
-          return sendJson(response, 200, await browser.act(body.method, body.params))
+          return sendJson(response, 200, await browser.act(body.method, body.params, record(body.frame) ? body.frame as { subscriptionId: string; seq: number } : undefined))
         }
         throw new HttpError(404, 'Not found')
       })

@@ -195,7 +195,7 @@ export async function runJavisDaemon(): Promise<void> {
   }, (method, params, canDeliver) => callBrowser(method, params, {}, canDeliver))
   const hostSubscriptions = new BrowserHostSubscriptions()
   const stopHostRequests = subscribeBrowserEvents(event => {
-    if (['browser.host.subscribe', 'browser.host.unsubscribe', 'browser.host.sendBinary'].includes(event.method)) { void hostSubscriptions.accept(event).catch(() => {}); return }
+    if (['browser.host.subscribe', 'browser.host.unsubscribe', 'browser.host.sendBinary', 'browser.host.revoked', 'browser.host.delivery', 'browser.host.flow', 'browser.host.invoke'].includes(event.method)) { void hostSubscriptions.accept(event).catch(() => {}); return }
     if (event.method !== 'browser.host.request') return
     const { id, target, method, params } = event.params
     if (typeof id !== 'string' || typeof target !== 'string' || typeof method !== 'string' || !params || typeof params !== 'object') return
@@ -273,7 +273,7 @@ export async function runJavisDaemon(): Promise<void> {
       queue.stop()
       cancelJavisPermissionOperations()
       stopHostRequests()
-      hostSubscriptions.close()
+      await hostSubscriptions.close()
       await closeBrowserHostConnections()
       await stopBrowserProcess()
       await provider.shutdown()
