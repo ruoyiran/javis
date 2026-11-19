@@ -14,11 +14,13 @@ javis browser tab list --json
 javis browser tab create --url https://example.com --json
 javis browser snapshot --page <browserPageId> --interactive --json
 javis browser click --page <browserPageId> --element @e3 --expect-url https://example.com/ --json
-javis browser fill --page <browserPageId> --element @e4 --value "text" --json
+javis browser fill --page <browserPageId> --element @e4 --value "text" --expect-url https://example.com/ --json
 javis browser screenshot --page <browserPageId> --annotate --json
 ```
 
 Take `browserPageId` from creation or tab listing and pass it on every page action. Take refs from that page's latest snapshot; navigation and tab changes invalidate them. `--expect-url` compares the complete absolute URL before supported steps, including path, query and fragment. Preserve `error.data.mayHaveStarted`: an uncertain delivery requires a new observation, never automatic input replay.
+
+`--element` accepts a fresh snapshot ref such as `@e4` or a CSS selector such as `'#email'`. Fill supports `--expect-url`; pass the exact observed URL when guarding the target page.
 
 Inspect action `effects` for URL/title changes, new tabs/popups/downloads, page diffs, errors, and loading/settled status. Snapshot again when the result says it is needed. `snapshot --interactive` omits page text; use a full snapshot or `exec --command "read"` when reading status messages. A browser screenshot's coordinates are CSS page pixels, matching browser mouse commands.
 

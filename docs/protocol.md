@@ -73,7 +73,7 @@ Permission setup returns grant states, `nextStep`, `helperAppPath`, `permissionI
 
 ## MCP surface
 
-`javis mcp` speaks MCP over stdio. The 14 tools are `javis_capabilities`, `javis_permissions_status`, `javis_list_apps`, `javis_list_windows`, `javis_get_app_state`, `javis_click`, `javis_set_value`, `javis_type_text`, `javis_press_key`, `javis_hotkey`, `javis_paste_text`, `javis_scroll`, `javis_drag`, and `javis_perform_secondary_action`.
+`javis mcp` speaks MCP over stdio. Its computer-use tools are `javis_capabilities`, `javis_permissions_status`, `javis_list_apps`, `javis_list_windows`, `javis_get_app_state`, `javis_click`, `javis_set_value`, `javis_type_text`, `javis_press_key`, `javis_hotkey`, `javis_paste_text`, `javis_scroll`, `javis_drag`, and `javis_perform_secondary_action`. Browser tools share the same server and use the browser contract described below.
 
 `javis_permissions_status` accepts an optional `host` SSH alias. It reads the selected host's macOS permission state through the allowlisted stdio bridge. Local status, setup, and reset share the long-lived daemon's paced permission gate; remote setup and reset require an explicit command on the remote host.
 

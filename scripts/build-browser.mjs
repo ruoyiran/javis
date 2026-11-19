@@ -67,4 +67,15 @@ const nativeName = `agent-browser-${process.platform}-${process.arch}${process.p
 const agentPackage = dirname(require.resolve('agent-browser/package.json'))
 await copyFile(join(agentPackage, 'bin', nativeName), join(resources, nativeName))
 if (process.platform !== 'win32') await chmod(join(resources, nativeName), 0o755)
+const licenses = join(output, 'licenses')
+await mkdir(licenses, { recursive: true })
+for (const [file, name] of [
+  [join(root, 'LICENSE'), 'Javis-MIT.txt'],
+  [join(source, 'source/renderer/LICENSE.upstream'), 'Orca-MIT.txt'],
+  [join(source, 'source/renderer/LICENSE.shadcn.upstream'), 'shadcn-MIT.txt'],
+  [join(source, 'source/renderer/src/assets/fonts/SymbolsNerdFontMono-OFL.txt'), 'SymbolsNerdFontMono-OFL.txt'],
+  [join(electronDist, 'LICENSE'), 'Electron-LICENSE.txt'],
+  [join(electronDist, 'LICENSES.chromium.html'), 'Chromium-LICENSES.html'],
+  [join(agentPackage, 'LICENSE'), 'agent-browser-LICENSE.txt']
+]) await copyFile(file, join(licenses, name))
 if (process.platform === 'win32') await import('./build-browser-windows.mjs')
