@@ -1,0 +1,78 @@
+{
+  "baseline": "729f757b592244176420a86114c1ea23911eeeba",
+  "conditions": {
+    "viewport": "1440x900",
+    "theme": "dark",
+    "language": "en-US",
+    "deviceScaleFactor": 1
+  },
+  "scope": "Actual chrome toolbar with supplied address slot, empty new-tab page, settings homepage/search/default zoom rows; shared controlled host boundaries; no desktop shell, webview or complete settings certification",
+  "records": [
+    {
+      "side": "source",
+      "surface": "toolbar",
+      "rendered": true,
+      "errors": []
+    },
+    {
+      "side": "source",
+      "surface": "newtab",
+      "rendered": true,
+      "errors": []
+    },
+    {
+      "side": "source",
+      "surface": "settings",
+      "rendered": true,
+      "errors": []
+    },
+    {
+      "side": "javis",
+      "surface": "toolbar",
+      "rendered": true,
+      "errors": []
+    },
+    {
+      "side": "javis",
+      "surface": "newtab",
+      "rendered": true,
+      "errors": []
+    },
+    {
+      "side": "javis",
+      "surface": "settings",
+      "rendered": true,
+      "errors": []
+    },
+    {
+      "surface": "toolbar",
+      "comparison": {
+        "width": 1440,
+        "height": 900,
+        "differingPixels": 0,
+        "differingPercent": 0,
+        "meanChannelDifference": 0
+      }
+    },
+    {
+      "surface": "newtab",
+      "comparison": {
+        "width": 1440,
+        "height": 900,
+        "differingPixels": 0,
+        "differingPercent": 0,
+        "meanChannelDifference": 0
+      }
+    },
+    {
+      "surface": "settings",
+      "comparison": {
+        "width": 1440,
+        "height": 900,
+        "differingPixels": 0,
+        "differingPercent": 0,
+        "meanChannelDifference": 0
+      }
+    }
+  ]
+}

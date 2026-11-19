@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { build } from 'esbuild'
 import { createRequire } from 'node:module'
-import { mkdtemp, rm } from 'node:fs/promises'
+import { mkdtemp, mkdir, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { resolve, join } from 'node:path'
 import { createServer } from 'node:http'
@@ -46,7 +46,9 @@ try {
   assert.equal(result.result, 'accepted value')
   const status = await processHandle.call('browser.status', {})
   assert.equal(status.visible, false)
-  await page.screenshot({ path: resolve('.superpowers/sdd/2026-11-19-orca-browser-parity/hidden-browser-workspace.png') })
+  const artifacts = process.env.JAVIS_TEST_ARTIFACT_DIRECTORY ? resolve(process.env.JAVIS_TEST_ARTIFACT_DIRECTORY) : directory
+  await mkdir(artifacts, { recursive: true })
+  await page.screenshot({ path: join(artifacts, 'hidden-browser-workspace.png') })
   assert.deepEqual(errors, [])
   console.log(JSON.stringify({ renderer: true, guest: true, snapshot: true, urlGuardedInput: true, hidden: true, pageErrors: 0 }))
 } finally {
