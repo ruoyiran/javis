@@ -50,16 +50,7 @@ export class RuntimeBrowserTabQueries {
       ? (await this.host.resolveBrowserWorkspace(params.worktree)).id
       : undefined
     const clientPages = this.host.getRuntimeBrowserPageRegistry().listPages(workspaceId)
-    let bridgeWorktreeId = workspaceId
-    if (this.host.getAgentBrowserBridge()) {
-      try {
-        bridgeWorktreeId = await this.targets.resolveBrowserWorktreeId(params.worktree)
-      } catch (error) {
-        if (clientPages.length === 0) {
-          throw error
-        }
-      }
-    }
+    const bridgeWorktreeId = workspaceId
     return { tabs: this.catalog.listLogicalBrowserTabs(bridgeWorktreeId, clientPages) }
   }
 

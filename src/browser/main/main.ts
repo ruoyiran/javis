@@ -3,6 +3,7 @@ import { app, protocol } from 'electron'
 import { connect } from 'node:net'
 import { mkdirSync } from 'node:fs'
 import { createInterface } from 'node:readline'
+import { initializeBrowserIdentityModeStore } from '../source/main/browser/identity/mode/browser-identity-mode-store'
 import { initializeBrowserProcessUserAgent } from '../source/main/browser/identity/browser-process-user-agent'
 import { setAppEnvironment } from '../source/shared/app-environment'
 import { ElectronAppEnvironment } from '../source/main/host/electron-app-environment'
@@ -16,7 +17,8 @@ mkdirSync(directory, { recursive: true, mode: 0o700 })
 app.setPath('userData', directory)
 app.setName('Javis Browser')
 setAppEnvironment(new ElectronAppEnvironment())
-initializeBrowserProcessUserAgent('clean')
+const identity = initializeBrowserIdentityModeStore(directory)
+initializeBrowserProcessUserAgent(identity.appliedMode)
 protocol.registerSchemesAsPrivileged([BROWSER_EXTENSION_API_CUSTOM_SCHEME, { scheme: 'orca-preview', privileges: { standard: true, secure: true, supportFetchAPI: true, corsEnabled: true, stream: true } }])
 const background = process.env.JAVIS_BROWSER_BACKGROUND === '1' || process.env.ORCA_BACKGROUND_LAUNCH === '1'
 if (background && process.platform === 'darwin') app.setActivationPolicy('accessory')

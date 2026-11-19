@@ -25,6 +25,7 @@ export class RuntimeBrowserTabClose {
       | 'getAgentBrowserBridge'
       | 'resolveWorkspaceSelector'
       | 'getAvailableAuthoritativeWindow'
+      | 'isBrowserWorkspaceRendered'
       | 'getOffscreenBrowserBackend'
       | 'getAuthoritativeWindow'
     >,
@@ -98,7 +99,9 @@ export class RuntimeBrowserTabClose {
     }
 
     const authoritativeWindow = this.host.getAvailableAuthoritativeWindow()
-    const offscreen = authoritativeWindow ? null : this.host.getOffscreenBrowserBackend()
+    const backend = this.host.getOffscreenBrowserBackend()
+    const ownedPage = tabId ?? bridge.getActivePageId(worktreeId)
+    const offscreen = backend && (!authoritativeWindow || (ownedPage && backend.ownsTab(ownedPage))) ? backend : null
     if (offscreen) {
       // An implicit close needs a real active page or would falsely report success.
       const resolvedTabId = tabId ?? bridge.getActivePageId(worktreeId)
@@ -127,7 +130,7 @@ export class RuntimeBrowserTabClose {
       return { closed: true }
     }
 
-    if (!authoritativeWindow && tabId && !bridge.getRegisteredTabs(worktreeId).has(tabId)) {
+    if ((!authoritativeWindow || this.host.isBrowserWorkspaceRendered?.(worktreeId) === false) && tabId && !bridge.getRegisteredTabs(worktreeId).has(tabId)) {
       if (this.targets.retireGhostBrowserSessionRow(worktreeId, tabId)) {
         return { closed: true }
       }

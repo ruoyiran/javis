@@ -37,6 +37,7 @@ export class RuntimeBrowserProfiles {
       RuntimeBrowserCommandHost,
       | 'getRuntimeId'
       | 'getAuthoritativeWindow'
+      | 'getOffscreenBrowserBackend'
       | 'getRuntimeBrowserPageRegistry'
       | 'getBrowserHostLeaseRegistry'
       | 'notifyHeadlessBrowserSessionTabsChanged'
@@ -119,6 +120,16 @@ export class RuntimeBrowserProfiles {
         profileId: profile.id,
         profileLabel: profile.label
       }
+    }
+
+    const backend = this.host.getOffscreenBrowserBackend()
+    if (backend?.ownsTab(browserPageId)) {
+      const worktreeId = browserManager.getWorktreeIdForTab(browserPageId)
+      const tab = this.targets.requireAgentBrowserBridge().tabList(worktreeId).tabs.find(tab => tab.browserPageId === browserPageId)
+      if (!tab) throw new BrowserError('browser_tab_not_found', 'The browser page is no longer available')
+      await backend.closeTab(browserPageId)
+      await backend.createTab({ browserPageId, worktreeId, profileId: profile.id, url: tab.url })
+      return { browserPageId, profileId: profile.id, profileLabel: profile.label }
     }
 
     const win = this.host.getAuthoritativeWindow()

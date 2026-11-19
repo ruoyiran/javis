@@ -5,7 +5,7 @@ import {
 import type { BrowserNetworkExecutionHost } from '../../../../shared/browser/client-hosting/browser-network-execution-host'
 import type { PairedRuntimeConnection } from '../../../../shared/remote-runtime/pairing/paired-runtime-connection'
 import '../../../../shared/remote-runtime/requests/remote-runtime-request-socket'
-import { subscribeRemoteRuntimeTransport } from '../../../../shared/remote-runtime/requests/remote-runtime-subscription-transport'
+import { subscribeBrowserHostTransport } from '../../../ipc/runtime-environments/runtime-environment-transport-routing'
 import type {
   RemoteRuntimeTransportSubscription,
   RemoteRuntimeSubscriptionOptions
@@ -99,8 +99,8 @@ export class PairedRuntimeBrowserNetworkTransport {
     this.rejectReady = rejectReady
     let readyTimeout: ReturnType<typeof setTimeout> | null = null
     try {
-      const subscription = await subscribeRemoteRuntimeTransport(
-        this.options.connection,
+      const subscription = await subscribeBrowserHostTransport(
+        this.options.connection.javisHostTarget ?? this.options.connection.endpoint,
         'network.browserTunnel',
         {
           authorityRuntimeId: this.options.lease.authorityRuntimeId,
@@ -109,7 +109,6 @@ export class PairedRuntimeBrowserNetworkTransport {
           browserHostGeneration: this.options.lease.browserHostGeneration,
           executionHost: this.options.executionHost
         },
-        this.options.timeoutMs,
         {
           onResponse: (response) => {
             if (this.closed) {
@@ -167,6 +166,7 @@ export class PairedRuntimeBrowserNetworkTransport {
         },
         {
           ...this.options.subscription,
+          javisCaller: this.options.connection.javisCaller,
           perMessageDeflate: false,
           outboundQueue: {
             softCapBytes: BROWSER_TUNNEL_WS_SOFT_CAP_BYTES,

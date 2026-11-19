@@ -28,6 +28,7 @@ export class RuntimeBrowserTabCreation {
       | 'getPairedDeviceName'
       | 'getRuntimeBrowserPageRegistry'
       | 'getAvailableAuthoritativeWindow'
+      | 'isBrowserWorkspaceRendered'
       | 'getOffscreenBrowserBackend'
       | 'getAuthoritativeWindow'
       | 'markHeadlessBrowserSessionTabActive'
@@ -81,7 +82,7 @@ export class RuntimeBrowserTabCreation {
     // Why reject rather than ignore: a caller asking for a split pane should learn it got none.
     if (
       params.split &&
-      (params.placement?.kind === 'client' || !this.host.getAvailableAuthoritativeWindow())
+      (params.placement?.kind === 'client' || !this.host.getAvailableAuthoritativeWindow() || this.host.isBrowserWorkspaceRendered?.(worktreeId) === false)
     ) {
       throw new BrowserError(
         'invalid_argument',
@@ -100,7 +101,7 @@ export class RuntimeBrowserTabCreation {
       )
     }
     // Headless hosts use offscreen WebContents because no renderer webview exists.
-    if (!this.host.getAvailableAuthoritativeWindow()) {
+    if (!this.host.getAvailableAuthoritativeWindow() || this.host.isBrowserWorkspaceRendered?.(worktreeId) === false) {
       const offscreen = this.host.getOffscreenBrowserBackend()
       if (!offscreen) {
         throw new BrowserError('browser_error', 'This host does not support browser panes.')

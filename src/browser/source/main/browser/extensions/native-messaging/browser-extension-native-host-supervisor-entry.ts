@@ -8,7 +8,7 @@ process.once('disconnect', () => process.exit(0))
 function failStartup(error: unknown): void {
   console.error('[browser-extensions] Native host supervisor:', error)
   if (process.connected && process.send) {
-    process.send({ type: 'error' }, () => process.exit(1))
+    process.send({ type: 'error' }, undefined, undefined, () => process.exit(1))
   } else {
     process.exit(1)
   }
@@ -38,7 +38,7 @@ if (
       if (!process.connected || !process.send) {
         process.exit(1)
       }
-      process.send({ type: 'ready' }, (error) => {
+      process.send({ type: 'ready' }, undefined, undefined, (error: Error | null) => {
         if (error) {
           process.exit(1)
         }

@@ -1,5 +1,4 @@
 import { webContents } from 'electron'
-import type { Store } from '../../../persistence/loading-store/store'
 import type { BrowserWorkspace } from '../../../../shared/browser-workspace-types'
 import type { WorkspaceSessionState } from '../../../../shared/workspace-session/workspace-session-state-types'
 // oxlint-disable-next-line import/no-cycle -- browser subsystem singleton hub (browserManager); breaking it needs DI and test-mock updates, left for a human
@@ -24,10 +23,11 @@ import {
  * host partition) and names each with a synthetic tab id until its guest loads (tabs.onReplaced).
  */
 
-export type SavedBrowserTabsSource = Pick<
-  Store,
-  'getWorkspaceSessionHostIds' | 'getWorkspaceSession' | 'onWorkspaceSessionWritten'
->
+export type SavedBrowserTabsSource = {
+  getWorkspaceSessionHostIds(): string[]
+  getWorkspaceSession(hostId: string): WorkspaceSessionState
+  onWorkspaceSessionWritten(callback: (hostId?: string) => void): () => void
+}
 
 export type DiscardedBrowserTab = {
   tabId: number

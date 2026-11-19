@@ -1,6 +1,6 @@
 /** Transport-proven identity, never request params, controls durable ledger namespaces and whose view a launch moves. */
 
-import type { RpcDispatchStreamingOptions } from './dispatcher-stream-options'
+type RpcDispatchStreamingOptions = { caller?: RpcCallerIdentity; clientKind?: 'runtime' | 'mobile'; pairedDeviceId?: string }
 
 export type RpcCallerIdentity =
   /** The `orca` CLI over the runtime socket, and the in-process bridges that relay it. */

@@ -184,7 +184,7 @@ async function readRuntimeDocPreviewFileInChunks(
       throw new Error('The paired machine returned an unreadable file chunk.')
     }
     const chunk = response.result
-    first ??= chunk
+    first = first ?? chunk
     const bytes = Buffer.from(chunk.contentBase64, 'base64')
     // Why: every chunk reports the opened file's version, so a rewrite between chunks is never spliced.
     if (

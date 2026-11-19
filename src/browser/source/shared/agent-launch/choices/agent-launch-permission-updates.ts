@@ -145,7 +145,7 @@ export function legacyLaunchTextUpdates(
       (Object.keys(updates.agentDefaultEnv).length ===
         Object.keys(published.agentDefaultEnv).length &&
         Object.entries(updates.agentDefaultEnv).every(([agent, env]) =>
-          same(env ?? {}, published.agentDefaultEnv[agent] ?? {})
+          same(env ?? {}, published.agentDefaultEnv[agent as TuiAgent] ?? {})
         )))
   ) {
     return {}

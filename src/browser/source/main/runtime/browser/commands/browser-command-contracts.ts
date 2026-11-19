@@ -52,6 +52,7 @@ export type RuntimeBrowserCommandHost = {
   getRuntimeBrowserPageRegistry(): RuntimeBrowserPageRegistry
   getAuthoritativeWindow(): BrowserWindow
   getAvailableAuthoritativeWindow(): BrowserWindow | null
+  isBrowserWorkspaceRendered?(worktreeId: string | undefined): boolean
   /** Headless offscreen backend, or null where unsupported. */
   getOffscreenBrowserBackend(): BrowserBackend | null
   // Update snapshot focus or paired clients snap back to a terminal.

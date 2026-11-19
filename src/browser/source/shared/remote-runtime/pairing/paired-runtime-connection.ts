@@ -3,6 +3,8 @@ import type { PairingOffer } from './mobile-relay-pairing-offer'
 
 // Connections carry credentials that may evolve beyond tokens; PairingOffer describes pairing input instead.
 export type PairedRuntimeConnection = {
+  javisHostTarget?: string
+  javisCaller?: { connectionId: string; pairedDeviceId: string; clientKind: 'runtime' | 'mobile'; clientCapabilities?: string[] }
   endpoint: string
   hostPublicKeyB64: string
   credential: PairedE2EEAuthCredential

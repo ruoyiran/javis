@@ -16,7 +16,8 @@ export class AnnotationQueue {
     this.persist()
     return { id: row.id, status: row.status }
   }
-  list(context?: string) { return Object.values(this.deliveries).filter(row => row.status === 'queued' && (!context || row.payload.context === context)) }
+  get(id: string) { return Object.values(this.deliveries).find(row => row.id === id) }
+  list(context?: string, includeAcknowledged = false) { return Object.values(this.deliveries).filter(row => (includeAcknowledged || row.status === 'queued') && (!context || row.payload.context === context)) }
   acknowledge(id: string) {
     const row = Object.values(this.deliveries).find(row => row.id === id)
     if (!row) throw new Error('annotation_delivery_not_found')
