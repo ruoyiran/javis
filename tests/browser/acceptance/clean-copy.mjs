@@ -1,4 +1,4 @@
-import { cp, mkdtemp, mkdir, open, rm, writeFile } from 'node:fs/promises'
+import { cp, mkdtemp, mkdir, open, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { resolve, join, relative, sep } from 'node:path'
 import { spawn, execFileSync } from 'node:child_process'
@@ -15,7 +15,19 @@ try {
     const parts = relative(repository, path).split(sep)
     return !parts.some(part => ['.git', 'node_modules', 'dist', 'build', '.superpowers'].includes(part)) && !(parts[0] === 'native' && parts.includes('.build'))
   } })
+  const lock = JSON.parse(await readFile(join(copy, 'package-lock.json'), 'utf8'))
+  for (const entry of Object.values(lock.packages)) {
+    if (entry.resolved?.startsWith('https:') && new URL(entry.resolved).hostname !== 'registry.npmjs.org') throw new Error('The clean copy has a dependency tarball outside the public registry')
+  }
+  let audit = ''
+  try { audit = execFileSync('rg', ['-n', '--glob', '*.{ts,tsx,js,mjs,cjs}', '(from|import\\(|require\\(|require.resolve\\().*[\x27\x22]@orca/|/Users/[^\x27\x22\\n]*[/\\\\]orca[/\\\\]', 'src', 'scripts', 'native'], { cwd: copy, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }) }
+  catch (error) { if (error.status !== 1) throw error }
+  if (audit.trim()) throw new Error('The clean copy contains a forbidden production source dependency')
+  results.push({ name: 'independence-audit', exitCode: 0, publicRegistry: true, noProductionOrcaRefs: true })
+  console.log(JSON.stringify(results.at(-1)))
   const environment = { ...process.env, ORCA_BACKGROUND_LAUNCH: '1', JAVIS_STATE_DIR: join(directory, 'state'), JAVIS_TEST_ARTIFACT_DIRECTORY: artifacts }
+  delete environment.npm_config_registry
+  environment.NPM_CONFIG_REGISTRY = 'https://registry.npmjs.org'
   for (const [name, command, args] of [
     ['npm-ci', 'npm', ['ci']],
     ['typecheck', 'npm', ['run', 'typecheck']],
