@@ -22,4 +22,3 @@ export type SshResolvedConfig = {
   hashKnownHosts: boolean
   updateHostKeys: string
 }
-
