@@ -9,7 +9,7 @@ import { FLOATING_TERMINAL_WORKTREE_ID } from '../source/shared/constants'
 import { useAppStore } from '../source/renderer/src/store'
 import { javisContext } from '../source/renderer/src/store/workspaces/javis-context-catalog'
 import type { BrowserPage } from '../source/shared/browser-workspace-types'
-import { BrowserLayout } from './browser-workspace-app'
+import { BackgroundBrowserLayout } from './background-browser-layout'
 export function BackgroundBrowserContexts(): React.JSX.Element {
   const {pages,active,layouts}=useAppStore(useShallow((state)=>({pages:state.browserPagesByWorkspace,active:state.activeWorktreeId,layouts:state.layoutByWorktree})))
   const [requested,setRequested]=useState<Set<string>>(()=>new Set()), [,setPaintRevision]=useState(0)
@@ -21,5 +21,5 @@ export function BackgroundBrowserContexts(): React.JSX.Element {
     return()=>{unsubscribe();paint();window.removeEventListener(BACKGROUND_MOUNT_TERMINAL_WORKTREE_EVENT,take)}
   },[])
   const contexts=backgroundBrowserContexts(pages,requested,active,browserPageNeedsPaintRetention)
-  return <>{contexts.map((context)=>javisContext(context)?.available===false || !layouts[context] ? null : <div key={context} className="pointer-events-none absolute inset-x-0 top-9 bottom-0 flex min-h-0 opacity-0"><BrowserLayout context={context} node={layouts[context]}/><BrowserPaneOverlayLayer worktreeId={context} isWorktreeActive={false}/></div>)}</>
+  return <>{contexts.map((context)=>javisContext(context)?.available===false || !layouts[context] ? null : <div key={context} className="pointer-events-none absolute inset-x-0 top-9 bottom-0 flex min-h-0 opacity-0"><BackgroundBrowserLayout context={context} node={layouts[context]}/><BrowserPaneOverlayLayer worktreeId={context} isWorktreeActive={false}/></div>)}</>
 }
