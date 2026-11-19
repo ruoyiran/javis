@@ -51,6 +51,16 @@ rsync -a --exclude=.git --exclude=node_modules --exclude=build --exclude=dist --
 
 The copied project must resolve its own source and packages. Verify `src/`, `native/`, and `scripts/` contain no `@orca/*` imports or absolute path to an Orca checkout. On macOS with signing available, run the full app build in the clean copy too. The sibling Orca checkout need not exist.
 
+## Browser validation
+
+`npm run typecheck` checks the core adapters, browser main/preload and renderer projects. Browser tests run with the existing suite. `npm run build:browser` builds actual engine/preload/extension worker assets and renderer, then includes the matching Electron and automation runtime. `npm run build` also verifies the signed macOS distribution on that host.
+
+The rendered browser acceptance script is `ORCA_BACKGROUND_LAUNCH=1 node tests/browser/runtime/hidden-browser-acceptance.mjs`. It uses its own temporary state, a local fixture HTTP server and hidden Electron renderers over loopback CDP. It checks a real workspace/guest, snapshot, URL-guarded input and hidden state. It does not observe or mutate an existing desktop app. Rebuild modified launch policy before executing it.
+
+Native desktop focus/permission/visible-window checks still require an isolated display or CI. A macOS browser or signed build cannot certify Linux/Windows GUI behavior. The fixed source inventory only establishes API coverage; behavioral and platform results must be reported separately.
+
+The extended hidden engine/renderer and independently copied stdio/mobile fixtures are `tests/browser/acceptance/hidden-behavior.mjs` and `tests/browser/acceptance/stdio-stream-behavior.mjs`. Run them with `ORCA_BACKGROUND_LAUNCH=1` after rebuilding. The [migration verification record](browser-parity/verification.md) distinguishes completed checks from remaining platform and advanced-flow evidence. The [browser workflow](../.github/workflows/browser-validation.yml) defines isolated Linux Xvfb and Windows build/hidden-browser jobs.
+
 ## Read-only desktop smoke checks
 
 Use an existing window only with task authorization. On macOS after local installation and user-granted permissions:
@@ -63,7 +73,7 @@ javis get-app-state --app com.apple.Terminal --json
 javis daemon stop
 ```
 
-Check that the snapshot has a session/context and nonempty tree, and that a requested image is captured or has a truthful failure status. Check private screenshot file permissions when a file is produced. The MCP server should expose 14 tools, return JSON text for `javis_get_app_state`, and add an image block when capture succeeds. Do not print private trees or image bytes in test logs. Verify daemon shutdown leaves no helper child.
+Check that the snapshot has a session/context and nonempty tree, and that a requested image is captured or has a truthful failure status. Check private screenshot file permissions when a file is produced. The MCP server exposes the existing computer-use tools alongside browser tools; `javis_get_app_state` returns JSON text and adds an image block when capture succeeds. Do not print private trees or image bytes in test logs. Verify daemon shutdown leaves no helper child.
 
 Choose an app that actually has a visible top-level window. Finder's desktop background does not count; when `list-windows` returns zero, open a Finder window manually or use another app for the read-only check.
 

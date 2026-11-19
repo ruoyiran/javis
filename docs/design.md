@@ -10,6 +10,8 @@ The [command parity matrix](orca-cua-parity.md) records every Orca desktop CUA C
 
 ## Decisions
 
+The approved browser addition follows Orca snapshot `729f757b` and keeps the existing native CUA process independent. Javis owns the browser engine/renderer, CLI/MCP contracts, persistent host streams, mobile page and distribution. Electron is approved only for this browser subsystem. It neither imports a sibling checkout nor uses Orca runtime services. Browser UI, data and action contracts follow the [approved migration design](superpowers/specs/2026-11-19-orca-browser-parity-design.md).
+
 | Decision | Reason and consequence |
 | --- | --- |
 | Independent repository and runtime | Source, build, and installed runtime cannot depend on a sibling Orca checkout, RPC, or package. |

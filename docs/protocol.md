@@ -2,6 +2,16 @@
 
 For end-to-end workflows using these commands, see the [usage examples](examples.md).
 
+## Browser entry points
+
+`javis browser <command>` exposes the migrated 83-command browser family. `browser open/status` are additional Javis lifecycle commands. `javis browser <command> --help` gives exact flags, source notes and recovery guidance. Existing flat desktop actions and `javis computer` retain their contracts.
+
+Browser results retain the source payload inside the Javis `{ok,result}` envelope. Source `error.data` survives CLI, daemon, browser process and SSH hops, including expected/actual URL and uncertain-delivery metadata. Browser refs are distinct from desktop CUA element indexes. Each action must pin the intended page and use a fresh page snapshot; no transport automatically repeats delivered input.
+
+MCP registers browser tools from the actual source parameter schemas and revalidates complete objects before dispatch. Client-host authority and screencast control methods stay on authenticated internal channels, not arbitrary public tools. Screenshot tools return image content and metadata.
+
+One-shot SSH browser commands use `javis rpc --stdio`. Persistent internal browser channels use `javis rpc --stream-stdio`: a private authenticated handshake is followed by bounded length-framed requests/events. Connection identities are assigned by the daemon and applied to engine calls. Frame delivery/flow acknowledgements, ownership revocation and disconnect teardown follow the source contract.
+
 ## CLI entry points
 
 The complete Orca CUA command family is also available as `javis computer <command>`; see the [command mapping](orca-cua-parity.md). Existing flat commands remain supported. `javis computer permissions [--id accessibility|screenshots]` opens local setup, while `javis computer permissions status` reads status. Use `javis computer --help` or `javis computer <command> --help` for command-specific flags. Value flags accept `--flag=value`, and `--json` can precede the command.
@@ -63,7 +73,7 @@ Permission setup returns grant states, `nextStep`, `helperAppPath`, `permissionI
 
 ## MCP surface
 
-`javis mcp` speaks MCP over stdio. The 14 tools are `javis_capabilities`, `javis_permissions_status`, `javis_list_apps`, `javis_list_windows`, `javis_get_app_state`, `javis_click`, `javis_set_value`, `javis_type_text`, `javis_press_key`, `javis_hotkey`, `javis_paste_text`, `javis_scroll`, `javis_drag`, and `javis_perform_secondary_action`.
+`javis mcp` speaks MCP over stdio. Its computer-use tools are `javis_capabilities`, `javis_permissions_status`, `javis_list_apps`, `javis_list_windows`, `javis_get_app_state`, `javis_click`, `javis_set_value`, `javis_type_text`, `javis_press_key`, `javis_hotkey`, `javis_paste_text`, `javis_scroll`, `javis_drag`, and `javis_perform_secondary_action`. Browser tools share the same server and use the browser contract described below.
 
 `javis_permissions_status` accepts an optional `host` SSH alias. It reads the selected host's macOS permission state through the allowlisted stdio bridge. Local status, setup, and reset share the long-lived daemon's paced permission gate; remote setup and reset require an explicit command on the remote host.
 

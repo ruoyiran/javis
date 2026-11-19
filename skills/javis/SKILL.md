@@ -1,9 +1,36 @@
 ---
 name: javis
-description: Use when an agent needs to inspect or operate a desktop app window on macOS, Linux, or Windows through Javis and a direct API, terminal command, or file operation cannot complete the task.
+description: Use when an agent needs to inspect or operate a desktop app window or a Javis built-in browser page on macOS, Linux, Windows, or a selected SSH host.
 ---
 
-# Javis Computer Use
+# Javis Desktop and Browser
+
+## Built-in browser pages
+
+Use `javis browser` or the `javis_browser_*` MCP tools for Javis's built-in browser. Website names and browser page IDs are not desktop app selectors. Browser APIs operate on page refs and CSS pixels; desktop APIs operate on accessibility element indexes and window coordinates.
+
+```bash
+javis browser tab list --json
+javis browser tab create --url https://example.com --json
+javis browser snapshot --page <browserPageId> --interactive --json
+javis browser click --page <browserPageId> --element @e3 --expect-url https://example.com/ --json
+javis browser fill --page <browserPageId> --element @e4 --value "text" --expect-url https://example.com/ --json
+javis browser screenshot --page <browserPageId> --annotate --json
+```
+
+Take `browserPageId` from creation or tab listing and pass it on every page action. Take refs from that page's latest snapshot; navigation and tab changes invalidate them. `--expect-url` compares the complete absolute URL before supported steps, including path, query and fragment. Preserve `error.data.mayHaveStarted`: an uncertain delivery requires a new observation, never automatic input replay.
+
+`--element` accepts a fresh snapshot ref such as `@e4` or a CSS selector such as `'#email'`. Fill supports `--expect-url`; pass the exact observed URL when guarding the target page.
+
+Inspect action `effects` for URL/title changes, new tabs/popups/downloads, page diffs, errors, and loading/settled status. Snapshot again when the result says it is needed. `snapshot --interactive` omits page text; use a full snapshot or `exec --command "read"` when reading status messages. A browser screenshot's coordinates are CSS page pixels, matching browser mouse commands.
+
+`--host` selects an SSH host. `--worktree`, `--context` or `--session` selects a folder/session namespace on that host; use the same context for related calls. `--worktree all` intentionally removes the workspace filter, while a literal `--context all` is still a named context. The selected host needs its own Javis browser runtime.
+
+`javis browser --help` lists profile, Cookie/storage, extension, upload/download, dialog, capture/network, device/viewport, keyboard/mouse and other supported browser commands. Use `javis browser <command> --help` for exact flags. `browser open` explicitly displays the workspace; ordinary automation is background operation. Internal client-host grants and streaming control are not arbitrary public tools.
+
+An external Chromium fallback may have fewer capabilities than the desktop Electron provider; use actual capability/errors. Do not claim that a third-party CUA browser host can discover Javis tabs merely because the browser supports CDP.
+
+## Desktop app windows
 
 Use Javis for desktop app windows on a local or explicitly selected SSH host. Prefer the `javis_*` MCP tools when available; the `javis` CLI exposes the same desktop actions. Check `javis capabilities --json` on the target host because provider support differs. Keep the user's current app and pointer undisturbed where background input is supported.
 

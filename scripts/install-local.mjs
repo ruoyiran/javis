@@ -31,7 +31,7 @@ const backup = join(appDirectory, `.Javis.app.backup-${process.pid}`)
 rmSync(staging, { recursive: true, force: true })
 rmSync(backup, { recursive: true, force: true })
 try {
-  cpSync(source, staging, { recursive: true })
+  cpSync(source, staging, { recursive: true, verbatimSymlinks: true })
   run('codesign', ['--verify', '--deep', '--strict', staging])
   if (existsSync(target)) renameSync(target, backup)
   renameSync(staging, target)

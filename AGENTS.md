@@ -29,7 +29,8 @@ The local installer is `npm run install:local`. On macOS it changes `~/Applicati
 - `native/javis-linux/` owns the Python 3 AT-SPI provider; `native/javis-windows/` owns the PowerShell UI Automation provider. Each runs only in the selected user's graphical login.
 - `src/runtime/` owns provider selection, the private local daemon, request queue, sessions, SSH stdio routing, and process cleanup. `src/contract/` defines shared result shapes and error recovery advice.
 - `src/cli/`, `src/mcp/`, `src/settings/`, `src/mobile/`, and `src/agent/` are adapters over that runtime. Keep action semantics aligned across entry points.
-- `scripts/` builds and installs Javis on each supported platform; macOS alone has the signed app packaging path. Do not reintroduce Electron, Orca RPC, or `@orca/*` imports.
+- `src/browser/` owns the independent Electron browser process, migrated browser engine and renderer, browser contracts, and adapters. Electron is approved for this browser subsystem; the existing native CUA providers remain independent.
+- `scripts/` builds and installs Javis on each supported platform; macOS alone has the signed app packaging path. Browser code must use Javis-owned transport and locally migrated source. Do not depend on Orca RPC services, a sibling checkout, or `@orca/*` imports.
 
 ## Invariants
 

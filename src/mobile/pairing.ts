@@ -52,10 +52,12 @@ export class MobilePairing {
     return device
   }
 
+  close(): void { for (const device of this.devices.values()) device.browser?.close(); this.devices.clear() }
+
   private purge(): void {
     const now = Date.now()
     for (const [cookie, token] of this.prePair) if (token.expiresAt <= now) this.prePair.delete(cookie)
-    for (const [cookie, device] of this.devices) if (now - device.lastSeen >= deviceLifetime) this.devices.delete(cookie)
+    for (const [cookie, device] of this.devices) if (now - device.lastSeen >= deviceLifetime) { device.browser?.close(); this.devices.delete(cookie) }
     for (const [address, attempt] of this.failedAttempts) if (now - attempt.since >= 60_000) this.failedAttempts.delete(address)
   }
 }

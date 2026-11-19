@@ -1,4 +1,8 @@
+import { BrowserHostSubscriptions } from '../browser/remote/host-subscriptions.js'
+import { dispatchBrowserHostRequest, closeBrowserHostConnections } from '../browser/remote/host-dispatch.js'
 import net from 'node:net'
+import { createBrowserStreamClient, type BrowserStream, type BrowserStreamOptions } from '../browser/remote/framed-channel.js'
+import { serveBrowserDaemonStream } from '../browser/remote/daemon-stream.js'
 import { spawn, execFile } from 'node:child_process'
 import { randomBytes } from 'node:crypto'
 import { chmod, lstat, mkdir, readFile, rm, writeFile } from 'node:fs/promises'
@@ -7,7 +11,7 @@ import { join } from 'node:path'
 import { promisify } from 'node:util'
 import { acquireDaemonLock, assertDaemonRecoveryAvailable, parseDaemonPid } from './daemon-lock.js'
 import { daemonEndpoint, type DaemonEndpoint } from './daemon-endpoint.js'
-import { createDaemonDispatch, type JavisDaemonMethod } from './daemon-dispatch.js'
+import { createDaemonDispatch, isBrowserDaemonMethod, browserDaemonParams, type JavisDaemonMethod } from './daemon-dispatch.js'
 import { parseDaemonRequest } from './daemon-request.js'
 import { JavisError } from './error.js'
 import { createProviderForPlatform } from './provider-selection.js'
@@ -15,6 +19,8 @@ import { validateComputerProviderActionParams } from './computer-provider-action
 import { validateComputerRequestParams } from './computer-request-validation.js'
 import { SessionRuntime, type JavisMethod } from './session.js'
 import { JsonLineDecoder, DeliveryQueue } from './transport.js'
+import { runtimeErrorDetails } from './error.js'
+import { callBrowser, stopBrowserProcess, subscribeBrowserEvents } from '../browser/runtime/browser-process.js'
 import { readJavisPermissionStatus, openJavisPermissions, resetJavisPermissions, cancelJavisPermissionOperations } from '../permissions.js'
 
 export { JavisError }
@@ -77,16 +83,16 @@ function request(socket: net.Socket, method: string, params: Record<string, unkn
       try { lines = decoder.push(chunk) } catch (error) { failed(error as Error); return }
       if (!lines.length) return
       try {
-        const reply = JSON.parse(lines[0]) as { id?: number; ok?: boolean; result?: unknown; error?: { code?: string; message?: string } }
+        const reply = JSON.parse(lines[0]) as { id?: number; ok?: boolean; result?: unknown; error?: { code?: string; message?: string; data?: unknown } }
         if (reply.id !== 1) throw new JavisError('transport_error', 'Mismatched daemon response ID')
         if (reply.ok === true) finish(undefined, reply.result)
-        else finish(new JavisError(reply.error?.code ?? 'transport_error', reply.error?.message ?? 'Javis request failed'))
+        else finish(new JavisError(reply.error?.code ?? 'transport_error', reply.error?.message ?? 'Javis request failed', reply.error?.data))
       } catch (error) { failed(error as Error) }
     }
     const timer = setTimeout(() => {
       finish(new JavisError('action_timeout', 'Request timed out; action delivery may be uncertain'))
       socket.destroy()
-    }, 60_000)
+    }, isBrowserDaemonMethod(method) ? Math.max(90_000, typeof params.timeout === 'number' ? params.timeout + 30_000 : 0) : 60_000)
     socket.on('data', data); socket.once('close', closed); socket.once('error', failed)
     socket.write(JSON.stringify({ id: 1, method, params, token }) + '\n', error => { if (error) failed(error) })
   })
@@ -101,7 +107,8 @@ async function readDaemonToken(target: DaemonEndpoint): Promise<string | undefin
 }
 
 export async function callJavis(method: JavisDaemonMethod, params: Record<string, unknown>): Promise<unknown> {
-  if (!permissionMethods.has(method)) validateComputerRequestParams(method as JavisMethod, params)
+  if (isBrowserDaemonMethod(method)) params = browserDaemonParams(method, params)
+  else if (!permissionMethods.has(method)) validateComputerRequestParams(method as JavisMethod, params)
   if (actions.has(method)) await validateComputerProviderActionParams(method as Parameters<typeof validateComputerProviderActionParams>[0], params)
   const target = endpoint()
   await privateDirectory(target.directory)
@@ -118,6 +125,17 @@ export async function callJavis(method: JavisDaemonMethod, params: Record<string
   }
   try { return await request(socket, method, params, await readDaemonToken(target)) }
   finally { socket.destroy() }
+}
+
+export async function connectJavisBrowserStream(options: BrowserStreamOptions): Promise<BrowserStream> {
+  await callJavis('browser.status', {})
+  const target = endpoint()
+  const socket = await connect(target.address)
+  const token = await readDaemonToken(target)
+  try {
+    await request(socket, '__browserStream', { identity: options.identity }, token)
+    return createBrowserStreamClient(socket, socket, options, frame => ({ ...frame, token }))
+  } catch (error) { socket.destroy(); throw error }
 }
 
 export async function stopJavisDaemon(): Promise<void> {
@@ -174,6 +192,14 @@ export async function runJavisDaemon(): Promise<void> {
     status: readJavisPermissionStatus,
     open: openJavisPermissions,
     reset: resetJavisPermissions
+  }, (method, params, canDeliver) => callBrowser(method, params, {}, canDeliver))
+  const hostSubscriptions = new BrowserHostSubscriptions()
+  const stopHostRequests = subscribeBrowserEvents(event => {
+    if (['browser.host.subscribe', 'browser.host.unsubscribe', 'browser.host.sendBinary', 'browser.host.revoked', 'browser.host.delivery', 'browser.host.flow', 'browser.host.invoke'].includes(event.method)) { void hostSubscriptions.accept(event).catch(() => {}); return }
+    if (event.method !== 'browser.host.request') return
+    const { id, target, method, params } = event.params
+    if (typeof id !== 'string' || typeof target !== 'string' || typeof method !== 'string' || !params || typeof params !== 'object') return
+    void dispatchBrowserHostRequest({ target, method, params: params as Record<string, unknown> }).then(response => callBrowser('browser.host.reply', { id, response })).catch(() => {})
   })
   const queue = new DeliveryQueue()
   let active = 0
@@ -201,20 +227,32 @@ export async function runJavisDaemon(): Promise<void> {
         return
       }
       if (input.method === '__shutdown') { void shutdown(socket, input.id); return }
-      const deadline = Date.now() + 60_000
+      if (input.method === '__browserStream') {
+        const identity = input.params.identity as Record<string, unknown> | undefined
+        if (!identity || typeof identity.pairedDeviceId !== 'string' || !identity.pairedDeviceId || !['runtime', 'mobile'].includes(String(identity.clientKind))) { socket.destroy(); return }
+        socket.removeAllListeners('data')
+        active++; clearTimeout(idle)
+        serveBrowserDaemonStream(socket, { pairedDeviceId: identity.pairedDeviceId, clientKind: identity.clientKind as 'runtime' | 'mobile', clientCapabilities: Array.isArray(identity.clientCapabilities) ? identity.clientCapabilities.filter((v): v is string => typeof v === 'string') : [] }, token, () => {
+          active--
+          if (!active && !stopping) idle = setTimeout(() => { void shutdown() }, 300_000)
+        })
+        socket.write(JSON.stringify({ id: input.id, ok: true, result: { connected: true } }) + '\n')
+        return
+      }
+      const deadline = Date.now() + (isBrowserDaemonMethod(input.method) ? Math.max(90_000, typeof input.params.timeout === 'number' ? input.params.timeout + 30_000 : 0) : 60_000)
       active++; clearTimeout(idle)
       const complete = (operation: Promise<unknown>) => {
         inFlight.delete(operation)
         active--
         if (!active && !stopping) idle = setTimeout(() => { void shutdown() }, 300_000)
       }
-      if (permissionMethods.has(input.method)) {
+      if (permissionMethods.has(input.method) || isBrowserDaemonMethod(input.method)) {
         const canDeliver = () => !disconnected && !socket.destroyed && !stopping && Date.now() < deadline
         const operation = dispatch(input.method as JavisDaemonMethod, input.params, canDeliver)
         inFlight.add(operation)
         void operation.then(
           result => { if (!socket.destroyed) socket.end(JSON.stringify({ id: input.id, ok: true, result }) + '\n') },
-          error => { if (!socket.destroyed) socket.end(JSON.stringify({ id: input.id, ok: false, error: { code: error instanceof JavisError ? error.code : 'internal_error', message: error instanceof Error ? error.message : String(error) } }) + '\n') }
+          error => { if (!socket.destroyed) socket.end(JSON.stringify({ id: input.id, ok: false, error: runtimeErrorDetails(error) }) + '\n') }
         ).then(() => complete(operation), () => complete(operation))
         return
       }
@@ -222,7 +260,7 @@ export async function runJavisDaemon(): Promise<void> {
         deliveryAllowed = () => !disconnected && !socket.destroyed && Date.now() < deadline
         let reply
         try { reply = { id: input.id, ok: true, result: await dispatch(input.method as JavisDaemonMethod, input.params) } }
-        catch (error) { reply = { id: input.id, ok: false, error: { code: error instanceof JavisError ? error.code : 'internal_error', message: error instanceof Error ? error.message : String(error) } } }
+        catch (error) { reply = { id: input.id, ok: false, error: runtimeErrorDetails(error) } }
         if (!socket.destroyed) socket.end(JSON.stringify(reply) + '\n')
       })
       inFlight.add(operation)
@@ -234,6 +272,10 @@ export async function runJavisDaemon(): Promise<void> {
       clearTimeout(idle)
       queue.stop()
       cancelJavisPermissionOperations()
+      stopHostRequests()
+      await hostSubscriptions.close()
+      await closeBrowserHostConnections()
+      await stopBrowserProcess()
       await provider.shutdown()
       await Promise.allSettled([...inFlight])
       if (!target.namedPipe) await rm(target.address, { force: true })
@@ -257,6 +299,7 @@ export async function runJavisDaemon(): Promise<void> {
   await new Promise<void>(resolve => server.once('close', resolve))
   process.off('SIGTERM', onSignal); process.off('SIGINT', onSignal)
   } catch (error) {
+    await stopBrowserProcess().catch(() => {})
     await provider.shutdown().catch(() => {})
     if (!target.namedPipe) await rm(target.address, { force: true })
     await rm(target.tokenPath, { force: true })

@@ -2,6 +2,7 @@ import { spawnSync } from 'node:child_process'
 import { copyFileSync, existsSync, mkdirSync, rmSync, writeFileSync, chmodSync, realpathSync, readFileSync, readdirSync } from 'node:fs'
 import { resolve, join, dirname } from 'node:path'
 import { selectNodeRuntime } from './select-node-runtime.mjs'
+import { packageBrowserMacOS } from './package-browser-macos.mjs'
 
 const root = resolve(import.meta.dirname, '..')
 const { version } = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'))
@@ -31,6 +32,7 @@ const nodeLicense = join(dirname(dirname(realpathSync(nodeRuntime))), 'LICENSE')
 if (!existsSync(nodeLicense)) throw new Error(`Bundled Node license not found: ${nodeLicense}`)
 copyFileSync(nodeLicense, join(resources, 'licenses', 'node-LICENSE'))
 copyPackageLicenses(join(root, 'node_modules'), join(resources, 'licenses', 'npm'))
+packageBrowserMacOS({ source: join(root, 'dist/browser'), destination: join(resources, 'browser'), identity, version, entitlements: join(root, 'scripts/browser-macos-entitlements.plist') })
 chmodSync(join(macos, 'javis-helper'), 0o755)
 chmodSync(join(resources, 'node'), 0o755)
 writeFileSync(join(app, 'Contents', 'Info.plist'), infoPlist(version))

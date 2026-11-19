@@ -1,0 +1,80 @@
+name: Browser validation
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/browser-validation.yml'
+      - 'src/**'
+      - 'native/**'
+      - 'scripts/**'
+      - 'tests/**'
+      - 'package*.json'
+      - '.npmrc'
+      - 'tsconfig*.json'
+      - 'vitest.config.ts'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: browser-validation-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  browser:
+    name: Hidden browser on ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2025]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    env:
+      ORCA_BACKGROUND_LAUNCH: '1'
+      JAVIS_TEST_ARTIFACT_DIRECTORY: browser-artifacts
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Configure isolated Linux display and Electron dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb libgtk-3-0 libnss3 libgbm1 libasound2t64
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+      - name: Install dependencies
+        run: npm ci
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Fixed browser contract inventory
+        run: node scripts/audit-browser-contract.mjs
+      - name: Unit and protocol tests
+        run: npm test
+      - name: Linux provider tests
+        if: runner.os == 'Linux'
+        run: python3 -m unittest discover -s native/javis-linux -p '*test.py'
+      - name: Windows provider tests
+        if: runner.os == 'Windows'
+        run: powershell.exe -NoProfile -NonInteractive -File native/javis-windows/runtime-pointer.test.ps1
+      - name: Build standalone distribution
+        run: npm run build
+      - name: Linux hidden browser acceptance
+        if: runner.os == 'Linux'
+        run: |
+          xvfb-run -a node tests/browser/runtime/hidden-browser-acceptance.mjs
+          xvfb-run -a node tests/browser/acceptance/hidden-behavior.mjs
+      - name: Windows hidden browser acceptance
+        if: runner.os == 'Windows'
+        run: |
+          node tests/browser/runtime/hidden-browser-acceptance.mjs
+          node tests/browser/acceptance/hidden-behavior.mjs
+      - name: Preserve browser artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-${{ runner.os }}
+          path: browser-artifacts
+          if-no-files-found: ignore

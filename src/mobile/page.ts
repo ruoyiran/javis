@@ -1,3 +1,4 @@
+import { mobileBrowserHtml } from './browser-page.js'
 import { javisLogoDataUrl, javisLogoMarkup } from '../branding.js'
 
 export const mobileHtml = `<!doctype html>
@@ -10,6 +11,7 @@ export const mobileHtml = `<!doctype html>
   <link rel="icon" type="image/svg+xml" href="${javisLogoDataUrl}">
   <link rel="stylesheet" href="/mobile.css">
   <script src="/mobile.js" defer></script>
+  <script src="/browser-mobile.js" defer></script>
 </head>
 <body>
   <header class="brand"><div class="brand-icon">${javisLogoMarkup}</div><div><h1>Javis Mobile</h1><p>Control the desktop running Javis</p></div></header>
@@ -51,6 +53,7 @@ export const mobileHtml = `<!doctype html>
         <form data-action="performSecondaryAction"><h3>Secondary action</h3><label>Element index<input name="elementIndex" type="number" min="0" step="1" required></label><label>Action name<input name="action" required></label><button type="submit">Perform action</button></form>
       </div>
     </section>
+    ${mobileBrowserHtml}
   </main>
 </body>
 </html>`
@@ -79,6 +82,7 @@ button:disabled { cursor: not-allowed; opacity: .5; }
 .action-grid form { border: 1px solid currentColor; border-radius: 10px; padding: 12px; }
 .action-grid form p { margin-bottom: 0; opacity: .7; }
 .observation { overflow: hidden; }
+#browser-frame { display: block; max-width: 100%; height: auto; touch-action: manipulation; }
 #screenshot { display: block; width: 100%; max-width: 800px; height: auto; border: 1px solid currentColor; touch-action: manipulation; }
 #screenshot[hidden] { display: none; }
 #tree { max-height: 45vh; overflow: auto; padding: 12px; border: 1px solid currentColor; border-radius: 8px; white-space: pre-wrap; overflow-wrap: anywhere; }

@@ -1,6 +1,7 @@
 import { spawnSync } from 'node:child_process'
 
 run('node', ['scripts/build-js.mjs'])
+run('node', ['scripts/build-browser.mjs'])
 if (process.platform === 'darwin') {
   run('node', ['scripts/build-native.mjs'])
   run('node', ['scripts/package-macos.mjs'])

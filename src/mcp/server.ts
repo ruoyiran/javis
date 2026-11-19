@@ -12,6 +12,7 @@ import { validateComputerProviderActionParams } from '../runtime/computer-provid
 import { queryComputerTreeText } from '../cli/tree-query.js'
 import { toMcpError, toMcpResult } from './result.js'
 import { JAVIS_VERSION } from '../version.js'
+import { registerBrowserMcpTools } from '../browser/mcp/index.js'
 
 export function createJavisMcpServer(): Server {
   const sessions = new Map<string, string>()
@@ -29,7 +30,7 @@ export function createJavisMcpServer(): Server {
   ) => {
     const schema = z.object(config.inputSchema).strict()
     tools.set(name, {
-      definition: { name, description: config.description, annotations: config.annotations, inputSchema: z.toJSONSchema(schema, { target: 'draft-7' }) as Tool['inputSchema'] },
+      definition: { name, description: config.description, annotations: config.annotations, inputSchema: z.toJSONSchema(schema, { target: 'draft-7', io: 'input', unrepresentable: 'any' }) as Tool['inputSchema'] },
       schema,
       handler
     })
@@ -102,6 +103,7 @@ export function createJavisMcpServer(): Server {
     try { return toMcpResult(params.host ? await callRemoteJavis('permissionsStatus', {}, params.host) : await callJavis('permissionsStatus', {})) }
     catch (error) { return toMcpError(error) }
   })
+  registerBrowserMcpTools(registerTool, { call: (method, params, target) => callTarget(method as Parameters<typeof callTarget>[0], params, target) })
   server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: [...tools.values()].map(tool => tool.definition) }))
   server.setRequestHandler(CallToolRequestSchema, async request => {
     try {

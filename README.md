@@ -71,6 +71,27 @@ javis click --host office-desktop --app <app> --worktree <context-id> --element-
 
 The CLI uses `ssh -T <alias> javis rpc --stdio`. SSH handles host identity; no Javis daemon or helper socket is exposed on TCP. Remote screenshot bytes are materialized on the caller's machine. See [examples](docs/examples.md) for local and remote workflows.
 
+## Built-in browser
+
+Javis includes an independent Electron/Chromium browser migrated from Orca's `729f757b` snapshot. Browser commands use the `browser` namespace; existing desktop CUA commands keep their names and behavior. The browser has its own profiles, guest engine, workspace interface, extension/password/site settings, page automation, and paired streaming transport.
+
+```bash
+javis browser open
+javis browser tab create --url https://example.com --json
+javis browser tab list --json
+javis browser snapshot --page <browserPageId> --interactive --json
+javis browser click --page <browserPageId> --element @e3 --expect-url https://example.com/ --json
+javis browser screenshot --page <browserPageId> --annotate --json
+```
+
+Pin a page ID for actions and use refs from its latest snapshot. Browser image coordinates are page CSS pixels. A folder, `--worktree` or `--session` names a context; `--host` selects an SSH host. `--worktree all` intentionally omits the workspace filter. `javis browser --help` lists the migrated command family and command-specific options.
+
+`npm run build` now builds and packages the browser alongside the existing CUA runtime. `npm run build:browser` rebuilds its engine, preload and renderer. Browser automation runs in the background; explicit `browser open` displays the workspace. Verification fixtures set `ORCA_BACKGROUND_LAUNCH=1` and keep windows hidden. Linux/Windows builds include a platform-matching Electron runtime; Windows browser native modules require Visual Studio build tools and are compiled for the pinned Electron version.
+
+If Electron cannot start on a headless host, set `JAVIS_BROWSER_EXECUTABLE` to an executable Chromium path to use the migrated external provider. Its original limitations apply: it does not provide the desktop workspace, profile import/switching, extensions, certificate override or screencast. Browser build/runtime does not read an Orca checkout or connect to Orca services. User browser data is imported only through an explicit import action.
+
+The fixed [source capability inventory](docs/browser-parity/orca-729f757-baseline.json) records the command/RPC baseline. It is an inventory, not a claim that every browser behavior has been verified on every OS.
+
 ## Phone browser
 
 Run the gateway on the desktop host that should be controlled:

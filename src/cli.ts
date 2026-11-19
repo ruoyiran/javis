@@ -2,7 +2,7 @@ import { runCli } from './cli/run-cli.js'
 import { runJavisDaemon, stopJavisDaemon } from './runtime/public.js'
 import { runJavisMcp } from './mcp/server.js'
 import { installAgent, readAgentInstallStatus } from './agent/install.js'
-import { runJavisStdioRpc } from './runtime/remote-stdio.js'
+import { runJavisStdioRpc, runBrowserRemoteStdioBridge } from './runtime/remote-stdio.js'
 import { startJavisSettings } from './settings/server.js'
 import { startMobileGateway } from './mobile/gateway.js'
 import { spawn } from 'node:child_process'
@@ -11,10 +11,13 @@ import { JAVIS_VERSION } from './version.js'
 
 const argv = process.argv.slice(2)
 
-const help = `Javis computer use
+const help = `Javis computer use and built-in browser
 
 Usage:
   javis computer <command> [flags] (run javis computer --help for the command list)
+  javis browser <command> [flags] (run javis browser --help for browser commands)
+  javis browser open [--worktree CONTEXT]
+  javis browser tab create --url URL [--host SSH_ALIAS] [--json]
   javis capabilities [--json]
   javis permissions status [--host SSH_ALIAS] [--json]
   javis permissions open [--id accessibility|screenshots] [--json]
@@ -73,6 +76,10 @@ async function main(): Promise<number> {
   }
   if (argv[0] === 'rpc' && argv[1] === '--stdio' && argv.length === 2) {
     await runJavisStdioRpc()
+    return 0
+  }
+  if (argv[0] === 'rpc' && argv[1] === '--stream-stdio' && argv.length === 2) {
+    await runBrowserRemoteStdioBridge()
     return 0
   }
   if (argv[0] === 'settings' && (argv[1] === 'serve' || argv[1] === 'open')) {
