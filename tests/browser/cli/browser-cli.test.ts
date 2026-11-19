@@ -79,3 +79,32 @@ it('routes the browser namespace after global selectors without consuming browse
   expect(browserInvocationArgs(['click', '--app', 'browser'])).toBeNull()
   expect(browserInvocationArgs(['--worktree=browser', 'browser', 'snapshot', '--interactive'])).toEqual(['--worktree=browser', 'snapshot', '--interactive'])
 })
+
+it('leaves tab queries and pinned actions unscoped for the worktree all selector', async () => {
+  const query = await invoke(['tab', 'list', '--worktree', 'all', '--json'])
+  expect(query.code).toBe(0)
+  expect(query.requests).toEqual([{ method: 'browser.tabList', params: {}, target: {} }])
+  const action = await invoke(['click', '--page', 'page-7', '--element', '@e3', '--worktree', 'all', '--host', 'build-host', '--json'])
+  expect(action.code).toBe(0)
+  expect(action.requests).toEqual([{ method: 'browser.click', params: { page: 'page-7', element: '@e3' }, target: { host: 'build-host' } }])
+})
+it('preserves an explicit Javis namespace named all on a pinned page', async () => {
+  const context = await invoke(['click', '--page', 'page-7', '--element', '@e3', '--context', 'all', '--json'])
+  expect(context.requests).toEqual([{ method: 'browser.click', params: { page: 'page-7', element: '@e3', worktree: 'all' }, target: { context: 'all' } }])
+  const session = await invoke(['tab', 'list', '--session', 'all', '--json'])
+  expect(session.requests).toEqual([{ method: 'browser.tabList', params: { worktree: 'all' }, target: { context: 'all' } }])
+})
+it('rejects unknown help paths without dispatching a browser request', async () => {
+  const output = await invoke(['does-not-exist', '--help'])
+  expect(output.code).toBe(1)
+  expect(output.requests).toEqual([])
+  expect(JSON.parse(output.stderr).error.code).toBe('invalid_argument')
+})
+it('handles bare browser groups and lifecycle help without runtime calls', async () => {
+  for (const args of [['tab'], ['open', '--help'], ['status', '--help'], ['help', 'tab', 'profile']]) {
+    const output = await invoke(args)
+    expect(output.code).toBe(0)
+    expect(output.requests).toEqual([])
+    expect(output.stderr).toBe('')
+  }
+})
