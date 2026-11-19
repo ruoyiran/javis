@@ -52,7 +52,10 @@ import {
 } from "../source/main/browser/extensions/browser-extension-startup";
 import { BROWSER_CLIENT_HOST_METHODS } from "../source/main/runtime/rpc/methods/browser/browser-client-host";
 import { BROWSER_SCREENCAST_METHODS } from "../source/main/runtime/rpc/methods/browser/browser-screencast";
-import { BrowserNetworkTunnelAttachParams } from "../source/shared/browser/client-hosting/browser-client-host-protocol";
+import {
+  BrowserClientHostAttachParams,
+  BrowserNetworkTunnelAttachParams,
+} from "../source/shared/browser/client-hosting/browser-client-host-protocol";
 import { browserNetworkExecutionHostKey } from "../source/shared/browser/client-hosting/browser-network-execution-host";
 import { AnnotationQueue } from "./annotation-queue";
 import {
@@ -279,10 +282,10 @@ export async function createBrowserService(
     isBrowserWorkspaceRendered: (context) =>
       Boolean(
         window &&
-          !window.isDestroyed() &&
-          (!context ||
-            context === workspace.context ||
-            context === FLOATING_TERMINAL_WORKTREE_ID),
+        !window.isDestroyed() &&
+        (!context ||
+          context === workspace.context ||
+          context === FLOATING_TERMINAL_WORKTREE_ID),
       ),
     markHeadlessBrowserSessionTabActive: (context, page) => {
       const owner = context ?? workspace.owner(page) ?? workspace.context;
@@ -391,18 +394,34 @@ export async function createBrowserService(
         pages
           .listPages(context)
           .map((page) => page.placement.browserHostClientId),
-      ))
+      )) {
+        let lease;
+        try {
+          lease = leases.select(clientId);
+        } catch {
+          continue;
+        }
         emit({
           method: "browser.clientHost.pages",
           params: {
-            browserHostClientId: clientId,
+            authorityRuntimeId: lease.authorityRuntimeId,
+            authorityEpoch: lease.authorityEpoch,
+            browserHostClientId: lease.browserHostClientId,
+            browserHostGeneration: lease.browserHostGeneration,
+            pairedDeviceId: lease.pairedDeviceId,
+            __javisConnectionId: lease.connectionId,
             pages: pages
               .listPages(context)
               .filter(
-                (page) => page.placement.browserHostClientId === clientId,
+                (page) =>
+                  page.placement.browserHostClientId === clientId &&
+                  page.placement.browserHostGeneration ===
+                    lease.browserHostGeneration &&
+                  page.pairedDeviceId === lease.pairedDeviceId,
               ),
           },
         });
+      }
       rows.publish(context);
       emit({ method: "browser.tabsChanged", params: { context } });
     },
@@ -879,13 +898,33 @@ export async function createBrowserService(
       connection = new AbortController();
       connections.set(connectionId, connection);
     }
+    const attachParams =
+      method === "browser.clientHost.attach"
+        ? BrowserClientHostAttachParams.parse(params)
+        : undefined;
     let subscriptionId: string | undefined;
     const streamEmit = (event: any) => {
       if (typeof event.subscriptionId === "string") {
         subscriptionId = event.subscriptionId;
         delivery.replace(connectionId, event.subscriptionId);
       }
-      emit({ method, params: { ...event, __javisConnectionId: connectionId } });
+      emit({
+        method,
+        params: {
+          ...event,
+          ...(method === "browser.clientHost.attach"
+            ? {
+                __javisAttachId: params.__javisAttachId,
+                authorityRuntimeId: runtimeId,
+                browserHostClientId: attachParams?.browserHostClientId,
+                pairedDeviceId:
+                  (params.__javisCaller as any)?.pairedDeviceId ??
+                  "javis-controller",
+              }
+            : {}),
+          __javisConnectionId: connectionId,
+        },
+      });
     };
     const context = {
       runtime: callerRuntime,
@@ -925,9 +964,18 @@ export async function createBrowserService(
                 }
               }),
             ),
-          ).then((value) => {
-            if (!ready) resolve(value);
-          }, reject);
+          ).then(
+            (value) => {
+              if (method === "browser.clientHost.attach")
+                streamEmit({ type: "end" });
+              if (!ready) resolve(value);
+            },
+            (error) => {
+              if (method === "browser.clientHost.attach")
+                streamEmit({ type: "error" });
+              reject(error);
+            },
+          );
         })
       : await runWithRequestedPageUrl(parsed, () =>
           definition.handler(parsed, context, streamEmit),

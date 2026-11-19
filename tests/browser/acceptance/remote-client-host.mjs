@@ -228,6 +228,49 @@ try {
   }
   if (!restored.ok) throw new Error(JSON.stringify(restored));
   assert(JSON.stringify(restored.result).includes("Remote input"));
+  const recoveredGuest = browser
+    .contexts()[0]
+    .pages()
+    .find((candidate) => candidate.url() === url);
+  assert(recoveredGuest);
+  assert.equal(
+    await recoveredGuest.evaluate(
+      () => document.getElementById("remote").value,
+    ),
+    "",
+  );
+  // The original rendered pane publishes its current placement through the authenticated lease.
+  await recoveredGuest.evaluate(() => {
+    document.title = "Recovered renderer metadata";
+  });
+  const recoveryScreenshot = await restoredPage.evaluate(
+    ({ id, context }) =>
+      window.api.runtimeEnvironments.invoke({
+        selector: "remote",
+        method: "browser.screenshot",
+        params: { page: id, worktree: `id:${context}` },
+      }),
+    { id: created.browserPageId, context },
+  );
+  assert.equal(recoveryScreenshot.ok, true);
+  await restoredPage.waitForFunction(async (id) => {
+    const status = await window.api.javisBrowser.call(
+      "browser.catalog.invoke",
+      {
+        selector: "remote",
+        method: "browser.clientHost.pageStatus",
+        params: { page: id },
+      },
+    );
+    return (
+      status.ok &&
+      status.result.title === "Recovered renderer metadata" &&
+      status.result.placement.kind === "client" &&
+      status.result.placement.browserHostGeneration >= 1 &&
+      status.result.placement.pageHostGeneration >= 1
+    );
+  }, created.browserPageId);
+
   const serverPage = await restoredPage.evaluate(
     ({ context, url }) =>
       window.api.javisBrowser.call("browser.catalog.create", {
@@ -260,6 +303,9 @@ try {
       activeLocalContextPreserved: true,
       sameHostContextsCoexist: true,
       retainedDomThroughLinkLoss: true,
+      renderedRecoveryPlacement: true,
+      recoveredRendererMetadataAccepted: true,
+      noInputReplayAfterRecovery: true,
       restoredClientGuest: true,
       serverNetworkTransition: true,
       removedOwnerUnavailable: true,

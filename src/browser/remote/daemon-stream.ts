@@ -1,3 +1,7 @@
+import {
+  BrowserClientHostReady,
+  BrowserClientHostLeaseAuthority,
+} from "../source/shared/browser/client-hosting/browser-client-host-protocol.js";
 import { BrowserHostNetworkSessions } from "./network-session.js";
 import { dispatchBrowserHostRequest } from "./host-dispatch.js";
 import type net from "node:net";
@@ -32,7 +36,14 @@ export function serveBrowserDaemonStream(
   const requestIds = new Set<number>();
   const admissions = new Map<string, number>();
   const subscriptions = new Set<string>();
-  let browserHostClientId: string | undefined;
+  let clientHostAttach:
+    | {
+        id: string;
+        browserHostClientId: string;
+        authorityRuntimeId: string;
+        lease?: { authorityEpoch: string; browserHostGeneration: number };
+      }
+    | undefined;
   let closed = false;
   let activeRequests = 0;
   const network = new BrowserHostNetworkSessions((event) => {
@@ -46,11 +57,70 @@ export function serveBrowserDaemonStream(
   });
   const unsubscribe = subscribeBrowserEvents((event) => {
     if (closed) return;
-    const ownPages =
-      event.method === "browser.clientHost.pages" &&
-      browserHostClientId &&
-      event.params.browserHostClientId === browserHostClientId;
-    if (!ownPages && event.params.__javisConnectionId !== connectionId) return;
+    if (event.method === "browser.clientHost.pages") {
+      const claim = clientHostAttach;
+      const authority = BrowserClientHostLeaseAuthority.safeParse(event.params);
+      if (
+        !claim?.lease ||
+        !authority.success ||
+        event.params.__javisConnectionId !== connectionId ||
+        event.params.pairedDeviceId !== caller.pairedDeviceId ||
+        authority.data.authorityRuntimeId !== claim.authorityRuntimeId ||
+        authority.data.browserHostClientId !== claim.browserHostClientId ||
+        authority.data.authorityEpoch !== claim.lease.authorityEpoch ||
+        authority.data.browserHostGeneration !==
+          claim.lease.browserHostGeneration ||
+        !Array.isArray(event.params.pages) ||
+        !event.params.pages.every(
+          (page) =>
+            page &&
+            typeof page === "object" &&
+            page.pairedDeviceId === caller.pairedDeviceId &&
+            typeof page.browserPageId === "string" &&
+            page.placement?.kind === "client" &&
+            page.placement.browserHostClientId === claim.browserHostClientId &&
+            page.placement.browserHostGeneration ===
+              claim.lease!.browserHostGeneration &&
+            Number.isInteger(page.placement.pageHostGeneration) &&
+            page.placement.pageHostGeneration >= 1 &&
+            page.placement.pageHostGeneration <= 0xffff_ffff,
+        )
+      )
+        return;
+    } else if (event.params.__javisConnectionId !== connectionId) return;
+    if (event.method === "browser.clientHost.attach") {
+      const claim = clientHostAttach;
+      if (!claim || event.params.__javisAttachId !== claim.id) return;
+      if (event.params.type === "ready") {
+        const ready = BrowserClientHostReady.safeParse(event.params);
+        if (
+          !ready.success ||
+          event.params.authorityRuntimeId !== claim.authorityRuntimeId ||
+          event.params.browserHostClientId !== claim.browserHostClientId ||
+          event.params.pairedDeviceId !== caller.pairedDeviceId
+        )
+          return;
+        if (
+          claim.lease &&
+          (claim.lease.authorityEpoch !== ready.data.authorityEpoch ||
+            claim.lease.browserHostGeneration !==
+              ready.data.browserHostGeneration)
+        )
+          return;
+        claim.lease = ready.data;
+      } else if (
+        ["revoked", "end", "error"].includes(String(event.params.type))
+      ) {
+        if (
+          event.params.type === "revoked" &&
+          (event.params.authorityEpoch !== claim.lease?.authorityEpoch ||
+            event.params.browserHostGeneration !==
+              claim.lease?.browserHostGeneration)
+        )
+          return;
+        clientHostAttach = undefined;
+      }
+    }
     if (
       event.method === "browser.host.revoked" &&
       typeof event.params.id === "string"
@@ -58,7 +128,11 @@ export function serveBrowserDaemonStream(
       admissions.delete(event.params.id);
       network.closeAdmission(event.params.id);
     }
-    const { __javisConnectionId: _connection, ...params } = event.params;
+    const {
+      __javisConnectionId: _connection,
+      __javisAttachId: _attach,
+      ...params
+    } = event.params;
     try {
       const result = writeBrowserFrame(
         socket,
@@ -85,6 +159,7 @@ export function serveBrowserDaemonStream(
   socket.once("close", () => {
     if (closed) return;
     closed = true;
+    clientHostAttach = undefined;
     network.close();
     unsubscribe();
     onClose();
@@ -198,6 +273,32 @@ export function serveBrowserDaemonStream(
           method === "browser.clientHost.pageStatus"
             ? (frame.params as Record<string, unknown>)
             : validateBrowserParams(method, frame.params);
+        if (method === "browser.clientHost.attach") {
+          if (caller.clientKind !== "runtime" || !caller.pairedDeviceId)
+            throw new JavisError(
+              "access_denied",
+              "Authenticated browser client host required",
+            );
+          if (clientHostAttach) {
+            writeBrowserFrame(socket, {
+              id: frame.id,
+              ok: false,
+              error: {
+                code: "access_denied",
+                message:
+                  "One live browser client host attach is allowed per connection",
+              },
+            });
+            continue;
+          }
+          clientHostAttach = {
+            id: randomUUID(),
+            browserHostClientId: String(params.browserHostClientId),
+            authorityRuntimeId: String(params.authorityRuntimeId),
+          };
+        }
+        const attach =
+          method === "browser.clientHost.attach" ? clientHostAttach : undefined;
         const operation =
           method === "__browserDelivery"
             ? callBrowser("browser.stream.delivery", {
@@ -226,7 +327,11 @@ export function serveBrowserDaemonStream(
                       })
                     : callBrowser(
                         method,
-                        { ...params, __javisCaller: caller },
+                        {
+                          ...params,
+                          __javisCaller: caller,
+                          ...(attach ? { __javisAttachId: attach.id } : {}),
+                        },
                         {},
                         () => !closed && !socket.destroyed,
                       );
@@ -235,8 +340,6 @@ export function serveBrowserDaemonStream(
           .then(
             (result) => {
               if (closed) {
-                if (method === "browser.clientHost.attach")
-                  browserHostClientId = String(params.browserHostClientId);
                 if (
                   method === "browser.screencast" &&
                   result &&
@@ -258,6 +361,8 @@ export function serveBrowserDaemonStream(
               writeBrowserFrame(socket, { id: frame.id, ok: true, result });
             },
             (error) => {
+              if (attach && clientHostAttach === attach)
+                clientHostAttach = undefined;
               if (!closed)
                 writeBrowserFrame(socket, {
                   id: frame.id,
