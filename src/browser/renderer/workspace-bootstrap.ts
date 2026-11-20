@@ -111,6 +111,7 @@ export async function bootstrapBrowserWorkspace(): Promise<WorkspaceLifetime> {
   const persistedFields: readonly (keyof AppState)[] = [
     'openFiles',
     'editorDrafts',
+    'strandedEditorDrafts',
     'unifiedTabsByWorktree',
     'groupsByWorktree',
     'layoutByWorktree',

@@ -1,3 +1,4 @@
+import { withStrandedEditorDrafts } from '../source/renderer/src/lib/workspace/persistence/stranded-editor-drafts'
 import { buildEditorSessionData } from '../source/renderer/src/lib/workspace/persistence/workspace-session-editor-files'
 import { buildBrowserSessionData } from '../source/renderer/src/lib/workspace/persistence/workspace-session-browser-tabs'
 import { withoutStagedBrowserTabs } from '../source/renderer/src/lib/workspace/persistence/workspace-session-staged-browser-tabs'
@@ -40,5 +41,9 @@ export function serializeWorkspaceSession(state: AppState, carried: WorkspaceSes
   const snapshot = withoutStagedBrowserTabs(state)
   const browserData = buildBrowserSessionData(snapshot.browserTabsByWorktree,snapshot.browserPagesByWorkspace,snapshot.activeBrowserTabIdByWorktree,state.remoteBrowserPageHandlesByPageId,state.browserAnnotationsByPageId)
   const editorData = buildEditorSessionData(state.openFiles,state.editorDrafts,state.markdownFrontmatterVisible,state.activeFileIdByWorktree,state.activeTabTypeByWorktree)
+  editorData.openFilesByWorktree = withStrandedEditorDrafts(
+    editorData.openFilesByWorktree ?? {},
+    state.strandedEditorDrafts ?? {}
+  )
   return normalized({ ...carried, activeWorktreeId: state.activeWorktreeId, activeWorkspaceKey: state.activeWorkspaceKey, activeWorkspaceExecutionHostId: state.activeWorkspaceExecutionHostId, activeTabId: state.activeTabId, unifiedTabs: snapshot.unifiedTabsByWorktree, tabGroups: state.groupsByWorktree, tabGroupLayouts: state.layoutByWorktree, activeGroupIdByWorktree: state.activeGroupIdByWorktree, ...browserData, activeTabTypeByWorktree: state.activeTabTypeByWorktree, ...editorData, browserUrlHistory: state.browserUrlHistory, workspaceDocHistory: state.workspaceDocHistory, clientHostedBrowserCloseIntentsByEnvironment: state.clientHostedBrowserCloseIntentsByEnvironment })
 }

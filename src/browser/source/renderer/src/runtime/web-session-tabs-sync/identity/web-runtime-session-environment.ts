@@ -1,3 +1,6 @@
+import { isJavisBrowserTransport } from '../../rpc/compatibility/javis-browser-compatibility'
+import { callRuntimeEnvironmentWithRevision } from '../../rpc/calls/runtime-rpc-environment-call'
+import { runtimeEnvironmentPairingChangedError } from '../../rpc/environment-revisions/runtime-environment-pairing-refresh'
 import type { RuntimeRpcResponse } from '../../../../../shared/runtime-rpc-envelope'
 import { getRuntimeEnvironmentRevision } from '../../rpc/environment-revisions/runtime-environment-revision'
 import type { WebSessionIntentOwner } from './web-session-intent-owner'
@@ -17,12 +20,25 @@ export function captureRuntimeEnvironmentCall(
   params?: unknown
   timeoutMs?: number
 }) => Promise<RuntimeRpcResponse<unknown>> {
-  return (args) =>
-    window.api.runtimeEnvironments.call({
-      selector: environmentId,
-      ...args,
+  return async (args) => {
+    const javis = isJavisBrowserTransport()
+    const method =
+      javis && args.method === 'session.tabs.list' ? 'browser.workspaceSnapshot' : args.method
+    if (javis) {
+      if (!method.startsWith('browser.'))
+        throw new Error('This Javis transport owns browser methods only')
+      if (getRuntimeEnvironmentRevision(environmentId) !== expectedEnvironmentPairingRevision) {
+        throw runtimeEnvironmentPairingChangedError()
+      }
+    }
+    return (await callRuntimeEnvironmentWithRevision({
+      environmentId,
+      method,
+      params: args.params,
+      timeoutMs: args.timeoutMs,
       expectedEnvironmentPairingRevision
-    })
+    })) as RuntimeRpcResponse<unknown>
+  }
 }
 
 export function captureWebSessionIntentOwner(environmentId: string): WebSessionIntentOwner {
