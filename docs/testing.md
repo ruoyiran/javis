@@ -59,7 +59,7 @@ The rendered browser acceptance script is `ORCA_BACKGROUND_LAUNCH=1 node tests/b
 
 Native desktop focus/permission/visible-window checks still require an isolated display or CI. A macOS browser or signed build cannot certify Linux/Windows GUI behavior. The fixed source inventory only establishes API coverage; behavioral and platform results must be reported separately.
 
-The extended hidden engine/renderer and independently copied stdio/mobile fixtures are `tests/browser/acceptance/hidden-behavior.mjs` and `tests/browser/acceptance/stdio-stream-behavior.mjs`. Run them with `ORCA_BACKGROUND_LAUNCH=1` after rebuilding. The [migration verification record](browser-parity/verification.md) distinguishes completed checks from remaining platform and advanced-flow evidence. The [browser workflow](../.github/workflows/browser-validation.yml) defines isolated Linux Xvfb and Windows build/hidden-browser jobs.
+The extended hidden engine/renderer and independently copied stdio/mobile fixtures are `tests/browser/acceptance/hidden-behavior.mjs` and `tests/browser/acceptance/stdio-stream-behavior.mjs`. Latest controls and remote recovery use `tests/browser/acceptance/latest-behavior.mjs` and `tests/browser/acceptance/remote-client-host.mjs`. Run them with `ORCA_BACKGROUND_LAUNCH=1` after rebuilding. The [latest verification record](browser-parity/latest-verification.md) distinguishes completed checks from platform and advanced-flow evidence. The [browser workflow](../.github/workflows/browser-validation.yml) defines isolated Linux Xvfb and Windows build/hidden-browser jobs.
 
 ## Read-only desktop smoke checks
 

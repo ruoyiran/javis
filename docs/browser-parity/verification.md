@@ -1,6 +1,6 @@
 # Browser migration verification
 
-This is the historical 2026-11-19 migration record. The current migration uses Orca `d3a843d032f602cf09e392613683a94089efce07`; see the [latest command parity](latest-command-parity.md) for its fixed inventory and verification boundaries.
+This is the historical 2026-11-19 migration record. The current migration uses Orca `d3a843d032f602cf09e392613683a94089efce07`; see the [latest command parity](latest-command-parity.md) and [latest verification](latest-verification.md).
 
 The implementation is pinned to Orca `729f757b592244176420a86114c1ea23911eeeba` and starts from Javis `4de676041a74217228dc1c3c4aeda89aa394ca47`. The fixed [source inventory](orca-729f757-baseline.json) records 83 browser CLI commands and 97 browser RPC methods. Inventory coverage establishes the interface scope; it does not certify every browser behavior.
 

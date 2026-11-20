@@ -17,7 +17,7 @@ Browser additions include `fill --value-stdin` (one final LF/CRLF stripped; empt
 - Observation/action image controls: `--screenshot-format png|jpeg`, positive finite `--screenshot-scale`, positive integer `--screenshot-max-edge`. Actual dimensions and pixel-per-window-point scale returned; divide image coordinates by that scale. CLI file extension, MCP MIME and phone rendering honor the returned format.
 - `press-key`/`hotkey --allow-system-shortcut`: explicit opt-in to the platform system shortcut policy.
 
-MCP adds `javis_launch_app` and `javis_wait`. Screenshot options, `rootElementIndex` for state, `elementIndex` for typing and `allowSystemShortcut` are shared with the runtime. After an undelivered observation, deadline/disconnection or uncertain input, the addressed observation authority/tree baseline is invalidated; delivered action/verification/observationError metadata remains intact.
+MCP adds `javis_launch_app` and `javis_wait`. Screenshot options, `rootElementIndex` for state, `elementIndex` for typing and `allowSystemShortcut` are shared with the runtime. Passive read deadlines reach local/SSH queues and providers without extending input/focus deadlines. Wait polls remain unpublished until an exact current result is selected, so failed/cancelled polls cannot authorize indexed input. Existing in-flight delivery-loss invalidation and delivered action/verification/observationError metadata remain intact. Successful publication retains the ordinary one-shot read delivery limit described in the [protocol](../protocol.md).
 
 ## Verification boundaries
 
@@ -25,4 +25,4 @@ Core/browserNode/browserWeb typechecks, independent native/renderer reviews, own
 
 ## Current implementation checks
 
-The local implementation has passed all three TypeScript gates, 85 JavaScript test files /414 cases,106 native runtime/contract cases,24 Swift cases and18 Python fake-GI cases. Independent native/renderer reviews found subtree provenance, Windows explicit-window and renderer checkpoint/initialization gaps; fixes were reviewed as addressed. Actual hidden browser checks verify a mounted guest, URL-guarded fill/click/eval with no renderer errors and no visible window. Extended engine acceptance and client-host integration are being completed separately; the final report will supersede these intermediate counts.
+The final code passed all three TypeScript gates, 88 JavaScript test files / 433 cases, 24 Swift cases and 18 Python fake-GI cases. Full macOS build, nested/outer strict signatures and the cold independent source build passed. Hidden browser, latest controls, final remote recovery and framed/mobile fixtures passed within their recorded scope. Independent native, renderer, browser and core reviews are clean. The [latest verification record](latest-verification.md) retains commands, source independence evidence and platform/delivery limits.
