@@ -1,5 +1,8 @@
-import type { AppState } from './types'
-import { markFullResync, type FullResyncReason } from './keyed-record-transitions'
+import type { AppState } from "./types"
+import {
+  markFullResync,
+  type FullResyncReason
+} from "./keyed-record-transitions"
 
 // The one place that names the seam's tracked fields, so annotating writers name none themselves.
 export const SEAM_TAB_MAP_FIELDS = ['tabsByWorktree', 'unifiedTabsByWorktree'] as const

@@ -1,11 +1,11 @@
-import { getCatalogPlatform } from './agent-catalog-platform'
+import { getCatalogPlatform } from "./agent-catalog-platform"
 import openClaudeLogoUrl from '@/assets/host-icons/openclaude-logo.png?url'
 import {
   getTuiAgentLaunchCommand,
   TUI_AGENT_CONFIG
-} from '../../../../shared/agent-launch/catalog/tui-agent-config'
-import { translate } from '@/i18n/i18n'
-import type { AgentCatalogEntry } from './agent-catalog'
+} from "../../../../shared/agent-launch/catalog/tui-agent-config"
+import { translate } from "../../i18n/i18n"
+import type { AgentCatalogEntry } from "./agent-catalog"
 
 /** Keep first-party entries separate from the community tail to stay within module budgets; buildAgentCatalogEntries preserves their order. */
 export function primaryAgentCatalogEntries(): AgentCatalogEntry[] {
@@ -142,6 +142,7 @@ export function primaryAgentCatalogEntries(): AgentCatalogEntry[] {
       id: 'antigravity',
       label: translate('auto.lib.agent.catalog.691dd11789', 'Antigravity'),
       cmd: 'agy',
+      searchAliases: ['agy'],
       homepageUrl: 'https://antigravity.google/docs/cli-overview'
     }
   ]

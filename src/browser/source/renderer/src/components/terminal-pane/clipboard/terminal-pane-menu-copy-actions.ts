@@ -1,3 +1,4 @@
+import { FLOATING_TERMINAL_WORKTREE_ID } from '../../../../../shared/workspace/identity/floating-workspace-id'
 import { toast } from 'sonner'
 import type { ManagedPane } from '@/lib/pane-manager/pane-manager-types'
 import { makePaneKey } from '../../../../../shared/workspace-layout/stable-pane-id'
@@ -8,7 +9,7 @@ import { readTerminalClipboardSelection } from './terminal-clipboard-selection-t
 import { useAppStore } from '@/store/index'
 import { fencedCode } from '../../editor/selection-copy'
 import { formatNativeChatQuote } from '../../native-chat/selection-quotes/native-chat-quote-selection'
-import { FLOATING_TERMINAL_WORKTREE_ID } from '../../../../../shared/constants'
+
 
 export const copyTerminalPaneMenuSelection = async (pane: ManagedPane | null): Promise<void> => {
   if (!pane) {

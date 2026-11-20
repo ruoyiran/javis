@@ -8,15 +8,18 @@ import {
   useState
 } from 'react'
 import { Paperclip } from 'lucide-react'
-import { useTranslate } from '@/i18n/use-translate'
+import { useTranslate } from "../../../../i18n/use-translate"
 import { toast } from 'sonner'
-import { createOsFileDropSequence, useOsFileDropOwner } from '@/hooks/use-os-file-drop-owner'
-import { getNativeFileDropRejectionMessage } from '@/lib/files/drop/native-file-drop-rejection-message'
+import {
+  createOsFileDropSequence,
+  useOsFileDropOwner
+} from "../../../../hooks/use-os-file-drop-owner"
+import { getNativeFileDropRejectionMessage } from "../../../../lib/files/drop/native-file-drop-rejection-message"
 import {
   makeNativeChatPaneFileDropHandlers,
   type NativeChatPaneDropClaim,
   type CapturedNativeChatDrop
-} from './native-chat-pane-file-drop'
+} from "./native-chat-pane-file-drop"
 
 /** Read the mounted composer’s claim at event time so guard changes apply to the current drag. */
 export type NativeChatPaneDropRegistration = {

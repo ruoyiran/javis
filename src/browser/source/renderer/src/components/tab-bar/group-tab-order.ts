@@ -1,7 +1,11 @@
-import { workspaceEditorFiles } from '@/store/slices/editor/tabs/workspace-editor-files'
-import type { Tab, TabGroup } from '../../../../shared/tab-types'
-import type { AppState } from '../../store/types'
-import { reconcileTabOrder } from './reconcile-order'
+import {
+  toVisibleTabType,
+  type Tab,
+  type TabGroup
+} from "../../../../shared/tab-types"
+import { workspaceEditorFiles } from "../../store/slices/editor/tabs/workspace-editor-files"
+import type { AppState } from "../../store/types"
+import { reconcileTabOrder } from "../../lib/workspace/tabs/order/reconcile-tab-order"
 
 export type VisibleTabRef = {
   type: 'terminal' | 'editor' | 'agent-session' | 'browser' | 'simulator'
@@ -42,8 +46,8 @@ export function getGroupVisibleTabOrder(
     if (tab.contentType === 'simulator') {
       return simulatorTabIds.has(tab.id) ? { type: 'simulator', id: tab.id, tabId: tab.id } : null
     }
-    if (tab.contentType === 'agent-session') {
-      // Structured chat tabs are self-backed: the unified tab is the entity, so none can be stale.
+    if (tab.contentType === 'agent-session' || tab.contentType === 'room') {
+      // Structured chat and room tabs are self-backed: the unified tab is the entity, so none can be stale.
       return { type: 'agent-session', id: tab.entityId, tabId: tab.id }
     }
     return editorEntityIds.has(tab.entityId)
@@ -54,7 +58,8 @@ export function getGroupVisibleTabOrder(
   const visibleIdOf = (tab: Tab): string =>
     tab.contentType === 'terminal' ||
     tab.contentType === 'browser' ||
-    tab.contentType === 'agent-session'
+    tab.contentType === 'agent-session' ||
+    tab.contentType === 'room'
       ? tab.entityId
       : tab.id
 
@@ -168,7 +173,7 @@ export function getActiveTabNavOrder(
   const agentSessionIds =
     ids.agentSessionIds ??
     (state.unifiedTabsByWorktree[worktreeId] ?? [])
-      .filter((tab) => tab.contentType === 'agent-session')
+      .filter((tab) => toVisibleTabType(tab.contentType) === 'agent-session')
       .map((tab) => tab.id)
 
   const activeGroupId = state.activeGroupIdByWorktree[worktreeId]

@@ -1,17 +1,17 @@
-import { useTranslate } from '@/i18n/use-translate'
-import { getWorkspaceAttachments } from '../../../../../../shared/workspace-attachments/workspace-attachments'
-import type { IssueInfo } from '../../../../../../shared/github/pull-request-types'
-import type { LinearIssue } from '../../../../../../shared/linear/issue-types'
-import { getWorktreeCardJiraIssueDisplay } from '../review/worktree-card-jira-issue-display'
-import type { WorktreeCardIssueDisplay } from '../metadata/worktree-card-meta-types'
+import { useTranslate } from "../../../../i18n/use-translate"
+import { getWorkspaceAttachments } from "../../../../../../shared/workspace-attachments/workspace-attachments"
+import type { IssueInfo } from "../../../../../../shared/github/pull-request-types"
+import type { LinearIssue } from "../../../../../../shared/linear/issue-types"
+import { getWorktreeCardJiraIssueDisplay } from "../review/worktree-card-jira-issue-display"
+import type { WorktreeCardIssueDisplay } from "../metadata/worktree-card-meta-types"
 import {
   coerceWorktreeCardVisibleTitle,
   getWorktreeCardTitleDisplay
-} from '../identity/worktree-card-title-display'
-import { useWorkspaceDeleteModifierPressed } from '../../workspace-actions/deletion/workspace-delete-quick-action'
-import type { WorktreeCardProps } from '../controller/worktree-card-model'
-import type { useWorktreeCardFoundation } from '../controller/use-worktree-card-foundation'
-import type { useWorktreeCardReviewDetails } from './use-worktree-card-review-details'
+} from "../identity/worktree-card-title-display"
+import { useWorkspaceDeleteModifierPressed } from "../../workspace-actions/deletion/workspace-delete-quick-action"
+import type { WorktreeCardProps } from "../controller/worktree-card-model"
+import type { useWorktreeCardFoundation } from "../controller/use-worktree-card-foundation"
+import type { useWorktreeCardReviewDetails } from "./use-worktree-card-review-details"
 
 type Foundation = ReturnType<typeof useWorktreeCardFoundation>
 type ReviewDetails = ReturnType<typeof useWorktreeCardReviewDetails>
@@ -94,6 +94,7 @@ export function useWorktreeCardLinkedDetails({
   const jiraIssueDisplay = getWorktreeCardJiraIssueDisplay(worktree)
   const cardTitleDisplay = getWorktreeCardTitleDisplay({
     storedDisplayName: worktree.displayName,
+    displayNameMode: worktree.displayNameMode,
     branchName: branch,
     // Fetched titles only: display fallbacks hold localized loading/unavailable placeholders.
     linearIssueTitle: linearIssue?.title,

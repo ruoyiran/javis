@@ -7,7 +7,11 @@ import {
   type RefObject
 } from 'react'
 import { flushSync } from 'react-dom'
-import { markdownMathSelectionText } from '../../../../../../shared/markdown-math-selection'
+import {
+  formatNativeChatQuote,
+  nativeChatSelectionText
+} from "../../../../../../shared/native-chat/input/quotes/native-chat-quote-selection"
+import { readNativeChatTranscriptSelection } from "../../selection-quotes/native-chat-transcript-selection"
 import { Clipboard, Copy, Image as ImageIcon, SquareTerminal } from 'lucide-react'
 import {
   DropdownMenu,
@@ -16,43 +20,40 @@ import {
   DropdownMenuSeparator,
   DropdownMenuShortcut,
   DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu'
-import { useTranslate } from '@/i18n/use-translate'
+} from "../../../ui/dropdown-menu"
+import { useTranslate } from "../../../../i18n/use-translate"
 import {
   copyNativeChatImage,
   readNativeChatCopyImage,
   type NativeChatCopyImage
-} from '../../media/images/native-chat-image-copy'
-import { isMacPlatform } from '../routing/native-chat-shortcut'
-import { formatOptionalPrimaryShortcutLabel } from '@/hooks/useShortcutLabel'
-import { useAppStore } from '@/store'
-import { isEditableTarget } from '@/lib/text-input/focus/editable-target'
-import { findEditablePrimarySelectionPasteTarget } from '@/lib/clipboard/primary-selection/primary-selection-paste'
-import { NativeChatCopyOrcaSessionIdMenuItem } from './NativeChatCopyOrcaSessionIdMenuItem'
-import { NativeChatSelectionQuote } from '../../selection-quotes/NativeChatSelectionQuote'
-import {
-  formatNativeChatQuote,
-  readNativeChatTranscriptSelection
-} from '../../selection-quotes/native-chat-quote-selection'
-import { NativeChatPaneMenuItems } from './NativeChatPaneMenuItems'
-import { NativeChatStructuredPaneMenuItems } from './NativeChatStructuredPaneMenuItems'
-import type { NativeChatComposerHandle } from '../../composer/native-chat-composer-types'
-import { AgentSessionContinuationMenuItem } from '@/components/agent-session-continuation/AgentSessionContinuationMenuItem'
-import { AgentSessionContextCopyMenuItem } from '@/components/terminal-pane/clipboard/AgentSessionContextCopyMenuItem'
+} from "../../media/images/native-chat-image-copy"
+import { isMacPlatform } from "../routing/native-chat-shortcut"
+import { formatOptionalPrimaryShortcutLabel } from "../../../../hooks/useShortcutLabel"
+import { useAppStore } from "../../../../store/index"
+import { isEditableTarget } from "../../../../lib/text-input/focus/editable-target"
+import { findEditablePrimarySelectionPasteTarget } from "../../../../lib/clipboard/primary-selection/primary-selection-paste"
+import { NativeChatCopyOrcaSessionIdMenuItem } from "./NativeChatCopyOrcaSessionIdMenuItem"
+import { NativeChatSelectionQuote } from "../../selection-quotes/NativeChatSelectionQuote"
+import { NativeChatPaneMenuItems } from "./NativeChatPaneMenuItems"
+import { NativeChatStructuredPaneMenuItems } from "./NativeChatStructuredPaneMenuItems"
+import type { NativeChatComposerHandle } from "../../composer/native-chat-composer-types"
+import { AgentSessionContinuationMenuItem } from "../../../agent-session-continuation/AgentSessionContinuationMenuItem"
+import { AgentSessionContextCopyMenuItem } from "../../../terminal-pane/clipboard/AgentSessionContextCopyMenuItem"
 import {
   noNativeChatContextMenuTarget,
   readNativeChatContextMenuTarget,
-  type NativeChatContextMenuTarget
-} from './native-chat-context-menu-target'
+  type NativeChatContextMenuTarget,
+  type NativeChatLinkContextResolver
+} from "./native-chat-context-menu-target"
 import {
   NativeChatContextMenuTargetItems,
   NativeChatFindMenuItem
-} from './NativeChatContextMenuItems'
-import type { NativeChatFileLinkContext } from '../../links/actions/native-chat-file-link-context'
-import type { NativeChatMessageListHandle } from '../../messages/actions/use-native-chat-reveal-latest'
-import type { NativeChatRewindSurface } from '../../messages/actions/use-native-chat-rewind-host'
-import { useNativeChatStandaloneMenu } from './use-native-chat-standalone-menu'
-import type { NativeChatSessionMenuSource } from './use-native-chat-session-context-actions'
+} from "./NativeChatContextMenuItems"
+import type { NativeChatFileLinkContext } from "../../links/actions/native-chat-file-link-context"
+import type { NativeChatMessageListHandle } from "../../messages/actions/use-native-chat-reveal-latest"
+import type { NativeChatRewindSurface } from "../../messages/actions/use-native-chat-rewind-host"
+import { useNativeChatStandaloneMenu } from "./use-native-chat-standalone-menu"
+import type { NativeChatSessionMenuSource } from "./use-native-chat-session-context-actions"
 
 type NativeChatContextMenuState = {
   open: boolean
@@ -64,7 +65,7 @@ type NativeChatContextMenuState = {
   returnFocusTo: Element | null
 }
 
-type UseNativeChatContextMenuArgs = {
+export type UseNativeChatContextMenuArgs = {
   rootRef: RefObject<HTMLElement | null>
   composerRef: RefObject<NativeChatComposerHandle | null>
   enabled?: boolean
@@ -83,8 +84,9 @@ type UseNativeChatContextMenuArgs = {
 } & NativeChatContextMenuTargetArgs
 
 export type NativeChatContextMenuTargetArgs = {
-  messageListRef?: RefObject<Pick<NativeChatMessageListHandle, 'messageCopyText'> | null>
-  fileLinkContext?: NativeChatFileLinkContext | null
+  messageListRef?: RefObject<Partial<Pick<NativeChatMessageListHandle, 'messageCopyText'>> | null>
+  /** A function resolves per link, for a transcript whose rows come from several workspaces. */
+  fileLinkContext?: NativeChatFileLinkContext | null | NativeChatLinkContextResolver
   rewind?: NativeChatRewindSurface
   onFind?: (returnFocusTo: Element | null) => void
 }
@@ -175,7 +177,8 @@ export function useNativeChatContextMenu({
     hasSelection ||
     state.canPaste ||
     Boolean(target.quoteText ?? target.link ?? target.codeText ?? target.messageText) ||
-    (target.rewindItemId !== null && rewind !== undefined)
+    (target.rewindItemId !== null && rewind !== undefined) ||
+    target.slackPostedItemId !== null
   const hasSessionItems = onFind !== undefined || onHandOff !== undefined || showTerminalPaneActions
   const hasItems =
     hasEditItems || hasSessionItems || chatPane !== undefined || resolveOrcaSessionId !== undefined
@@ -399,7 +402,7 @@ function getNativeChatSelectedText(root: HTMLElement | null): string {
   if (!nodeBelongsToRoot(anchor, root) || !nodeBelongsToRoot(focus, root)) {
     return ''
   }
-  return markdownMathSelectionText(selection, root) ?? selection.toString()
+  return nativeChatSelectionText(selection, root)
 }
 
 function nodeBelongsToRoot(node: Node | null, root: HTMLElement): boolean {

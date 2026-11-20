@@ -1,35 +1,34 @@
+import { reportBrowserGuestVisibility } from "./browser-guest-activity"
 import type { Dispatch, MutableRefObject, SetStateAction } from 'react'
-import { redactKagiSessionToken } from '../../../../../shared/browser-url'
+import { refreshBrowserGuestMetadata } from "./metadata/browser-guest-metadata-cache"
+import { redactKagiSessionToken } from "../../../../../shared/browser-url"
 import {
   browserViewportPresetToOverride,
   getBrowserViewportPreset
-} from '../../../../../shared/browser-viewport-presets'
+} from "../../../../../shared/browser-viewport-presets"
 import type {
   BrowserLoadError,
   BrowserViewportPresetId
-} from '../../../../../shared/browser-workspace-types'
-import { translate } from '@/i18n/i18n'
-import { useAppStore } from '@/store'
-import { findWorkspace } from '@/store/slices/browser/pages/browser-page-records'
+} from "../../../../../shared/browser-workspace-types"
+import { translate } from "../../../i18n/i18n"
+import { useAppStore } from "../../../store/index"
+import { findWorkspace } from "../../../store/slices/browser/pages/browser-page-records"
 import {
   BROWSER_GUEST_RECOVERY_ERROR_CODE,
   createBrowserPageGuestRecovery,
   type BrowserPageGuestRecovery
-} from './browser-page-guest-recovery'
-import {
-  registeredWebContentsIds,
-  replacePersistentWebview,
-  webviewRegistry
-} from './webview-registry'
-import { browserPageExists } from '../describe-page/browser-page-load-error'
+} from "./browser-page-guest-recovery"
+import { registeredWebContentsIds, webviewRegistry } from "./webview-registry"
+import { replacePersistentWebview } from "./browser-webview-disposal"
+import { browserPageExists } from "../describe-page/browser-page-load-error"
 import {
   setBrowserPageAgentViewportSize,
   setBrowserPageViewportPresetSize
-} from './browser-page-viewport'
+} from "./browser-page-viewport"
 import type {
   BrowserPageRecoveryNavigationValidation,
   BrowserTabPageState
-} from '../describe-page/browser-page-types'
+} from "../describe-page/browser-page-types"
 
 export type BrowserPageWebviewGuestSessionArgs = {
   webview: Electron.WebviewTag
@@ -49,7 +48,6 @@ export type BrowserPageWebviewGuestSessionArgs = {
   onUpdatePageStateRef: MutableRefObject<(tabId: string, updates: BrowserTabPageState) => void>
   setGuestRecoveryGeneration: Dispatch<SetStateAction<number>>
   focusAddressBarNow: () => boolean
-  syncNavigationState: (webview: Electron.WebviewTag) => void
   syncBrowserAnnotationViewportBridge: () => void
 }
 
@@ -78,7 +76,6 @@ export function createBrowserPageWebviewGuestSession({
   onUpdatePageStateRef,
   setGuestRecoveryGeneration,
   focusAddressBarNow,
-  syncNavigationState,
   syncBrowserAnnotationViewportBridge
 }: BrowserPageWebviewGuestSessionArgs): BrowserPageWebviewGuestSession {
   let registrationInFlight: {
@@ -119,6 +116,7 @@ export function createBrowserPageWebviewGuestSession({
         }
         if (registered) {
           registeredWebContentsIds.set(browserTabId, webContentsId)
+          reportBrowserGuestVisibility(browserTabId)
           publishActiveBrowserPageIfCurrent(browserTabId)
           return true
         }
@@ -141,6 +139,7 @@ export function createBrowserPageWebviewGuestSession({
     }
     activeLoadFailureRef.current = null
     onUpdatePageStateRef.current(browserTabId, { loading: false, loadError: null })
+    refreshBrowserGuestMetadata(browserTabId, webview)
   }
 
   const guestRecovery = createBrowserPageGuestRecovery({
@@ -184,6 +183,9 @@ export function createBrowserPageWebviewGuestSession({
         sessionProfileId,
         webContentsId
       })
+      if (repaired && ownsGuest(webContentsId)) {
+        reportBrowserGuestVisibility(browserTabId)
+      }
       return ownsGuest(webContentsId) ? repaired : null
     },
     replaceGuest: () => replacePersistentWebview(browserTabId),
@@ -255,7 +257,6 @@ export function createBrowserPageWebviewGuestSession({
         guestRecovery.validateAfterResume()
       }
     }
-    syncNavigationState(webview)
     if (keepAddressBarFocusRef.current) {
       focusAddressBarNow()
     }

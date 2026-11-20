@@ -1,19 +1,23 @@
-import type { RuntimeRpcResponse } from '../../../../shared/runtime-rpc-envelope'
-import type { RuntimeMobileSessionTabsResult } from '../../../../shared/runtime-types'
-import { getRuntimeEnvironmentRevision } from '../rpc/environment-revisions/runtime-environment-revision'
+import {
+  captureBrowserInitializationDelivery,
+  recordBrowserInitializationReceipt
+} from "./tab-projection/browser-initialization-presentation"
+import type { RuntimeRpcResponse } from "../../../../shared/runtime-rpc-envelope"
+import type { RuntimeMobileSessionTabsResult } from "../../../../shared/runtime-session-contracts"
+import { getRuntimeEnvironmentRevision } from "../rpc/environment-revisions/runtime-environment-revision"
 import {
   admitRetiredValueUnderAuthority,
   isRetiredSessionTabsPublicationEpoch,
   sameSessionTabsPublicationLineage
-} from './publisher-identity-fences'
-import { createSessionTabsAuthorityRepairLane } from './session-tabs-authority-repair'
+} from "./publisher-identity-fences"
+import { createSessionTabsAuthorityRepairLane } from "./session-tabs-authority-repair"
 import {
   latestReceivedSessionTabsSnapshotByWorktree,
   nextReceivedSessionTabsFrame,
   sessionTabsPublicationEpochHistoryByWorktree,
   sessionTabsFreshnessKey
-} from './state'
-import { isSessionTabsListAllResult } from './tracking'
+} from "./state"
+import { isSessionTabsListAllResult } from "./tracking"
 
 // Why no generation fence here: each census re-checks its own subscription before applying.
 const pairedRepairLane = createSessionTabsAuthorityRepairLane({
@@ -60,6 +64,7 @@ async function runCensus(
     return
   }
   const requestFrame = nextReceivedSessionTabsFrame()
+  const delivery = captureBrowserInitializationDelivery(args.environmentId)
   const response = await window.api.runtimeEnvironments.call({
     selector: args.environmentId,
     method: 'session.tabs.listAll',
@@ -83,6 +88,7 @@ async function runCensus(
   if (!snapshot) {
     return
   }
+  recordBrowserInitializationReceipt(args.environmentId, snapshot, requestFrame, delivery)
   admitRetiredValueUnderAuthority(
     sessionTabsPublicationEpochHistoryByWorktree.get(key),
     snapshot.publicationEpoch,

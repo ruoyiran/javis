@@ -1,5 +1,5 @@
 import { Minus, Plus, RotateCcw, SunMoon, ZoomIn } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Button } from "../../ui/button"
 import {
   DropdownMenuItem,
   DropdownMenuPortal,
@@ -9,18 +9,18 @@ import {
   DropdownMenuSub,
   DropdownMenuSubContent,
   DropdownMenuSubTrigger
-} from '@/components/ui/dropdown-menu'
-import { useTranslate } from '@/i18n/use-translate'
+} from "../../ui/dropdown-menu"
+import { useTranslate } from "../../../i18n/use-translate"
 import {
   browserPageZoomLevelToPercent,
   nextBrowserPageZoomLevel,
   type BrowserPageZoomDirection
-} from '../../../../../shared/browser-page-zoom'
+} from "../../../../../shared/browser-page-zoom"
 import {
   isBrowserSiteColorScheme,
   type BrowserPageSiteDisplay,
   type BrowserSiteColorScheme
-} from '../../../../../shared/browser-site-display'
+} from "../../../../../shared/browser-site-display"
 
 const ZOOM_KEY_DIRECTIONS: Record<string, BrowserPageZoomDirection> = {
   '-': 'out',
@@ -57,7 +57,7 @@ export function BrowserToolbarZoomRow({
         }
       }}
     >
-      <ZoomIn className="mr-2 size-3.5" />
+      <ZoomIn className="size-3.5" />
       {t('auto.components.browser.pane.BrowserToolbarMenu.zoom', 'Zoom')}
       <span className="ml-auto flex items-center">
         <Button
@@ -119,7 +119,7 @@ export function BrowserToolbarAppearanceSub({
   return (
     <DropdownMenuSub>
       <DropdownMenuSubTrigger disabled={!display?.site}>
-        <SunMoon className="mr-2 size-3.5" />
+        <SunMoon className="size-3.5" />
         {t('auto.components.browser.pane.BrowserToolbarMenu.appearance', 'Appearance')}
       </DropdownMenuSubTrigger>
       <DropdownMenuPortal>

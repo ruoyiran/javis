@@ -1,18 +1,19 @@
-import { throwIfSignalAborted, waitForPromiseWithSignal } from '../../../shared/abort-signal-reason'
+import {
+  throwIfSignalAborted,
+  waitForPromiseWithSignal
+} from "../../../shared/abort-signal-reason"
 
 import {
   type RuntimeEnvironmentSetupFailure,
   runtimeEnvironmentSetupFailure
-} from '../../../shared/remote-runtime/host-catalog/runtime-environment-subscription-setup'
-import type {
-  WebRuntimeClient,
-  WebRuntimeSubscriptionHandle,
-  SubscribeOptions
-} from './web-runtime-client'
+} from "../../../shared/remote-runtime/host-catalog/runtime-environment-subscription-setup"
+import type { WebRuntimeClient } from "./web-runtime-client"
 import type {
   WebRuntimeTransportSubscription,
-  WebRuntimeSubscriptionCallbacks
-} from './web-runtime-subscription-contract'
+  WebRuntimeSubscriptionCallbacks,
+  WebRuntimeTransportSubscriptionHandle,
+  WebRuntimeSubscribeOptions
+} from "./web-runtime-subscription-contract"
 
 export type WebRuntimeCrewSetupOutcome<T> =
   | Readonly<{ ok: true; value: T }>
@@ -32,12 +33,12 @@ export async function subscribeDedicatedWebRuntime({
   subscribe: (
     client: WebRuntimeClient,
     callbacks: WebRuntimeSubscriptionCallbacks
-  ) => Promise<WebRuntimeSubscriptionHandle>
+  ) => Promise<WebRuntimeTransportSubscriptionHandle>
   getSetupFailure: (client: WebRuntimeClient) => RuntimeEnvironmentSetupFailure | undefined
   callbacks: WebRuntimeSubscriptionCallbacks
-  options?: SubscribeOptions
+  options?: WebRuntimeSubscribeOptions
   observeFailure?: (failure: RuntimeEnvironmentSetupFailure) => void
-}): Promise<WebRuntimeSubscriptionHandle> {
+}): Promise<WebRuntimeTransportSubscriptionHandle> {
   const client = createClient()
   children.add(client)
   const closeChild = (notifySubscriptions = false): void => {
@@ -91,8 +92,8 @@ export async function subscribeDedicatedWebRuntime({
 export async function observeCrewSubscriptionSetup(
   subscribe: (
     observe: (failure: RuntimeEnvironmentSetupFailure) => void
-  ) => Promise<WebRuntimeSubscriptionHandle>
-): Promise<WebRuntimeCrewSetupOutcome<WebRuntimeSubscriptionHandle>> {
+  ) => Promise<WebRuntimeTransportSubscriptionHandle>
+): Promise<WebRuntimeCrewSetupOutcome<WebRuntimeTransportSubscriptionHandle>> {
   let failure: RuntimeEnvironmentSetupFailure | undefined
   try {
     const value = await subscribe((observed) => {
@@ -119,14 +120,14 @@ export async function enrollWebRuntimeSubscription({
   method: string
   params: unknown
   callbacks: WebRuntimeSubscriptionCallbacks
-  options?: SubscribeOptions
+  options?: WebRuntimeSubscribeOptions
   waitForConnected: (timeoutMs?: number, signal?: AbortSignal) => Promise<void>
   nextId: () => string
   subscriptions: Map<string, WebRuntimeTransportSubscription>
   sendEncrypted: (message: unknown) => boolean
   sendBinary: (bytes: Uint8Array<ArrayBufferLike>) => boolean
   deviceToken: string
-}): Promise<WebRuntimeSubscriptionHandle> {
+}): Promise<WebRuntimeTransportSubscriptionHandle> {
   // The outer wait keeps main's normalized abort reason; the inner signal frees the waiter early.
   await waitForPromiseWithSignal(
     waitForConnected(options?.timeoutMs, options?.signal),

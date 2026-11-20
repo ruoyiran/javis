@@ -1,4 +1,4 @@
-import type { AppState } from '@/store/types'
+import type { AppState } from "../../../store/types"
 
 /** The distro of a WSL host whose last status says it stopped; null for any other host. */
 export function selectStoppedWslDistro(
@@ -7,6 +7,15 @@ export function selectStoppedWslDistro(
 ): string | null {
   const status = environmentId ? state.wslHostStatuses[environmentId] : undefined
   return status?.state === 'distro-stopped' ? status.distro : null
+}
+
+/** The distro of a WSL host still connecting, such as after Start while it boots or updates its server. */
+export function selectConnectingWslDistro(
+  state: Pick<AppState, 'wslHostStatuses'>,
+  environmentId: string | null | undefined
+): string | null {
+  const status = environmentId ? state.wslHostStatuses[environmentId] : undefined
+  return status?.state === 'connecting' || status?.state === 'reconnecting' ? status.distro : null
 }
 
 /**

@@ -1,5 +1,6 @@
+import { FLOATING_TERMINAL_WORKTREE_ID } from '../../../../../shared/workspace/identity/floating-workspace-id'
 import { useAppStore } from '@/store/index'
-import { FLOATING_TERMINAL_WORKTREE_ID } from '../../../../../shared/constants'
+
 import { resolvePaneWslDistro } from './terminal-pane-wsl-distro'
 
 export type PaneClaudeTarget = { runtime: 'host' } | { runtime: 'wsl'; wslDistro: string }

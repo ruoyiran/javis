@@ -1,28 +1,31 @@
-import type { AppState } from '@/store/types'
-import type { AgentSessionLaunchRequest } from '@/lib/agent-session/launch/routing/agent-session-launch-plan'
-import { resolveAgentLaunchHost } from '@/lib/agent-session/launch/routing/agent-launch-route-input'
+import type { AppState } from "../../store/types"
+import type { AgentSessionLaunchRequest } from "../../lib/agent-session/launch/routing/agent-session-launch-plan"
+import { resolveAgentLaunchHost } from "../../lib/agent-session/launch/routing/agent-launch-route-input"
 import {
   executionHostTerminalPending,
   resolveRepoExecutionHostTarget,
   resolveWorktreeResourceTarget,
   type ExecutionHostTarget
-} from '@/runtime/hosts/platform/execution-host-facts'
-import type { WorktreeRuntimeOwnerState } from '@/lib/workspace/ownership/worktree-runtime-owner-state'
-import { getIndexedReposById } from '@/store/repos/repository-catalog-index'
+} from "../../runtime/hosts/platform/execution-host-facts"
+import type { WorktreeRuntimeOwnerState } from "../../lib/workspace/ownership/worktree-runtime-owner-state"
+import { getIndexedReposById } from "../../store/repos/repository-catalog-index"
 import {
   selectDetectedWorktreesByRepo,
   selectFolderWorkspaces,
   selectWorktreesByRepo
-} from '@/store/workspaces/catalog/workspace-record-fields'
-import { lastVerifiedRuntimeStatus } from '../../../../shared/remote-runtime/host-status/runtime-host-status'
-import { getRepoExecutionHostId, parseExecutionHostId } from '../../../../shared/execution-host'
+} from "../../store/workspaces/catalog/workspace-record-fields"
+import { lastVerifiedRuntimeStatus } from "../../../../shared/remote-runtime/host-status/runtime-host-status"
+import {
+  getRepoExecutionHostId,
+  parseExecutionHostId
+} from "../../../../shared/execution-host"
 import {
   isRuntimeHostContactRevokedVerdict,
   runtimeHostContactForEntry
-} from '../../../../shared/remote-runtime/host-status/runtime-host-contact'
-import { getRuntimeEnvironmentRevision } from '@/runtime/rpc/environment-revisions/runtime-environment-revision'
-import { getRendererAppPlatform } from '@/app-shell/platform/renderer-app-platform'
-import { runtimeHostPlatform } from '@/components/terminal-pane/pty-transport/host-ownership/pty-owner-machine-platform'
+} from "../../../../shared/remote-runtime/host-status/runtime-host-contact"
+import { getRuntimeEnvironmentRevision } from "../../runtime/rpc/environment-revisions/runtime-environment-revision"
+import { getRendererAppPlatform } from "../../app-shell/platform/renderer-app-platform"
+import { runtimeHostPlatform } from "../terminal-pane/pty-transport/host-ownership/pty-owner-machine-platform"
 
 /** Identity facts for the picker's owner and acquisition keys; readiness stays out of them. */
 export function readAgentMenuLaunchFacts(

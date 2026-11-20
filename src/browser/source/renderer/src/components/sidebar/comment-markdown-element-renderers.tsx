@@ -1,21 +1,21 @@
-import { GitHubBodyImageUrlsContext } from './comment-markdown-github-image-urls'
+import { GitHubBodyImageUrlsContext } from "./comment-markdown-github-image-urls"
 import React from 'react'
-import { jiraImageReference } from '../../../../shared/jira/jira-attachment-image'
+import { isTrustedCompactImageSrc } from "../comment-markdown/comment-markdown-sanitize"
 import type { Components } from 'react-markdown'
-import { NATIVE_CHAT_FILE_HREF_PREFIX } from '../../../../shared/native-chat/native-chat-href-routing'
+import { NATIVE_CHAT_FILE_HREF_PREFIX } from "../../../../shared/native-chat/native-chat-href-routing"
 import {
   CommentMarkdownDocumentCode,
   CommentMarkdownDocumentPre
-} from './comment-markdown-code-renderers'
+} from "./comment-markdown-code-renderers"
 import {
   GitHubUserAttachmentImage,
   GitHubUserAttachmentVideo,
   isGitHubUserAttachmentUrl,
   isGitHubUserAttachmentVideoLink
-} from './comment-markdown-github-attachment-media'
-import { ExpandableMarkdownImage } from './MarkdownImageLightbox'
-import { MarkdownGitHubCallout } from '@/components/markdown-github-callout'
-import { readGitHubCalloutKind } from '../../../../shared/github/github-callouts'
+} from "./comment-markdown-github-attachment-media"
+import { ExpandableMarkdownImage } from "./MarkdownImageLightbox"
+import { MarkdownGitHubCallout } from "../markdown-github-callout"
+import { readGitHubCalloutKind } from "../../../../shared/github/github-callouts"
 
 export type CommentMarkdownLinkClickHandler = (
   event: React.MouseEvent<HTMLElement>,
@@ -29,18 +29,6 @@ export type DocumentCodeBlockRenderer = (props: {
   /** Whole-document fence line stays stable while streaming only escapes within lines or appends text. */
   sourceLine?: number
 }) => React.JSX.Element
-
-export function isTrustedCompactImageSrc(src: string | undefined): src is string {
-  if (!src) {
-    return false
-  }
-  const normalized = src.trim().toLowerCase()
-  return (
-    jiraImageReference(src) !== null ||
-    normalized.startsWith('blob:') ||
-    /^data:image\/(?:png|jpe?g|gif|webp);base64,/.test(normalized)
-  )
-}
 
 function handleMarkdownAnchorClick(
   event: React.MouseEvent<HTMLAnchorElement>,

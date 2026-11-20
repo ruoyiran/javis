@@ -1,9 +1,9 @@
 import type {
   RuntimeEnvironmentStatus,
   RuntimeHostStatusSnapshot
-} from '../../../../../shared/remote-runtime/host-status/runtime-host-status'
-import type { PublicKnownRuntimeEnvironment } from '../../../../../shared/remote-runtime/host-catalog/runtime-environments'
-import type { AppState } from '../../types'
+} from "../../../../../shared/remote-runtime/host-status/runtime-host-status"
+import type { PublicKnownRuntimeEnvironment } from "../../../../../shared/remote-runtime/host-catalog/runtime-environments"
+import type { AppState } from "../../types"
 
 export type RuntimeStatusSlice = {
   readRuntimeHostStatusSnapshots: () => Promise<void>
@@ -21,7 +21,12 @@ export type RuntimeStatusSlice = {
   ) => void
   clearRuntimeEnvironmentStatus: (environmentId: string) => void
   retainRuntimeEnvironmentStatuses: (environmentIds: Iterable<string>) => void
-  refreshRuntimeEnvironmentStatus: (environmentId: string, timeoutMs?: number) => Promise<boolean>
+  /** `force` is for a check the user asked for; background refreshes respect the host's failure backoff. */
+  refreshRuntimeEnvironmentStatus: (
+    environmentId: string,
+    timeoutMs?: number,
+    options?: { force?: true }
+  ) => Promise<boolean>
   hydrateRuntimeEnvironmentStatuses: () => Promise<void>
 }
 

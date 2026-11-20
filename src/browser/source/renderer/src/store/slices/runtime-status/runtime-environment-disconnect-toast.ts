@@ -1,6 +1,6 @@
 import { toast } from 'sonner'
-import { translate } from '@/i18n/i18n'
-import type { RuntimeStatusSlice } from './runtime-status-types'
+import { translate } from "../../../i18n/i18n"
+import type { RuntimeStatusSlice } from "./runtime-status-types"
 
 const activeRuntimeDisconnectedToasts = new Map<string, symbol>()
 const RUNTIME_DISCONNECTED_TOAST_DURATION_MS = 4_000
@@ -55,7 +55,7 @@ export function showRuntimeDisconnectedToast(
           retrying = true
           showToast(Number.POSITIVE_INFINITY)
           void getState()
-            .refreshRuntimeEnvironmentStatus(environmentId)
+            .refreshRuntimeEnvironmentStatus(environmentId, undefined, { force: true })
             .then((reachable) => {
               const stillSaved = getState().runtimeEnvironments.some(
                 (entry) => entry.id === environmentId

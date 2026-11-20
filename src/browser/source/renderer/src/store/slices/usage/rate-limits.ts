@@ -1,7 +1,10 @@
 import type { StateCreator } from 'zustand'
-import type { RateLimitRuntimeTarget, RateLimitState } from '../../../../../shared/rate-limit-types'
-import { createEmptyRateLimitState } from '../../../../../shared/rate-limit-state-factory'
-import type { AppState } from '../../types'
+import type {
+  RateLimitRuntimeTarget,
+  RateLimitState
+} from "../../../../../shared/agent-usage/rate-limits/rate-limit-types"
+import { createEmptyRateLimitState } from "../../../../../shared/rate-limit-state-factory"
+import type { AppState } from "../../types"
 
 export type RateLimitSlice = {
   rateLimits: RateLimitState

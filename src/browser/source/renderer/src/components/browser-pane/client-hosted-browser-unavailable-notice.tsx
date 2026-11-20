@@ -1,31 +1,32 @@
 import { useEffect } from 'react'
 import { Globe } from 'lucide-react'
-import { useTranslate } from '@/i18n/use-translate'
-import { useAppStore } from '@/store'
-import { readBrowserClientHostId } from '@/runtime/browser/client-hosting/browser-client-host-identity'
-import { runtimeHostConnectionStateForEntry } from '@/runtime/hosts/connections/runtime-host-connection-state'
-import { ensureBrowserClientHostOnRuntimeContact } from '@/runtime/browser/client-hosting/restored-client-hosted-browser-host-attach'
+import { useTranslate } from "../../i18n/use-translate"
+import { useRuntimeHostStatusSelector } from "../../store/slices/runtime-status/views/use-runtime-status-view"
+import { useAppStore } from "../../store/index"
+import { readBrowserClientHostId } from "../../runtime/browser/client-hosting/browser-client-host-identity"
+import { runtimeHostConnectionStateForEntry } from "../../runtime/hosts/connections/runtime-host-connection-state"
+import { ensureBrowserClientHostOnRuntimeContact } from "../../runtime/browser/client-hosting/restored-client-hosted-browser-host-attach"
 import {
   isRuntimeHostContactRevokedVerdict,
   runtimeHostContactForEntry
-} from '../../../../shared/remote-runtime/host-status/runtime-host-contact'
+} from "../../../../shared/remote-runtime/host-status/runtime-host-contact"
 import {
   ReopenBrowserPageOnServerButton,
   reopenOnServerCaveat
-} from './ReopenBrowserPageOnServerButton'
-import '../../../../shared/protocol-version'
-import { BROWSER_SCREENCAST_RUNTIME_CAPABILITY } from '../../../../shared/browser/runtime/browser-runtime-capabilities'
+} from "./ReopenBrowserPageOnServerButton"
+import "../../../../shared/protocol-version"
+import { BROWSER_SCREENCAST_RUNTIME_CAPABILITY } from "../../../../shared/browser/runtime/browser-runtime-capabilities"
 
 /** No guest exists here to retry; offer reopening on a capable server when hosting is unavailable or belongs to another desktop. */
 export function ClientHostedBrowserUnavailableNotice({
   runtimeEnvironmentId,
   worktreeId,
-  lastCommittedUrl,
+  reopenUrl,
   placementHostClientId
 }: {
   runtimeEnvironmentId: string
   worktreeId: string
-  lastCommittedUrl: string
+  reopenUrl: string
   placementHostClientId: string | null
 }): React.JSX.Element {
   const t = useTranslate()
@@ -42,9 +43,8 @@ export function ClientHostedBrowserUnavailableNotice({
       : null
   })
   // Why: a runtime known to have no browser of its own (orcad) cannot take the page back.
-  const runtimeCanHostPage = useAppStore((s) => {
-    const capabilities =
-      s.runtimeStatusByEnvironmentId.get(runtimeEnvironmentId)?.status?.capabilities
+  const runtimeCanHostPage = useRuntimeHostStatusSelector(runtimeEnvironmentId, (entry) => {
+    const capabilities = entry?.status?.capabilities
     return !capabilities || capabilities.includes(BROWSER_SCREENCAST_RUNTIME_CAPABILITY)
   })
   const ownHostClientId = readBrowserClientHostId()
@@ -87,7 +87,7 @@ export function ClientHostedBrowserUnavailableNotice({
             <ReopenBrowserPageOnServerButton
               environmentId={runtimeEnvironmentId}
               worktreeId={worktreeId}
-              lastCommittedUrl={lastCommittedUrl}
+              reopenUrl={reopenUrl}
             />
           </>
         ) : null}

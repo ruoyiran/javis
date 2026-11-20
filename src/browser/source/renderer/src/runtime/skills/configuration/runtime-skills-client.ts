@@ -2,18 +2,21 @@ import type {
   SkillDeletePlan,
   SkillDeleteRequest,
   SkillDeleteResult
-} from '../../../../../shared/skill-delete-contract'
+} from "../../../../../shared/skill-delete-contract"
 import {
   SKILL_DELETE_CAPABILITY,
   SKILL_DELETE_UPDATE_REQUIRED_MESSAGE
-} from '../../../../../shared/skill-install-capability'
-import type { SkillDiscoveryResult, SkillDiscoveryTarget } from '../../../../../shared/skills'
+} from "../../../../../shared/skill-install-capability"
+import type {
+  SkillDiscoveryResult,
+  SkillDiscoveryTarget
+} from "../../../../../shared/skills"
 import {
   assertRuntimeEnvironmentCapability,
   runtimeEnvironmentSupportsCapability
-} from '../../rpc/compatibility/runtime-capability-proof'
-import { callRuntimeRpc } from '../../rpc/calls/runtime-rpc-call'
-import type { RuntimeClientTarget } from '../../../../../shared/runtime-client-target'
+} from "../../rpc/compatibility/runtime-capability-proof"
+import { callRuntimeRpc } from "../../rpc/calls/runtime-rpc-call"
+import type { RuntimeClientTarget } from "../../../../../shared/runtime-client-target"
 
 const SKILL_DISCOVERY_TIMEOUT_MS = 15_000
 

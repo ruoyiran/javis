@@ -1,13 +1,13 @@
 import {
   isTerminalLeafId,
   makePaneKey
-} from '../../../../../shared/workspace-layout/stable-pane-id'
-import { structuredAgentSessionPaneKey } from '../../../../../shared/agent-session/view/structured-agent-session-projection'
-import { collectLeafIds } from '../../../../../shared/workspace-layout/terminal-pane-layout-tree'
-import type { AppState } from '../../types'
-import type { WorkspaceAttentionGet, WorkspaceAttentionSet } from './workspace-attention-contract'
-import { settleWorkspaceUnreadFlag } from './workspace-unread-flag'
-import { paneKeyTabId, workspaceMarkerTabs } from './workspace-live-markers'
+} from "../../../../../shared/workspace-layout/stable-pane-id"
+import { structuredAgentSessionPaneKey } from "../../../../../shared/agent-session/view/structured-agent-session-projection"
+import { collectLeafIds } from "../../../../../shared/workspace-layout/terminal-pane-layout-tree"
+import type { AppState } from "../../types"
+import type { WorkspaceAttentionGet, WorkspaceAttentionSet } from "./workspace-attention-contract"
+import { settleWorkspaceUnreadFlag } from "./workspace-unread-flag"
+import { paneKeyTabId, workspaceMarkerTabs } from "./workspace-live-markers"
 
 /** The state a marker removal is diffed against; any earlier `get()` satisfies it. */
 export type AttentionRemovalSnapshot = Pick<
@@ -139,7 +139,7 @@ export function settleAttentionRemovedBy(
   }
   if (options?.settleFlags !== false) {
     for (const workspaceId of removed.workspaceIds) {
-      settleWorkspaceUnreadFlag(set, get, workspaceId)
+      settleWorkspaceUnreadFlag(set, get, workspaceId, 'markers')
     }
   }
   dismissReadNotifications(removed.paneKeys)

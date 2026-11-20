@@ -1,15 +1,18 @@
-import { useAppStore } from '@/store/index'
-import type { SshConnectionState, SshTargetSummary } from '../../../../../shared/ssh-types'
-import { callRuntimeRpc } from '../../rpc/calls/runtime-rpc-call'
-import { getEnvironmentSshStateGeneration } from '@/store/slices/ssh/runtime-environment-ssh'
-import { admitSshConnectionState } from '../../../../../shared/ssh-retained-payload-admission'
+import { useAppStore } from "../../../store/index"
+import type {
+  SshConnectionState,
+  SshTargetSummary
+} from "../../../../../shared/ssh-types"
+import { callRuntimeRpc } from "../../rpc/calls/runtime-rpc-call"
+import { getEnvironmentSshStateGeneration } from "../../../store/slices/ssh/runtime-environment-ssh"
+import { admitSshConnectionState } from "../../../../../shared/ssh-retained-payload-admission"
 import {
   collectSshTargetGenerations,
   sshTargetGenerationsEqual,
   sshTargetLabelsEqual
-} from '@/store/slices/ssh/ssh-target-metadata'
-import { sanitizeSshTargetGeneration } from '../../../../../shared/ssh-target-generation'
-import { forEachWithConcurrency } from '../../../../../shared/map-with-concurrency'
+} from "../../../store/slices/ssh/ssh-target-metadata"
+import { sanitizeSshTargetGeneration } from "../../../../../shared/ssh-target-generation"
+import { forEachWithConcurrency } from "../../../../../shared/map-with-concurrency"
 
 /** Mirror server-owned SSH state into only its per-environment bucket so paired desktops get reconnect overlays (STA-1468); local SSH maps remain independent. */
 

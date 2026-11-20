@@ -1,9 +1,9 @@
-import { isWebClientLocation } from '@/app-shell/platform/web-client-location'
-import '../../../../../shared/keybindings'
+import { isWebClientLocation } from "../../../app-shell/platform/web-client-location"
+
 import {
   logicalKeyTokenFromInput,
   physicalCodeKeyTokenFromInput
-} from '../../../../../shared/keybindings/input'
+} from "../../../../../shared/keybindings/input"
 
 // Insecure web origins lack navigator.clipboard; preserve the native paste gesture as their only clipboard path.
 export function shouldUseClipboardEventPaste(args: {

@@ -1,8 +1,11 @@
-import type { Tab, TabGroup } from '../../../../../shared/tab-types'
-import { createNonSecureContextUuid as createBrowserUuid } from '../../../../../shared/non-secure-context-uuid'
-import { ORCA_LAYOUT_OWNER_IS_MAIN } from '../../../../../shared/layout-owner-switch'
-import { workspaceRootGroupId } from '../../../../../shared/workspace-layout/workspace-layout-minted-ids'
-import { replaceRecordEntries, replaceTabBuckets } from '../../keyed-record-transitions'
+import type { Tab, TabGroup } from "../../../../../shared/tab-types"
+import { createNonSecureContextUuid as createBrowserUuid } from "../../../../../shared/non-secure-context-uuid"
+import { ORCA_LAYOUT_OWNER_IS_MAIN } from "../../../../../shared/layout-owner-switch"
+import { workspaceRootGroupId } from "../../../../../shared/workspace-layout/workspace-layout-minted-ids"
+import {
+  replaceRecordEntries,
+  replaceTabBuckets
+} from "../../keyed-record-transitions"
 
 export function findTabAndWorktree(
   tabsByWorktree: Record<string, Tab[]>,

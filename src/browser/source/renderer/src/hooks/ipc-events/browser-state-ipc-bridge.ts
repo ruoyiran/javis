@@ -1,28 +1,35 @@
-import { rememberLiveBrowserUrl } from '@/components/browser-pane/describe-page/live-browser-url-registry'
-import { runtimeEnvironmentIdOrLocalUnlessTwin } from '@/lib/workspace/ownership/worktree-runtime-owner'
-import { findVisibleBrowserLinkTarget } from '@/lib/browser/navigation/visible-browser-link-target'
-import { openUrlInTabBesideBrowserPage } from '@/lib/browser/palette/browser-page-tab-opening'
-import { redactKagiSessionToken } from '../../../../shared/browser-url'
-import { LOCAL_EXECUTION_HOST_ID } from '../../../../shared/execution-host'
-import { useAppStore } from '../../store'
-import { findPage } from '../../store/slices/browser/pages/browser-page-records'
+import {
+  acceptBrowserGuestMetadata,
+  clearBrowserGuestMetadata
+} from "../../components/browser-pane/host-guest/metadata/browser-guest-metadata-cache"
+import { rememberLiveBrowserUrl } from "../../components/browser-pane/describe-page/live-browser-url-registry"
+import { findVisibleBrowserLinkTarget } from "../../lib/browser/navigation/visible-browser-link-target"
+import { openUrlInTabBesideBrowserPage } from "../../lib/browser/palette/browser-page-tab-opening"
+import {
+  isClientHostedBrowserSourcePage,
+  openClientHostedUrlBesideBrowserPage
+} from "../../lib/browser/palette/open-client-hosted-link-beside-page"
+import { redactKagiSessionToken } from "../../../../shared/browser-url"
+import { LOCAL_EXECUTION_HOST_ID } from "../../../../shared/execution-host"
+import { useAppStore } from "../../store/index"
+import { findPage } from "../../store/slices/browser/pages/browser-page-records"
 import {
   acquireBrowserAutomationVisibility,
   releaseBrowserAutomationVisibility
-} from '@/components/browser-pane/host-guest/browser-automation-visibility'
-import { acquireBrowserAutomationBootstrapLease } from './browser-automation-bootstrap-lease'
-import { markBrowserPageOpenedByPage } from '@/components/browser-pane/host-guest/browser-page-window-close'
-import { setBrowserPageAgentViewportSize } from '@/components/browser-pane/host-guest/browser-page-viewport'
+} from "../../components/browser-pane/host-guest/retention/browser-automation-visibility-store"
+import { acquireBrowserAutomationBootstrapLease } from "./browser-automation-bootstrap-lease"
+import { markBrowserPageOpenedByPage } from "../../components/browser-pane/host-guest/browser-page-window-close"
+import { setBrowserPageAgentViewportSize } from "../../components/browser-pane/host-guest/browser-page-viewport"
 import {
   beginAgentInputFocusGuard,
   clearAgentInputFocusGuards,
   endAgentInputFocusGuard,
   watchUserComposition
-} from '@/components/browser-pane/host-guest/agent-input-focus-guard'
+} from "../../components/browser-pane/host-guest/agent-input-focus-guard"
 import {
   setBrowserAgentPageActive,
   showBrowserAgentCursor
-} from '@/components/browser-pane/agent-cursor/browser-agent-activity-state'
+} from "../../components/browser-pane/agent-cursor/browser-agent-activity-state"
 
 /** Client-hosted webview events originate in this desktop even for remote workspaces; runtime-active guards would incorrectly drop them. */
 function isClientHostedBrowserPage(browserPageId: string): boolean {
@@ -74,12 +81,17 @@ export function registerBrowserStateIpcBridge(
       }
       useAppStore.getState().updateBrowserPageState(browserPageId, {
         loading: false,
-        loadError,
-        canGoBack: false,
-        canGoForward: false
+        loadError
       })
     })
   )
+  const unsubscribeMetadata = window.api.browser.onGuestMetadata?.(acceptBrowserGuestMetadata)
+  if (unsubscribeMetadata) {
+    unsubs.push(() => {
+      unsubscribeMetadata()
+      clearBrowserGuestMetadata()
+    })
+  }
   const unsubscribeCertificateFailure = window.api.browser.onCertificateFailureChanged?.(
     ({ browserPageId, failure }) => {
       if (isRuntimeEnvironmentActive() && !isClientHostedBrowserPage(browserPageId)) {
@@ -203,12 +215,24 @@ export function registerBrowserStateIpcBridge(
     })
   )
   unsubs.push(
+    // Why no runtime guard: only guests in this process ask, so SSH-routed pages in a server-owned workspace open here too.
     window.api.browser.onOpenLinkInOrcaTab(({ browserPageId, url, activate }) => {
       const store = useAppStore.getState()
       const sourcePage = Object.values(store.browserPagesByWorkspace)
         .flat()
         .find((page) => page.id === browserPageId)
-      if (!sourcePage || runtimeEnvironmentIdOrLocalUnlessTwin(store, sourcePage.worktreeId)) {
+      if (!sourcePage) {
+        return
+      }
+      // Client-hosted guests live on this desktop, so a paired worktree must not drop their popups.
+      if (isClientHostedBrowserSourcePage(browserPageId)) {
+        openClientHostedUrlBesideBrowserPage({
+          sourcePageId: browserPageId,
+          worktreeId: sourcePage.worktreeId,
+          url,
+          activate: activate ?? true,
+          onOpened: markBrowserPageOpenedByPage
+        })
         return
       }
       const placement = findVisibleBrowserLinkTarget(store, sourcePage.worktreeId)

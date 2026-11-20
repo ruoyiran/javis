@@ -1,46 +1,47 @@
 import {
   resolveTerminalNotificationOwner,
   type TerminalNotificationBinding
-} from '../../../attention/notification-subject-owner'
+} from "../../../attention/notification-subject-owner"
 import {
   notificationExecutionHostForOwner,
   notificationWorkspaceExecutionHostForOwner,
   notificationSourceForOwner
-} from '../../../../../shared/notification-source'
-import { useAppStore } from '../../../store/index'
-import { resolveExplicitTerminalTitleAgentType as resolveCommittedTitleAgentType } from '../../../../../shared/agent-status/title/terminal-title-agent-type'
-import { buildAgentNotificationId } from '../../../../../shared/agent-notification-id'
-import { agentMainAgentVerdict } from '../../../../../shared/agent-status/lifecycle/agent-main-agent-verdict'
-import { shareCompatibleTitleIdentityGroup } from '../../../../../shared/agent-status/title/agent-title-owner'
-import { isFreshNonDoneAgentStatus } from '../../../../../shared/agent-status/contracts/agent-status-freshness'
+} from "../../../../../shared/notification-source"
+import { useAppStore } from "../../../store/index"
+import { isWorktreeNotificationDeliveryMuted } from "../../../attention/worktree-notification-mute"
+import { resolveExplicitTerminalTitleAgentType as resolveCommittedTitleAgentType } from "../../../../../shared/agent-status/title/terminal-title-agent-type"
+import { buildAgentNotificationId } from "../../../../../shared/agent-notification-id"
+import { agentMainAgentVerdict } from "../../../../../shared/agent-status/lifecycle/agent-main-agent-verdict"
+import { shareCompatibleTitleIdentityGroup } from "../../../../../shared/agent-status/title/agent-title-owner"
+import { isFreshNonDoneAgentStatus } from "../../../../../shared/agent-status/contracts/agent-status-freshness"
 import type {
   AgentStatusEntry,
   AgentStatusState
-} from '../../../../../shared/agent-status/contracts/agent-status-types'
+} from "../../../../../shared/agent-status/contracts/agent-status-types"
 import {
   isCoordinatorOnlyNews,
   withApprovalTitle
-} from '../../../../../shared/orchestration/workers/dispatched-worker-attention'
-import { canonicalOrchestrationForRow } from '../../../runtime/agent-orchestration/visible-agent-orchestration'
-import { isSupersededAgentCompletionSnapshot } from '../agent-completion/agent-completion-snapshot-staleness'
-import { isAutoApprovedAntigravityPermission } from './antigravity-auto-approved-permission'
+} from "../../../../../shared/orchestration/workers/dispatched-worker-attention"
+import { canonicalOrchestrationForRow } from "../../../runtime/agent-orchestration/visible-agent-orchestration"
+import { isSupersededAgentCompletionSnapshot } from "../agent-completion/agent-completion-snapshot-staleness"
+import { isAutoApprovedAntigravityPermission } from "./antigravity-auto-approved-permission"
 import type {
   AgentCompletionDispatchMeta,
   AgentCompletionStatusSnapshot
-} from '../agent-completion/agent-completion-coordinator-types'
-import type { NotificationDispatchResult } from '../../../../../shared/notification-settings-types'
-import { getNotificationWorkspaceLabels } from '../../../attention/notification-workspace-labels'
-import { createTerminalAttentionSurface } from './terminal-attention-surface'
+} from "../agent-completion/agent-completion-coordinator-types"
+import type { NotificationDispatchResult } from "../../../../../shared/notification-settings-types"
+import { getNotificationWorkspaceLabels } from "../../../attention/notification-workspace-labels"
+import { createTerminalAttentionSurface } from "./terminal-attention-surface"
 import {
   applyAgentAttention,
   resolveAgentAttention,
   type AgentAttentionDeliveryRequest
-} from '../../../attention/agent-attention-policy'
+} from "../../../attention/agent-attention-policy"
 import {
   deliverAgentAttentionNotification,
   readAgentAttentionNotificationSound
-} from '../../../attention/agent-attention-notification-delivery'
-import { recordAgentFinishDropped } from '@/attention/agent-finish-drop-breadcrumb'
+} from "../../../attention/agent-attention-notification-delivery"
+import { recordAgentFinishDropped } from "../../../attention/agent-finish-drop-breadcrumb"
 
 const AGENT_NOTIFICATION_SNAPSHOT_MAX_AGE_MS = 10_000
 
@@ -95,7 +96,7 @@ export function dispatchTerminalNotification(
       : null
   const storedAgentStatus =
     event.source === 'agent-task-complete' && event.paneKey
-      ? state.agentStatusByPaneKey[event.paneKey]
+      ? state.agentStatusByPaneKey.get(event.paneKey)
       : undefined
   const eventAgentStatusSnapshot =
     event.source === 'agent-task-complete' &&
@@ -108,6 +109,21 @@ export function dispatchTerminalNotification(
     agentSnapshotMatchesExplicitTitle(storedAgentStatus, explicitTitleAgentType)
       ? storedAgentStatus
       : undefined
+  // A launch restores the accepted turn; only later agent evidence can finish another one.
+  if (
+    event.source === 'agent-task-complete' &&
+    storedAgentStatus?.state === 'done' &&
+    storedAgentStatus.observation?.origin === 'launch' &&
+    agentSnapshotMatchesExplicitTitle(storedAgentStatus, explicitTitleAgentType) &&
+    (!eventAgentStatusSnapshot ||
+      eventAgentStatusSnapshot.stateStartedAt === storedAgentStatus.stateStartedAt)
+  ) {
+    recordAgentFinishDropped('resume-restatement', {
+      workspaceId: worktreeId,
+      paneKey: event.paneKey
+    })
+    return false
+  }
   if (
     event.source === 'agent-task-complete' &&
     event.agentCompletionSource !== 'process-exit' &&
@@ -224,9 +240,12 @@ export function dispatchTerminalNotification(
     )
   }
 
+  // Why: per-worktree mute stops at the interruptions (OS banner, sound, mobile
+  // push, tray dot); the unread writes above the delivery still run.
+  const deliveryMuted = isWorktreeNotificationDeliveryMuted(state, worktreeId)
   applyAgentAttention(attentionDecision, {
     unread: state.markAgentAttentionUnread,
-    requestDelivery
+    requestDelivery: deliveryMuted ? () => {} : requestDelivery
   })
   return requested
 }

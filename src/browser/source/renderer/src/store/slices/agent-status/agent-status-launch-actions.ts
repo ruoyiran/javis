@@ -1,16 +1,19 @@
-import { replaceRecordEntries } from '@/store/keyed-record-transitions'
-import type { AgentStatusSlice } from './agent-status-slice-contract'
-import type { AgentStatusRuntime } from './agent-status-runtime'
-import type { AgentLaunchConfigRegistryEntry } from './agent-status-contract'
-import { copyLaunchConfig } from '../../../../../shared/agent-session/lifecycle/agent-resume-record-from-status'
-import { sleepingRecordFromEntry } from './agent-status-sleeping-records'
+import { replaceRecordEntries } from "../../keyed-record-transitions"
+import type { AgentStatusSlice } from "./agent-status-slice-contract"
+import type { AgentStatusRuntime } from "./agent-status-runtime"
+import type { AgentLaunchConfigRegistryEntry } from "./agent-status-contract"
+import { copyLaunchConfig } from "../../../../../shared/agent-session/lifecycle/agent-resume-record-from-status"
+import { sleepingRecordFromEntry } from "./agent-status-sleeping-records"
 import {
   getLaunchConfigForEntry,
   launchConfigRegistryEntriesEqual,
   normalizeLaunchConfigRegistrationMetadata,
   registryEntryMatchesStatus
-} from './agent-status-launch-config'
-import { findAgentPaneWorktreeId, getTabIdFromPaneKey } from './agent-status-pane-key-tab-binding'
+} from "./agent-status-launch-config"
+import {
+  findAgentPaneWorktreeId,
+  getTabIdFromPaneKey
+} from "./agent-status-pane-key-tab-binding"
 
 export function createAgentStatusLaunchActions(
   runtime: AgentStatusRuntime
@@ -33,7 +36,7 @@ export function createAgentStatusLaunchActions(
           existingRegistryEntry,
           nextRegistryEntry
         )
-        const existingEntry = s.agentStatusByPaneKey[paneKey]
+        const existingEntry = s.agentStatusByPaneKey.get(paneKey)
         const entryMatchesRegistry = registryEntryMatchesStatus({
           entry: nextRegistryEntry,
           paneKey,

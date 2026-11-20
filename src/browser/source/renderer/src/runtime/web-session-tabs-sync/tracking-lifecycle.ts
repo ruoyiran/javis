@@ -1,7 +1,7 @@
 import {
   forgetVisibleTabPicksForEnvironment,
   forgetVisibleTabPicksForWorktree
-} from './navigation/web-session-visible-tab-pick-report'
+} from "./navigation/web-session-visible-tab-pick-report"
 import {
   latestSessionTabsSnapshotByWorktree,
   replayableSessionTabsSnapshotByWorktree,
@@ -17,46 +17,47 @@ import {
   sessionTabsInventoryOmissionsByWorktree,
   hostSessionTabIdByLocalKey,
   hostSessionTabMappingKeysByEnvironmentAndWorktree,
+  markHostSessionTabMappingsChanged,
   hostWorkingClientBoundaryByPaneKey,
   resetReceivedSessionTabsFrameSequence,
   sessionTabsFreshnessKey
-} from './state'
+} from "./state"
 import {
   clearWebRuntimeWakeTerminalRespawnForWorktree,
   clearAllWebRuntimeWakeTerminalRespawn
-} from '../hosted-terminals/restoration/web-runtime-wake-terminal-respawn'
+} from "../hosted-terminals/restoration/web-runtime-wake-terminal-respawn"
 import {
   endWebRuntimeInitialTerminalBootstrap,
   clearWebRuntimeInitialTerminalBootstrapsForEnvironment
-} from './initial-terminal/web-runtime-initial-terminal-bootstrap'
-import { clearWebSessionReorderIntentsForWorktree } from './navigation/web-session-reorder-intent'
-import { clearWebSessionCloseIntentsForWorktree } from './closing/web-session-close-intent'
+} from "./initial-terminal/web-runtime-initial-terminal-bootstrap"
+import { clearWebSessionReorderIntentsForWorktree } from "./navigation/web-session-reorder-intent"
+import { clearWebSessionCloseIntentsForWorktree } from "./closing/web-session-close-intent"
 import {
   forgetMirroredTerminalHandles,
   resetMirroredTerminalHandlesForTests
-} from './mirrored-terminal-handle-index'
+} from "./mirrored-terminal-handle-index"
 import {
   forgetRetiredEpochCensuses,
   resetRetiredEpochCensusesForTests
-} from './retired-epoch-census'
+} from "./retired-epoch-census"
 import {
   clearWebAgentSessionHandoffsForWorktree,
   clearWebAgentSessionHandoffsForEnvironment
-} from '../hosted-terminals/creation/agent-launch/web-agent-session-handoff'
+} from "../hosted-terminals/creation/agent-launch/web-agent-session-handoff"
 import {
   clearWebSessionBrowserPlacementsForWorktree,
   clearWebSessionBrowserPlacementsForEnvironment,
   resetWebSessionBrowserPlacementsForTests
-} from '../browser/placement/web-session-browser-placement'
+} from "../browser/placement/web-session-browser-placement"
 import {
   clearWebSessionTerminalPlacementsForWorktree,
   clearWebSessionTerminalPlacementsForEnvironment
-} from '../hosted-terminals/placement/web-session-terminal-placement'
-import { clearHostSessionMirrorHydration } from './hydration/host-session-mirror-hydration'
-import { clearHostMirrorHandleGapVerdictsForEnvironment } from '@/lib/agent-session/resume/host-mirror-handle-gap-wait'
-import { createBoundedGenerationMap } from '@/lib/bounded-generation-map'
-import { clearHostSessionTabIdMappings } from './tracking-mappings'
-import { untrackWebSessionTabsWorktree, removeWebSessionTabsEnvironment } from './tracking'
+} from "../hosted-terminals/placement/web-session-terminal-placement"
+import { clearHostSessionMirrorHydration } from "./hydration/host-session-mirror-hydration"
+import { clearHostMirrorHandleGapVerdictsForEnvironment } from "../../lib/agent-session/resume/host-mirror-handle-gap-wait"
+import { createBoundedGenerationMap } from "../../lib/bounded-generation-map"
+import { clearHostSessionTabIdMappings } from "./tracking-mappings"
+import { untrackWebSessionTabsWorktree, removeWebSessionTabsEnvironment } from "./tracking"
 
 const sessionTabsTrackingGenerations = createBoundedGenerationMap(512)
 
@@ -97,6 +98,7 @@ export function resetWebSessionTabsSnapshotFreshnessForTests(): void {
   sessionTabsInventoryOmissionsByWorktree.clear()
   hostSessionTabIdByLocalKey.clear()
   hostSessionTabMappingKeysByEnvironmentAndWorktree.clear()
+  markHostSessionTabMappingsChanged()
   hostWorkingClientBoundaryByPaneKey.clear()
   sessionTabsTrackingGenerations.reset()
   resetWebSessionBrowserPlacementsForTests()
@@ -216,6 +218,7 @@ export function clearWebSessionTabsTrackingForEnvironment(environmentId: string)
       }
     }
     hostSessionTabMappingKeysByEnvironmentAndWorktree.delete(trimmedEnvironmentId)
+    markHostSessionTabMappingsChanged()
   }
   clearWebAgentSessionHandoffsForEnvironment(trimmedEnvironmentId)
   clearWebSessionBrowserPlacementsForEnvironment(trimmedEnvironmentId)

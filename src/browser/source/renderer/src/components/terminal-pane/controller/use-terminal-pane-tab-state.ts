@@ -1,14 +1,14 @@
 import { useMemo } from 'react'
 import { useShallow } from 'zustand/react/shallow'
-import { useAppStore } from '../../../store/index'
-import { getCachedTerminalTabForWorktree } from './tab-state/terminal-tab-lookup'
-import { selectTerminalTabAgentTypesByLeaf } from '../titles/terminal-tab-agent-type-index'
-import '../layout/terminal-layout-leaf-traversal'
-import { collectLayoutLeafIdsInOrder } from '../../../../../shared/workspace-layout/terminal-pane-tree'
-import { EMPTY_LAYOUT } from '../layout/empty-terminal-layout'
-import { sanitizeTerminalLayoutPaneTitles } from '../../../../../shared/workspace-layout/terminal-pane-title-sanitization'
-import { selectUnifiedTerminalTabFields } from './tab-state/terminal-unified-tab-lookup'
-import type { TerminalPaneTitleController } from '../titles/use-terminal-pane-title-state'
+import { useAppStore } from "../../../store/index"
+import { getCachedTerminalTabForWorktree } from "./tab-state/terminal-tab-lookup"
+import { useTerminalTabAgentTypes } from "../titles/use-terminal-tab-agent-types"
+import "../layout/terminal-layout-leaf-traversal"
+import { collectLayoutLeafIdsInOrder } from "../../../../../shared/workspace-layout/terminal-pane-tree"
+import { EMPTY_LAYOUT } from "../layout/empty-terminal-layout"
+import { sanitizeTerminalLayoutPaneTitles } from "../../../../../shared/workspace-layout/terminal-pane-title-sanitization"
+import { selectUnifiedTerminalTabFields } from "./tab-state/terminal-unified-tab-lookup"
+import type { TerminalPaneTitleController } from "../titles/use-terminal-pane-title-state"
 
 export function useTerminalPaneTabState({
   tabId,
@@ -24,13 +24,7 @@ export function useTerminalPaneTabState({
   const runtimePaneTitlesByPaneId = useAppStore(
     useShallow((store) => store.runtimePaneTitlesByTabId[tabId] ?? {})
   )
-  const tabAgentTypeByLeaf = useAppStore((store) =>
-    selectTerminalTabAgentTypesByLeaf(
-      store.agentStatusByPaneKey,
-      tabId,
-      store.paneForegroundAgentByPaneKey
-    )
-  )
+  const tabAgentTypeByLeaf = useTerminalTabAgentTypes(tabId)
   const savedLayout = useAppStore((store) => store.terminalLayoutsByTabId[tabId] ?? EMPTY_LAYOUT)
   const terminalTab = useAppStore((store) =>
     getCachedTerminalTabForWorktree(store.tabsByWorktree, worktreeId, tabId)

@@ -1,10 +1,10 @@
 import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
-import { Button } from './ui/button'
-import { translate } from '@/i18n/i18n'
-import { useTranslate } from '@/i18n/use-translate'
-import { cn } from '@/lib/class-names'
-import { useAppStore } from '../store/index'
+import { Button } from "./ui/button"
+import { translate } from "../i18n/i18n"
+import { useTranslate } from "../i18n/use-translate"
+import { cn } from "../lib/class-names"
+import { useAppStore } from "../store/index"
 
 async function copySignInLink(link: string): Promise<void> {
   try {
@@ -46,9 +46,11 @@ export function OrcaSignInButton({
 }
 
 export function OrcaSignInWaitNotice({
-  className
+  className,
+  cancelLabel
 }: {
   className?: string
+  cancelLabel?: string
 }): React.JSX.Element | null {
   const t = useTranslate()
   const link = useAppStore((state) => state.orcaProfileSignInProgress?.link)
@@ -77,7 +79,7 @@ export function OrcaSignInWaitNotice({
         size="xs"
         onClick={() => void window.api.orcaProfiles.cancelSignIn().catch(() => {})}
       >
-        {t('auto.components.OrcaSignInProgress.cancel', 'Cancel')}
+        {cancelLabel ?? t('auto.components.OrcaSignInProgress.cancel', 'Cancel')}
       </Button>
     </div>
   )

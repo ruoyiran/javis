@@ -1,10 +1,10 @@
 import { useEffect, type Dispatch, type SetStateAction } from 'react'
-import { getShortcutPlatform } from '@/hooks/useShortcutLabel'
-import { useAppStore } from '@/store'
-import { keybindingMatchesAction } from '../../../../../shared/keybindings'
-import { browserChromeShortcutOwnsEvent } from '../describe-page/browser-overlay-shortcut-target'
-import type { BrowserChromeShortcutScope } from '../describe-page/browser-page-types'
-import { addAppKeyListener, removeAppKeyListener } from '@/lib/keyboard/app-keyboard-router'
+import { getShortcutPlatform } from "../../../lib/keyboard/shortcut-platform"
+import { useAppStore } from "../../../store/index"
+import { keybindingMatchesAction } from "../../../../../shared/keybindings/matching"
+import { browserChromeShortcutOwnsEvent } from "../describe-page/browser-overlay-shortcut-target"
+import type { BrowserChromeShortcutScope } from "../describe-page/browser-page-types"
+import { addAppKeyListener, removeAppKeyListener } from "../../../lib/keyboard/app-keyboard-router"
 
 export function useBrowserPageFindShortcuts({
   browserTabId,

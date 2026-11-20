@@ -1,11 +1,12 @@
-import { useAppStateViewActive, useAppStateValue } from '@/store/retained-views/app-state-view'
+import { useAppStateViewActive, useAppStateValue } from "../store/retained-views/app-state-view"
 import { useCallback, useEffect, useRef } from 'react'
-import { useAppStore } from '@/store/index'
-import { getLocalAgentPreflightContext } from '@/runtime/hosts/preflight/local-preflight-context'
-import { localAgentInventoryContextKey } from '@/runtime/hosts/preflight/local-preflight-context-key'
-import { runtimeHostContactForEntry } from '../../../shared/remote-runtime/host-status/runtime-host-contact'
-import { getRuntimeAgentInventoryKey } from '@/store/slices/agent-inventory/runtime-agent-inventory-key'
-import type { TuiAgent } from '../../../shared/agent-launch/catalog/tui-agent'
+import { useAppStore } from "../store/index"
+import { useRuntimeHostStatusViewSelector } from "../store/slices/runtime-status/views/use-runtime-status-view"
+import { getLocalAgentPreflightContext } from "../runtime/hosts/preflight/local-preflight-context"
+import { localAgentInventoryContextKey } from "../runtime/hosts/preflight/local-preflight-context-key"
+import { runtimeHostContactForEntry } from "../../../shared/remote-runtime/host-status/runtime-host-contact"
+import { getRuntimeAgentInventoryKey } from "../store/slices/agent-inventory/runtime-agent-inventory-key"
+import type { TuiAgent } from "../../../shared/agent-launch/catalog/tui-agent"
 
 export type UseDetectedAgentsResult = {
   /** Null while detection is in flight on first load. */
@@ -93,12 +94,8 @@ export function useDetectedAgents(
 
   // Why: a probe that failed while the host was down must re-run once contact returns, and only then.
   // 'down' only when the host's status says so; a never-asked host is still probed as before.
-  const runtimeContactEpoch = useAppStateValue((s) => {
-    if (targetKind !== 'runtime' || !targetId) {
-      return null
-    }
-    const entry = s.runtimeStatusByEnvironmentId.get(targetId)
-    if (!entry) {
+  const runtimeContactEpoch = useRuntimeHostStatusViewSelector(targetId, (entry) => {
+    if (targetKind !== 'runtime' || !targetId || !entry) {
       return null
     }
     return runtimeHostContactForEntry(entry).verdict === 'live'
@@ -176,15 +173,20 @@ export function useDetectedAgents(
     // Imperative action reads avoid six inert subscriptions per retained tab bar.
     const state = useAppStore.getState()
     if (targetKind === 'runtime' && targetId) {
-      return state.refreshRuntimeDetectedAgents(targetId, runtimeWorktreeId)
+      return state.refreshRuntimeDetectedAgents(targetId, runtimeWorktreeId, {
+        userInitiated: true
+      })
     }
     if (targetKind === 'ssh' && targetId) {
       return state.refreshRemoteDetectedAgents(targetId)
     }
     // Only the refresh control calls this: a user act that may start a stopped WSL distro.
     return includeDisabled
-      ? state.refreshAllDetectedAgents(localWorktreeId, { wakeWslDistro: true })
-      : state.refreshDetectedAgents(localWorktreeId, { wakeWslDistro: true })
+      ? state.refreshAllDetectedAgents(localWorktreeId, {
+          wakeWslDistro: true,
+          userInitiated: true
+        })
+      : state.refreshDetectedAgents(localWorktreeId, { wakeWslDistro: true, userInitiated: true })
   }, [includeDisabled, isUnknown, localWorktreeId, runtimeWorktreeId, targetKind, targetId])
 
   useEffect(() => {

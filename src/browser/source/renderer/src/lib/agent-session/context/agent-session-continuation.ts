@@ -1,7 +1,7 @@
-import { splitOpenCodeSqliteCandidate } from '../../../../../shared/opencode-sqlite-session-path'
-import { buildBoundedSessionTranscript } from '@/lib/agent-session/context/agent-session-fork-context'
-import type { LaunchSource } from '../../../../../shared/telemetry-property-schemas'
-import type { TuiAgent } from '../../../../../shared/agent-launch/catalog/tui-agent'
+import { splitOpenCodeSqliteCandidate } from "../../../../../shared/opencode-sqlite-session-path"
+import { buildBoundedSessionTranscript } from "./agent-session-fork-context"
+import type { LaunchSource } from "../../../../../shared/telemetry-property-schemas"
+import type { TuiAgent } from "../../../../../shared/agent-launch/catalog/tui-agent"
 
 export type AgentSessionContinuationContextMode = 'focused' | 'full'
 
@@ -45,8 +45,9 @@ export function resolveAgentSessionContinuationTranscriptPath(
     return null
   }
   const agent = source.sourceAgent
+  // A database row reference names a whole store, never one readable transcript.
   if (
-    (agent === 'opencode' || agent === 'opencode2') &&
+    (agent === 'opencode' || agent === 'opencode2' || agent === 'hermes') &&
     splitOpenCodeSqliteCandidate(path, agent)
   ) {
     return null

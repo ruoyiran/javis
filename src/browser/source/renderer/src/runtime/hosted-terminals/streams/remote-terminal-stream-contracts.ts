@@ -1,12 +1,12 @@
-import type { TerminalAttachmentLaunchResult } from '../../../../../shared/terminal/pty/lifecycle/terminal-attachment-launch-result'
-import type { TerminalStreamEndVerdict } from '../../../../../shared/terminal/stream/terminal-stream-end-verdict'
-import type { TerminalOutputCadence } from '../../../../../shared/terminal/stream/terminal-multiplex-flow-control'
-import type { TerminalInputAckKind } from '../../../../../shared/terminal/stream/terminal-stream-protocol'
+import type { TerminalAttachmentLaunchResult } from "../../../../../shared/terminal/pty/lifecycle/terminal-attachment-launch-result"
+import type { TerminalStreamEndVerdict } from "../../../../../shared/terminal/stream/terminal-stream-end-verdict"
+import type { TerminalOutputCadence } from "../../../../../shared/terminal/stream/terminal-multiplex-flow-control"
+import type { TerminalInputAckKind } from "../../../../../shared/terminal/stream/terminal-stream-protocol"
 import type {
   RemoteRuntimeSnapshotImage,
   RemoteRuntimeSnapshotOutcome,
   RemoteRuntimeSnapshotRequestOptions
-} from '../snapshots/remote-terminal-snapshot-contracts'
+} from "../snapshots/remote-terminal-snapshot-contracts"
 
 export type RemoteRuntimeMultiplexedTerminalCallbacks = {
   onData: (data: string, meta?: { seq?: number; rawLength?: number; transformed?: boolean }) => void
@@ -34,6 +34,8 @@ export type RemoteRuntimeMultiplexedTerminalCallbacks = {
   onOutputPauseCapability?: () => void
   /** The host discarded output while this stream was paused (negotiated streams only). */
   onPausedOutputDropped?: () => void
+  /** A complete, authoritative pushed snapshot replaced missing output. */
+  onOutputGapRecovered?: () => void
   onEnd?: (verdict: TerminalStreamEndVerdict) => void
   onError?: (message: string) => void
   onFitOverrideChanged?: (event: {

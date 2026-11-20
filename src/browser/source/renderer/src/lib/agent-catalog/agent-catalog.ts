@@ -1,11 +1,11 @@
-import '@/components/status-bar/icons'
-import type { TuiAgent } from '../../../../shared/agent-launch/catalog/tui-agent'
-import type { TerminalAgent } from '../../../../shared/agent-status/identity/terminal-agent'
-import { formatAgentTypeLabel } from '../../../../shared/agent-status/presentation/agent-type-label'
-import '../../components/agent/icons/agent-icon-glyphs'
-import { createLocalizedCatalog } from '@/i18n/localized-catalog'
-import '../../components/agent/icons/agent-favicon-assets'
-import { buildAgentCatalogEntries } from './agent-catalog-entries'
+import "../../components/status-bar/accounts/provider-icons"
+import type { TuiAgent } from "../../../../shared/agent-launch/catalog/tui-agent"
+import type { TerminalAgent } from "../../../../shared/agent-status/identity/terminal-agent"
+import { formatAgentTypeLabel } from "../../../../shared/agent-status/presentation/agent-type-label"
+import "../../components/agent/icons/agent-icon-glyphs"
+import { createLocalizedCatalog } from "../../i18n/localized-catalog"
+import "../../components/agent/icons/agent-favicon-assets"
+import { buildAgentCatalogEntries } from "./agent-catalog-entries"
 
 export type AgentCatalogEntry = {
   id: TuiAgent

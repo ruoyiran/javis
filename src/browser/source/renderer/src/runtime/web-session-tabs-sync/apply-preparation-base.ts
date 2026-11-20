@@ -1,40 +1,41 @@
-import { collectUnhydratedMirroredTabRetractions } from './mirrored-status-tab-retractions'
-import { isWebSessionTabsWorktreeRemovalFrame } from './session-tabs-inventory-absence'
-import type { RuntimeMobileSessionTabsResult } from '../../../../shared/runtime-types'
+import { carryBrowserInitializationReceipt } from "./tab-projection/browser-initialization-presentation"
+import { collectUnhydratedMirroredTabRetractions } from "./mirrored-status-tab-retractions"
+import { isWebSessionTabsWorktreeRemovalFrame } from "./session-tabs-inventory-absence"
+import type { RuntimeMobileSessionTabsResult } from "../../../../shared/runtime-session-contracts"
 import type {
   WebSessionTabsBatchContext,
   WebSessionTabsSnapshotApplyOptions,
   WebSessionTabsSyncState
-} from './state'
+} from "./state"
 import {
   reconcileWebSessionCloseIntents,
   isWebSessionCloseIntentPending
-} from './closing/web-session-close-intent'
+} from "./closing/web-session-close-intent"
 import {
   peekWebSessionFocusIntent,
   resolveWebSessionVisibleTabId,
   clearWebSessionFocusIntent
-} from './navigation/web-session-focus-intent'
+} from "./navigation/web-session-focus-intent"
 import {
   resolveWebAgentSessionHandoff,
   isWebAgentSessionHandoffPostCreateSnapshotConfirmed,
   clearWebAgentSessionHandoff
-} from '../hosted-terminals/creation/agent-launch/web-agent-session-handoff'
-import { toRemoteRuntimePtyId } from '../../../../shared/remote-runtime/remote-runtime-pty-id'
-import { toWebTerminalSurfaceTabId } from '../../../../shared/workspace-layout/terminal-surface-id'
+} from "../hosted-terminals/creation/agent-launch/web-agent-session-handoff"
+import { toRemoteRuntimePtyId } from "../../../../shared/remote-runtime/remote-runtime-pty-id"
+import { toWebTerminalSurfaceTabId } from "../../../../shared/workspace-layout/terminal-surface-id"
 import {
   isReadyTerminalTab,
   isTerminalSurfaceTab,
   isMirroredTerminalSurfaceId,
   shouldReplaceTerminalTab
-} from './terminal-surfaces'
-import { buildMirroredTerminalTabs } from './terminal-build'
+} from "./terminal-surfaces"
+import { buildMirroredTerminalTabs } from "./terminal-build"
 import {
   collectHostRetiredTerminals,
   isTerminalRowRetiredByHost
-} from './host-retired-terminal-rows'
-import { hostSnapshotAffirmsWorktreeContents } from './hydration/host-session-snapshot-authority'
-import { logHostTerminalTabsShrunk } from './host-terminal-tab-drop-log'
+} from "./host-retired-terminal-rows"
+import { hostSnapshotAffirmsWorktreeContents } from "./hydration/host-session-snapshot-authority"
+import { logHostTerminalTabsShrunk } from "./host-terminal-tab-drop-log"
 
 export function prepareWebSessionTabsSnapshotBase(
   state: WebSessionTabsSyncState,
@@ -68,6 +69,7 @@ export function prepareWebSessionTabsSnapshotBase(
         )
       }
     : rawSnapshot
+  carryBrowserInitializationReceipt(rawSnapshot, snapshot)
   // Why: only a caller-recorded create intent may focus its arriving tab; unsolicited server-active must not steal focus (#5435).
   const focusIntent = peekWebSessionFocusIntent({ environmentId }, worktreeId)
   const focusIntentHostTabId = focusIntent?.hostTabId ?? null
@@ -89,10 +91,17 @@ export function prepareWebSessionTabsSnapshotBase(
           ) ?? null)
   const expectedCurrentLocalTabId = focusIntent?.expectedCurrentLocalTabId
   const currentVisibleLocalTabId = resolveWebSessionVisibleTabId(state, worktreeId)
+  const expectedCurrentLocalLeafId = focusIntent?.expectedCurrentLocalLeafId
+  const currentVisibleLocalLeafId = currentVisibleLocalTabId
+    ? (state.terminalLayoutsByTabId[currentVisibleLocalTabId]?.activeLeafId ?? null)
+    : null
   const callerFocusIntentTab =
     matchingFocusIntentTab &&
     (expectedCurrentLocalTabId === undefined ||
-      expectedCurrentLocalTabId === currentVisibleLocalTabId)
+      expectedCurrentLocalTabId === currentVisibleLocalTabId) &&
+    (expectedCurrentLocalLeafId === undefined ||
+      currentVisibleLocalLeafId === expectedCurrentLocalLeafId ||
+      currentVisibleLocalLeafId === focusIntent?.leafId)
       ? matchingFocusIntentTab
       : null
   const followIntentTab =

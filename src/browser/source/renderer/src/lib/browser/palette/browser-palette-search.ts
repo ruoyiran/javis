@@ -1,34 +1,37 @@
-import '../../../../../shared/constants'
-import { ORCA_BROWSER_BLANK_URL } from '../../../../../shared/browser/browser-blank-page'
-import type { BrowserPage, BrowserWorkspace } from '../../../../../shared/browser-workspace-types'
-import type { Worktree } from '../../../../../shared/worktree/types'
-import { isClipboardTextByteLengthOverLimit } from '../../../../../shared/clipboard-text'
-import { compareBaseSensitivityLocaleText } from '../../../../../shared/locale-text-collators'
+import "../../../../../shared/constants"
+import { ORCA_BROWSER_BLANK_URL } from "../../../../../shared/browser/browser-blank-page"
+import type {
+  BrowserPage,
+  BrowserWorkspace
+} from "../../../../../shared/browser-workspace-types"
+import type { Worktree } from "../../../../../shared/worktree/types"
+import { isClipboardTextByteLengthOverLimit } from "../../../../../shared/clipboard-text"
+import { compareBaseSensitivityLocaleText } from "../../../../../shared/locale-text-collators"
 import {
   comparePaletteTabResults,
   isOmniboxPaletteTabFieldAllowed,
   matchPaletteTabDocument,
   preparePaletteTabQuery
-} from '../../../../../shared/palette-match/tab-match'
-import { buildPaletteTabDocument } from '../../../../../shared/palette-match/tab-document'
+} from "../../../../../shared/palette-match/tab-match"
+import { buildPaletteTabDocument } from "../../../../../shared/palette-match/tab-document"
 import {
   resolveWorktreeBranchLabel,
   resolveWorktreeDisplayName
-} from '../../workspace/display/worktree-default-display-name'
-import type { ExecutionHostId } from '../../../../../shared/execution-host'
-import type { MatchRange } from '../../../../../shared/palette-match/normalized-text'
+} from "../../workspace/display/worktree-default-display-name"
+import type { ExecutionHostId } from "../../../../../shared/execution-host"
+import type { MatchRange } from "../../../../../shared/palette-match/normalized-text"
 import type {
   PaletteDocument,
   PaletteDocumentRank
-} from '../../../../../shared/palette-match/palette-document'
-import type { PaletteResultQualityClass } from '../../../../../shared/palette-match/match-quality'
+} from "../../../../../shared/palette-match/palette-document"
+import type { PaletteResultQualityClass } from "../../../../../shared/palette-match/match-quality"
 import {
   createPaletteSearchContext,
   encodePaletteIdentity,
   preparePaletteActivity,
   type PaletteActivityRank,
   type PaletteSearchContext
-} from '../../../../../shared/palette-match/palette-ranking'
+} from "../../../../../shared/palette-match/palette-ranking"
 
 const NO_RANGES: readonly MatchRange[] = []
 

@@ -1,27 +1,31 @@
 import type { ImageAddon } from '@xterm/addon-image'
 import type { Terminal } from '@xterm/xterm'
-import type { KittyFileRequest } from './terminal-kitty-file-reader'
-import { readTerminalKittyFile } from './terminal-kitty-file-reader'
-import { refreshTerminalDa1Owner } from '../terminal-protocol/terminal-da1-ownership'
-import type { ManagedPaneInternal } from '../pane-manager-types'
+import type { KittyFileRequest } from "./terminal-kitty-file-reader"
+import { readTerminalKittyFile } from "./terminal-kitty-file-reader"
+import { refreshTerminalDa1Owner } from "../terminal-protocol/terminal-da1-ownership"
+import type { ManagedPaneInternal } from "../pane-manager-types"
 import {
   getTerminalImageAddonConstructor,
   primeTerminalImageAddon,
   rearmTerminalImageAddonLoad,
   setTerminalImageAddonLoadHandlers
-} from './terminal-image-addon-loader'
-import { buildInlineImageAddonOptions } from './terminal-inline-image-options'
-import { repaintTerminalAfterImageAdded } from './terminal-image-added-repaint'
+} from "./terminal-image-addon-loader"
+import { buildInlineImageAddonOptions } from "./terminal-inline-image-options"
+import { repaintTerminalAfterImageAdded } from "./terminal-image-added-repaint"
 
 // Queue enabled panes opened before the lazy chunk resolves; onLoaded drains them.
 const panesAwaitingImageAddon = new Set<ManagedPaneInternal>()
 
 // Key by terminal: PTY public pane wrappers lack imageAddon and differ from internal panes.
-const terminalsRenderingInlineImages = new WeakSet<Terminal>()
+const terminalsRenderingInlineImages = new WeakMap<Terminal, ImageAddon>()
 const imageRepaintByPane = new WeakMap<ManagedPaneInternal, { dispose(): void }>()
 
 export function terminalRendersInlineImages(terminal: Terminal): boolean {
   return terminalsRenderingInlineImages.has(terminal)
+}
+
+export function terminalHasStoredInlineImages(terminal: Terminal): boolean {
+  return (terminalsRenderingInlineImages.get(terminal)?.storageUsage ?? 0) > 0
 }
 
 setTerminalImageAddonLoadHandlers({
@@ -64,7 +68,7 @@ export function attachInlineImages(pane: ManagedPaneInternal): void {
     if (repaint) {
       imageRepaintByPane.set(pane, repaint)
     }
-    terminalsRenderingInlineImages.add(pane.terminal)
+    terminalsRenderingInlineImages.set(pane.terminal, imageAddon)
   } catch (err) {
     console.warn('[terminal] inline-image addon failed to attach for pane', pane.id, err)
     try {

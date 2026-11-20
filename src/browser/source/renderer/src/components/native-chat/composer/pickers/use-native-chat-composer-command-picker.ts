@@ -1,16 +1,16 @@
 import { useCallback, useMemo } from 'react'
-import { prepareQueuedMessageEditText } from '../../../../../../shared/queued-message-edit-command'
-import { useNativeChatComposerCatalog } from './use-native-chat-composer-catalog'
+import { prepareQueuedMessageEditText } from "../../../../../../shared/queued-message-edit-command"
+import { useNativeChatComposerCatalog } from "./use-native-chat-composer-catalog"
 import {
   useNativeChatPickerState,
   type NativeChatPickerState
-} from './use-native-chat-picker-state'
+} from "./use-native-chat-picker-state"
 import {
   useNativeChatResumeCommand,
   type NativeChatResumeCommand
-} from './use-native-chat-resume-command'
-import type { NativeChatStructuredComposerTransport } from '../submit/native-chat-structured-composer-transport'
-import { useNativeChatSideChatCommand } from './use-native-chat-side-chat-command'
+} from "./use-native-chat-resume-command"
+import type { NativeChatStructuredComposerTransport } from "../submit/native-chat-structured-composer-transport"
+import { useNativeChatSideChatCommand } from "./use-native-chat-side-chat-command"
 
 type PickerArgs = Parameters<typeof useNativeChatPickerState>[0]
 type ResumeArgs = Parameters<typeof useNativeChatResumeCommand>[0]
@@ -40,9 +40,17 @@ export function useNativeChatComposerCommandPicker(
   const hostSetsGoals = structuredTransport?.threadGoal !== undefined
   const hostSetsInteractionMode =
     structuredTransport?.optionSnapshot.some((entry) => entry.id === 'interactionMode') === true
+  const opensMcpPanel = structuredTransport?.mcpPanel !== undefined
   const acceptsText = useMemo(
-    () => prepareQueuedMessageEditText(agent, reported, hostSetsGoals, hostSetsInteractionMode),
-    [agent, reported, hostSetsGoals, hostSetsInteractionMode]
+    () =>
+      prepareQueuedMessageEditText(
+        agent,
+        reported,
+        hostSetsGoals,
+        hostSetsInteractionMode,
+        opensMcpPanel
+      ),
+    [agent, reported, hostSetsGoals, hostSetsInteractionMode, opensMcpPanel]
   )
   const commandAvailable = useCallback(
     (name: string) => mode === undefined || acceptsText(`/${name}`),

@@ -1,17 +1,17 @@
 // Send browser/chat/simulator open with proposed IDs; main’s frame draws tab/content before selection/focus. afterPendingTab waits for that result.
 
-import { sendLayoutApply, type WindowLayoutCommand } from '../commands/layout-apply-send'
-import { beginPendingTab } from './layout-owner-pending-tabs'
-import { expectTabFacts, type PendingTabFacts } from './layout-owner-pending-tab-facts'
+import { sendLayoutApply, type WindowLayoutCommand } from "../commands/layout-apply-send"
+import { beginPendingTab } from "./layout-owner-pending-tabs"
+import { expectTabFacts, type PendingTabFacts } from "./layout-owner-pending-tab-facts"
 
 type ContentTabOpenCommand = Extract<
   WindowLayoutCommand,
-  { type: 'openBrowserTab' | 'openAgentSessionTab' | 'openSimulatorTab' }
+  { type: 'openBrowserTab' | 'openAgentSessionTab' | 'openSimulatorTab' | 'openRoomTab' }
 >
 
 export type ContentTabOpen = {
   worktreeId: string
-  /** What the tab shows: a browser record, chat session or the simulator tab itself. */
+  /** What the tab shows: a browser record, chat session, bot group or the simulator tab itself. */
   entityId: string
   command: ContentTabOpenCommand
   facts: Omit<PendingTabFacts, 'worktreeId' | 'tabId'>

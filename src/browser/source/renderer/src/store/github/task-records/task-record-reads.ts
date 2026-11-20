@@ -1,16 +1,16 @@
-import type { GitHubWorkItem } from '../../../../../shared/github/work-item-types'
-import { githubTaskIdentity } from '@/lib/work-items/github/github-task-target'
-import { lookupGitHubWorkItemByOwnerRepoForSource } from '@/lib/work-items/github/github-work-item-source-lookup'
-import { RuntimeRpcCallError } from '@/runtime/rpc/calls/runtime-rpc-result'
-import { parseGitHubIssueOrPRLink } from '../../../../../shared/github/links'
-import { nextProviderRequestId } from '../requests/request-coordination'
+import type { GitHubWorkItem } from "../../../../../shared/github/work-item-types"
+import { githubTaskIdentity } from "../../../lib/work-items/github/github-task-target"
+import { lookupGitHubWorkItemByOwnerRepoForSource } from "../../../lib/work-items/github/github-work-item-source-lookup"
+import { RuntimeRpcCallError } from "../../../runtime/rpc/calls/runtime-rpc-result"
+import { parseGitHubIssueOrPRLink } from "../../../../../shared/github/repositories/links"
+import { nextProviderRequestId } from "../requests/request-coordination"
 import {
   applyTaskChange,
   composeTaskChanges,
   publishTaskChange,
   untrackedTaskOperation,
   type TaskChange
-} from './task-change'
+} from "./task-change"
 import {
   connection,
   contribute,
@@ -20,8 +20,8 @@ import {
   type AcceptedTask,
   type BindingIncarnation,
   type TaskBinding
-} from './task-record-model'
-import { TaskRecordOwners } from './task-record-owners'
+} from "./task-record-model"
+import { TaskRecordOwners } from "./task-record-owners"
 
 /** Search deliveries, edits and the one canonical read lane of each owner. */
 export abstract class TaskRecordReads extends TaskRecordOwners {
@@ -72,9 +72,12 @@ export abstract class TaskRecordReads extends TaskRecordOwners {
     return stored
   }
   /** Each external delivery retries at most one owed read per binding, the longest-waiting first. */
-  protected wake(incarnation: BindingIncarnation) {
+  protected wake(
+    incarnation: BindingIncarnation,
+    candidates: Iterable<AcceptedTask> = this.records.values()
+  ) {
     let next: AcceptedTask | undefined
-    for (const record of this.records.values()) {
+    for (const record of candidates) {
       if (
         record.binding.incarnation === incarnation &&
         record.needsRead &&

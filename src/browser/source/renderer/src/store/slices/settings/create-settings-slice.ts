@@ -1,40 +1,40 @@
-import { normalizeNativeChatAppearanceSettings } from '../../../../../shared/native-chat/native-chat-appearance-settings'
+import { normalizeNativeChatAppearanceSettings } from "../../../../../shared/native-chat/native-chat-appearance-settings"
 import type { StateCreator } from 'zustand'
-import type { AppState } from '../../types'
-import type { GlobalSettings } from '../../../../../shared/global-settings-types'
+import type { AppState } from "../../types"
+import type { GlobalSettings } from "../../../../../shared/global-settings-types"
 import { toast } from 'sonner'
 import {
   clearRuntimeCompatibilityCache,
   markRuntimeEnvironmentCompatible
-} from '@/runtime/rpc/compatibility/runtime-compatibility-cache'
-import { unwrapRuntimeRpcResult } from '@/runtime/rpc/calls/runtime-rpc-result'
-import { assertRuntimeStatusCompatible } from '@/runtime/rpc/compatibility/runtime-protocol-compat'
-import type { RuntimeStatus } from '../../../../../shared/runtime-session-contracts'
-import { normalizeTerminalQuickCommands } from '../../../../../shared/terminal/quick-commands/terminal-quick-commands'
-import { assertTerminalQuickCommandsStorable } from '../../../../../shared/terminal/quick-commands/terminal-quick-command-prompt-limit'
-import { normalizeTerminalCustomThemes } from '../../../../../shared/terminal-themes/terminal-custom-themes'
-import { normalizeTaskProviderSettings } from '../../../../../shared/work-items/task-providers'
-import { normalizeOpenInApplications } from '../../../../../shared/open-in-applications'
-import { createSettingsSearchState, type SettingsSearchState } from './settings-search-state'
-import { isRuntimeCatalogListingStale } from '../runtime-status/runtime-status-hydration'
-import { normalizeDisabledTuiAgents } from '../../../../../shared/agent-launch/catalog/tui-agent-selection'
-import { sanitizeAgentLaunchProfileUpdates } from '../../../../../shared/agent-launch/choices/tui-agent-launch-defaults'
-import { bumpProviderRuntimeSessionGeneration } from '@/runtime/hosts/observations/provider-runtime-context'
-import { normalizeUiLanguage } from '../../../../../shared/ui-language'
-import { normalizeDesktopTerminalScrollbackRows } from '../../../../../shared/terminal/replay/terminal-scrollback-policy'
-import { translate } from '@/i18n/i18n'
+} from "../../../runtime/rpc/compatibility/runtime-compatibility-cache"
+import { unwrapRuntimeRpcResult } from "../../../runtime/rpc/calls/runtime-rpc-result"
+import { assertRuntimeStatusCompatible } from "../../../runtime/rpc/compatibility/runtime-protocol-compat"
+import type { RuntimeStatus } from "../../../../../shared/runtime-session-contracts"
+import { normalizeTerminalQuickCommands } from "../../../../../shared/terminal/quick-commands/terminal-quick-commands"
+import { assertTerminalQuickCommandsStorable } from "../../../../../shared/terminal/quick-commands/terminal-quick-command-prompt-limit"
+import { normalizeTerminalCustomThemes } from "../../../../../shared/terminal-themes/terminal-custom-themes"
+import { normalizeTaskProviderSettings } from "../../../../../shared/work-items/task-providers"
+import { normalizeOpenInApplications } from "../../../../../shared/open-in-applications"
+import { createSettingsSearchState, type SettingsSearchState } from "./settings-search-state"
+import { isRuntimeCatalogListingStale } from "../runtime-status/runtime-status-hydration"
+import { normalizeDisabledTuiAgents } from "../../../../../shared/agent-launch/catalog/tui-agent-selection"
+import { sanitizeAgentLaunchProfileUpdates } from "../../../../../shared/agent-launch/choices/tui-agent-launch-defaults"
+import { bumpProviderRuntimeSessionGeneration } from "../../../runtime/hosts/observations/provider-runtime-context"
+import { normalizeUiLanguage } from "../../../../../shared/ui-language"
+import { normalizeDesktopTerminalScrollbackRows } from "../../../../../shared/terminal/replay/terminal-scrollback-policy"
+import { translate } from "../../../i18n/i18n"
 import {
   normalizeMobilePairingCustomAddress,
   normalizeMobilePairingCustomAddresses
-} from '../../../../../shared/remote-runtime/pairing/mobile-pairing-custom-address'
+} from "../../../../../shared/remote-runtime/pairing/mobile-pairing-custom-address"
 import {
   hydrateOwnerWorktreeVisibilityDefaults,
   type WorktreeVisibilityDefaultsByHost
-} from './worktree-visibility-owner-settings'
-import * as ownerHydration from './settings-owner-hydration-publication'
-import { persistVisibilityAwareSettings } from './worktree-visibility-settings-write'
-import { getSettingsFocusedExecutionHostId } from '../../../../../shared/execution-host'
-import { createNonSecureContextUuid as createBrowserUuid } from '../../../../../shared/non-secure-context-uuid'
+} from "./worktree-visibility-owner-settings"
+import * as ownerHydration from "./settings-owner-hydration-publication"
+import { persistVisibilityAwareSettings } from "./worktree-visibility-settings-write"
+import { getSettingsFocusedExecutionHostId } from "../../../../../shared/execution-host"
+import { createNonSecureContextUuid as createBrowserUuid } from "../../../../../shared/non-secure-context-uuid"
 
 export type SettingsSlice = SettingsSearchState & {
   settings: GlobalSettings | null
@@ -166,7 +166,8 @@ async function verifyRuntimeEnvironmentReachable(environmentId: string | null): 
   }
   const response = await window.api.runtimeEnvironments.getStatus({
     selector: environmentId,
-    timeoutMs: 15_000
+    timeoutMs: 15_000,
+    force: true
   })
   const status = unwrapRuntimeRpcResult<RuntimeStatus>(response)
   assertRuntimeStatusCompatible(status)

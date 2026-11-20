@@ -1,9 +1,12 @@
-import { Label } from '../../ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../ui/select'
-import { SEARCH_ENGINE_LABELS, type SearchEngine } from '../../../../../shared/browser-url'
-import { SearchableSetting } from '../section-layout/SearchableSetting'
-import { KagiSessionLinkForm } from './KagiSessionLinkForm'
-import { useTranslate } from '@/i18n/use-translate'
+import { Label } from "../../ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../ui/select"
+import {
+  SEARCH_ENGINE_LABELS,
+  type SearchEngine
+} from "../../../../../shared/browser-url"
+import { SearchableSetting } from "../section-layout/SearchableSetting"
+import { KagiSessionLinkForm } from "./KagiSessionLinkForm"
+import { useTranslate } from "../../../i18n/use-translate"
 
 type BrowserSearchEngineSettingProps = {
   selectedSearchEngine: SearchEngine

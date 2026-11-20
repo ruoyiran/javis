@@ -1,8 +1,11 @@
-import type { RuntimeRpcResponse, RuntimeRpcSuccess } from '../../../shared/runtime-rpc-envelope'
+import type {
+  RuntimeRpcResponse,
+  RuntimeRpcSuccess
+} from "../../../shared/runtime-rpc-envelope"
 import type {
   WebRuntimeSubscriptionCallbacks,
   WebRuntimeTransportSubscriptionHandle
-} from './web-runtime-subscription-contract'
+} from "./web-runtime-subscription-contract"
 
 type FileWatchSubscriptionOptions = {
   params: unknown

@@ -1,28 +1,29 @@
+import { useNativeChatPaneLifetimeEffect } from "../../../pane/ownership/native-chat-pane-lifetime"
 // Give each press its own operation ID; join pending targeted Stops only for older hosts. Command settlement survives provider changes; late pane presentation does not.
 
-import { AGENT_SESSION_GOAL_CONTROL_COPY as GOAL_COPY } from '../../../../../../../shared/agent-session/view/agent-session-goal-control-copy'
-import { agentSessionGoalControlWords } from '../../goals/agent-session-goal-control-words'
-import { useCallback, useLayoutEffect, useRef } from 'react'
+import { AGENT_SESSION_GOAL_CONTROL_COPY as GOAL_COPY } from "../../../../../../../shared/agent-session/view/agent-session-goal-control-copy"
+import { agentSessionGoalControlWords } from "../../goals/agent-session-goal-control-words"
+import { useCallback, useRef } from 'react'
 import { toast } from 'sonner'
-import type { AgentSessionMutationResult } from '../../../../../../../shared/agent-session/agent-session-wire'
+import type { AgentSessionMutationResult } from "../../../../../../../shared/agent-session/agent-session-wire"
 import {
   agentSessionRefusalFailure,
   agentSessionThrownFailure,
   agentSessionWriteKindForMethod as writeKind,
   type AgentSessionWriteFailure
-} from '../../../../../../../shared/agent-session/failures/agent-session-write-failure'
-import { structuredAgentSessionPayloadFingerprint } from '../../../../../../../shared/agent-session/lifecycle/structured-agent-session-mutation'
-import { structuredSessionOperationId } from './structured-agent-session-operation-id'
-import type { RuntimeClientTarget } from '../../../../../../../shared/runtime-client-target'
-import { RuntimeRpcCallError } from '@/runtime/rpc/calls/runtime-rpc-result'
-import { callStructuredAgentSession } from '@/runtime/native-chat/requests/structured-agent-session-call'
-import { supportsStructuredAgentSessionQuietRepeatedStop } from '@/runtime/native-chat/host-capabilities/structured-agent-session-host-support'
-import { structuredAgentSessionHostKey } from '@/runtime/native-chat/host-capabilities/structured-agent-session-host-capability'
-import { agentSessionWriteFailureText } from '../../../messages/notices/agent-session-write-notice-text'
+} from "../../../../../../../shared/agent-session/failures/agent-session-write-failure"
+import { structuredAgentSessionPayloadFingerprint } from "../../../../../../../shared/agent-session/lifecycle/structured-agent-session-mutation"
+import { structuredSessionOperationId } from "./structured-agent-session-operation-id"
+import type { RuntimeClientTarget } from "../../../../../../../shared/runtime-client-target"
+import { RuntimeRpcCallError } from "../../../../../runtime/rpc/calls/runtime-rpc-result"
+import { callStructuredAgentSession } from "../../../../../runtime/native-chat/requests/structured-agent-session-call"
+import { supportsStructuredAgentSessionQuietRepeatedStop } from "../../../../../runtime/native-chat/host-capabilities/structured-agent-session-host-support"
+import { structuredAgentSessionHostKey } from "../../../../../runtime/native-chat/host-capabilities/structured-agent-session-host-capability"
+import { agentSessionWriteFailureText } from "../../../messages/notices/agent-session-write-notice-text"
 import {
   joinStructuredAgentSessionStop,
   structuredAgentSessionStopIsJoinable
-} from '../../../../../../../shared/agent-session/requests/structured-agent-session-stop-join'
+} from "../../../../../../../shared/agent-session/requests/structured-agent-session-stop-join"
 
 export type StructuredAgentSessionWriteOutcome<T> =
   | { kind: 'done'; value: T }
@@ -89,12 +90,14 @@ export function useStructuredAgentSessionMutate(args: {
   const inFlightStops = useRef(new Map<string, Promise<ExecutionResult<unknown>>>())
   const presentation = useRef<object | null>(null)
   const hostKey = structuredAgentSessionHostKey(target)
-  useLayoutEffect(() => {
-    presentation.current = enabled ? {} : null
-    return () => {
-      presentation.current = null
-    }
-  }, [enabled, hostKey, sessionId])
+  useNativeChatPaneLifetimeEffect(
+    useCallback(() => {
+      presentation.current = enabled ? {} : null
+      return () => {
+        presentation.current = null
+      }
+    }, [enabled, hostKey, sessionId])
+  )
   const capturePresentation = useCallback(() => {
     const visit = presentation.current
     return () => visit !== null && presentation.current === visit

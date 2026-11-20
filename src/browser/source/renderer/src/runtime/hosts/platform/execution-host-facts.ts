@@ -1,25 +1,31 @@
-import { getRepoExecutionHostId, parseExecutionHostId } from '../../../../../shared/execution-host'
-import type { ParsedExecutionHost, ExecutionHostId } from '../../../../../shared/execution-host'
-import { lastVerifiedRuntimeStatus } from '../../../../../shared/remote-runtime/host-status/runtime-host-status'
-import { runtimeHostContactForEntry } from '../../../../../shared/remote-runtime/host-status/runtime-host-contact'
-import { resolveHostAgentStartupShell } from '../../../../../shared/windows-terminal-shell'
-import { isWslUncPath } from '../../../../../shared/wsl-paths'
+import {
+  getRepoExecutionHostId,
+  parseExecutionHostId
+} from "../../../../../shared/execution-host"
+import type {
+  ParsedExecutionHost,
+  ExecutionHostId
+} from "../../../../../shared/execution-host"
+import { lastVerifiedRuntimeStatus } from "../../../../../shared/remote-runtime/host-status/runtime-host-status"
+import { runtimeHostContactForEntry } from "../../../../../shared/remote-runtime/host-status/runtime-host-contact"
+import { resolveHostAgentStartupShell } from "../../../../../shared/windows-terminal-shell"
+import { isWslUncPath } from "../../../../../shared/wsl-paths"
 import {
   getConnectionIdForWorktreeCopy,
   getConnectionIdFromState
-} from '../../../lib/workspace/ownership/connection-owner-resolution'
-import { getLocalProjectExecutionRuntimeContext } from '../preflight/local-preflight-context'
-import { CLIENT_PLATFORM } from '../../../lib/workspace/creation/new-workspace'
+} from "../../../lib/workspace/ownership/connection-owner-resolution"
+import { getLocalProjectExecutionRuntimeContext } from "../preflight/local-preflight-context"
+import { CLIENT_PLATFORM } from "../../../lib/workspace/creation/new-workspace"
 import {
   getExecutionHostIdForWorktree,
   getResourceExecutionHostIdForWorktree,
   runtimeEnvironmentIdOrLocalUnlessTwin
-} from '../../../lib/workspace/ownership/worktree-runtime-owner'
-import { translate } from '@/i18n/i18n'
-import type { ProjectExecutionRuntimeResolution } from '../../../../../shared/execution-host/project-execution-runtime'
-import type { AgentStartupShell } from '../../../../../shared/agent-launch/startup/tui-agent-startup-shell'
-import type { AppState } from '@/store/types'
-import type { ExecutionHostPlatformFact } from './execution-host-platform-fact'
+} from "../../../lib/workspace/ownership/worktree-runtime-owner"
+import { translate } from "../../../i18n/i18n"
+import type { ProjectExecutionRuntimeResolution } from "../../../../../shared/execution-host/project-execution-runtime"
+import type { AgentStartupShell } from "../../../../../shared/agent-launch/startup/tui-agent-startup-shell"
+import type { AppState } from "../../../store/types"
+import type { ExecutionHostPlatformFact } from "./execution-host-platform-fact"
 
 type HostFactsState = Pick<
   AppState,
@@ -95,7 +101,7 @@ export type ExecutionHostTarget = {
   sshOwnerEnvironmentId: string | null
 }
 
-function resolveHostPlatform(
+export function resolveHostPlatform(
   state: HostFactsState,
   args: ExecutionHostTarget & {
     workspacePath: string | null | undefined

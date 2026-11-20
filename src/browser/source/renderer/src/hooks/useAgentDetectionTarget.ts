@@ -1,14 +1,14 @@
-import { useAppStateValue } from '@/store/retained-views/app-state-view'
+import { useAppStateValue } from "../store/retained-views/app-state-view"
 import { useMemo } from 'react'
-import { getConnectionIdFromState } from '@/lib/workspace/ownership/connection-owner-resolution'
-import { getExecutionHostIdForWorktree } from '@/lib/workspace/ownership/worktree-runtime-owner'
-import { runtimeEnvironmentIdForWorkspaceOwner } from '@/lib/workspace/ownership/resolve-owner'
-import type { WorktreeRuntimeOwnerState } from '@/lib/workspace/ownership/worktree-runtime-owner-state'
-import { getResolvedExecutionHostIdForWorktree } from '@/lib/workspace/ownership/resolved-worktree-execution-host'
-import { parseExecutionHostId } from '../../../shared/execution-host'
-import { parseWorkspaceKey } from '../../../shared/workspace-scope'
-import type { AgentDetectionTarget } from './useDetectedAgents'
-import { FLOATING_TERMINAL_WORKTREE_ID } from '../../../shared/constants'
+import { getConnectionIdFromState } from "../lib/workspace/ownership/connection-owner-resolution"
+import { getExecutionHostIdForWorktree } from "../lib/workspace/ownership/worktree-runtime-owner"
+import { runtimeEnvironmentIdForWorkspaceOwner } from "../lib/workspace/ownership/resolve-owner"
+import type { WorktreeRuntimeOwnerState } from "../lib/workspace/ownership/worktree-runtime-owner-state"
+import { getResolvedExecutionHostIdForWorktree } from "../lib/workspace/ownership/resolved-worktree-execution-host"
+import { parseExecutionHostId } from "../../../shared/execution-host"
+import { parseWorkspaceKey } from "../../../shared/workspace-scope"
+import type { AgentDetectionTarget } from "./useDetectedAgents"
+import { FLOATING_TERMINAL_WORKTREE_ID } from "../../../shared/workspace/identity/floating-workspace-id"
 
 export const AGENT_DETECTION_LOCAL_TARGET_KEY = 'local'
 

@@ -1,17 +1,52 @@
-import type { Worktree } from '../../../../../shared/worktree/types'
-import type { ExecutionHostId } from '../../../../../shared/execution-host'
+import type { Worktree } from "../../../../../shared/worktree/types"
+import type { ExecutionHostId } from "../../../../../shared/execution-host"
 import {
   resolveWorktreeExecutionHost,
   type ExecutionHostOwnerRow
-} from '../../../../../shared/execution-host/worktree-execution-host-resolution'
+} from "../../../../../shared/execution-host/worktree-execution-host-resolution"
 import {
   findIndexedWorktreeOwnerForHost,
   resolveIndexedWorktreeOwner
-} from './worktree-runtime-owner-index'
-import { worktreeOwnerHostIds } from './workspace-catalog-owner-index'
-import { getIndexedRepoExecutionHostLookup } from './repo-owner-index'
+} from "./worktree-runtime-owner-index"
+import { worktreeOwnerHostIds } from "./workspace-catalog-owner-index"
+import { getIndexedRepoExecutionHostLookup } from "./repo-owner-index"
+import { isExecutionHostAliasForWorktree } from "./worktree-execution-host-alias"
+import { selectWorktreesByRepo } from "../../../store/workspaces/catalog/workspace-record-fields"
 
 type WorktreeOwnerRow = Pick<Worktree, 'id' | 'repoId' | 'hostId' | 'runtimeOwnerEnvironmentId'>
+
+/** A paired runtime and its physical SSH host can serve the same qualified workspace. */
+export function isExecutionHostForWorktree(
+  state: {
+    worktreesByRepo?: Record<string, readonly WorktreeOwnerRow[]>
+    repos?: readonly ExecutionHostOwnerRow[]
+  },
+  worktreeId: string,
+  worktreeHostId: ExecutionHostId,
+  executionHostId: ExecutionHostId | 'foreign' | null
+): boolean {
+  if (executionHostId === worktreeHostId) {
+    return true
+  }
+  if (!executionHostId || executionHostId === 'foreign') {
+    return false
+  }
+  const owner = resolveQualifiedWorktreeExecutionOwner(
+    selectWorktreesByRepo(state),
+    state.repos,
+    worktreeId,
+    worktreeHostId
+  )
+  return (
+    owner !== null &&
+    isExecutionHostAliasForWorktree(executionHostId, {
+      ...owner.worktree,
+      hostId:
+        owner.worktree.hostId ??
+        (owner.worktree.runtimeOwnerEnvironmentId?.trim() ? undefined : owner.hostId)
+    })
+  )
+}
 
 /** Qualify legacy repo proof without changing the raw index's absent-host compatibility rule. */
 export function resolveQualifiedWorktreeExecutionOwner<W extends WorktreeOwnerRow>(

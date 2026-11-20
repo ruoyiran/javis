@@ -1,6 +1,7 @@
-import { translate } from '@/i18n/i18n'
-import type { Translate } from '@/i18n/use-translate'
-import type { BrowserExtensionSource } from '../../../shared/browser/extensions/browser-extension-types'
+// @protected-copy scope=file
+import { translate } from "../i18n/i18n"
+import type { Translate } from "../i18n/use-translate"
+import type { BrowserExtensionSource } from "../../../shared/browser/extensions/browser-extension-types"
 
 /** One wording for every remove prompt (Settings, toolbar, store page): Orca removes it everywhere. */
 export function browserExtensionRemovalDescription(

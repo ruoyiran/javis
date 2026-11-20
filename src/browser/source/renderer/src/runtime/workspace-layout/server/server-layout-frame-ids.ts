@@ -4,32 +4,32 @@ import {
   LOCAL_EXECUTION_HOST_ID,
   toRuntimeExecutionHostId,
   type ExecutionHostId
-} from '../../../../../shared/execution-host'
-import { toRemoteRuntimePtyId } from '../../../../../shared/remote-runtime/remote-runtime-pty-id'
-import type { TabContentType } from '../../../../../shared/tab-types'
+} from "../../../../../shared/execution-host"
+import { toRemoteRuntimePtyId } from "../../../../../shared/remote-runtime/remote-runtime-pty-id"
+import type { TabContentType } from "../../../../../shared/tab-types"
 import {
   isWebTerminalSurfaceTabId,
   toHostSessionTabId,
   toWebTerminalSurfaceTabId
-} from '../../../../../shared/workspace-layout/terminal-surface-id'
-import { ownedEditorFileId } from '../../../../../shared/workspace-session/workspace-session-pane-ownership'
+} from "../../../../../shared/workspace-layout/terminal-surface-id"
+import { ownedEditorFileId } from "../../../../../shared/workspace-session/workspace-session-pane-ownership"
 import type {
   PublishedEditorFile,
   PublishedPane,
   PublishedTab,
   PublishedWorkspaceLayout
-} from '../../../../../shared/workspace-layout/workspace-layout-published'
+} from "../../../../../shared/workspace-layout/workspace-layout-published"
 import {
   applyWorkspaceLayoutRecordChange,
   diffPublishedLayouts,
   indexPublishedLayout,
   type IndexedLayoutRecords,
   type WorkspaceLayoutRecordChange
-} from '../../../../../shared/workspace-layout/workspace-layout-records'
+} from "../../../../../shared/workspace-layout/workspace-layout-records"
 import type {
   WorkspaceLayoutChangeFrame,
   WorkspaceLayoutRecordsFrame
-} from '../../../../../shared/workspace-layout/workspace-layout-stream-frames'
+} from "../../../../../shared/workspace-layout/workspace-layout-stream-frames"
 
 /** Which tab ids a kind changes: a terminal's take the mirror's surface prefix, others keep theirs. */
 const TAB_ID_RULES: Record<TabContentType, 'terminal' | 'kept'> = {
@@ -41,7 +41,8 @@ const TAB_ID_RULES: Record<TabContentType, 'terminal' | 'kept'> = {
   'git-graph': 'kept',
   'agent-session': 'kept',
   browser: 'kept',
-  simulator: 'kept'
+  simulator: 'kept',
+  room: 'kept'
 }
 
 function isKnownTabKind(kind: string): kind is TabContentType {

@@ -3,23 +3,21 @@ import {
   deleteLastConfirmedClientValue,
   getLastConfirmedClientValue,
   setLastConfirmedClientValue as storeLastConfirmedClientValue
-} from './task-page-github-confirmed-client-values'
-import type {
-  GitHubAssignableUser,
-  GitHubOwnerRepo
-} from '../../../../../shared/github/pull-request-types'
+} from "./task-page-github-confirmed-client-values"
+import type { GitHubAssignableUser } from "../../../../../shared/github/pull-request-types"
+import type { GitHubRepositoryIdentity as GitHubOwnerRepo } from "../../../../../shared/github/repositories/repository-identity"
 import type {
   PendingOp,
   StickyHideEntry,
   TaskPageGitHubListFamily,
   TaskPageGitHubMutationKey
-} from './task-page-github-work-item-registry-types'
+} from "./task-page-github-work-item-registry-types"
 import {
   serializeTaskPageGitHubMutationKey,
   taskPageGitHubItemKey,
   taskPageGitHubSnapshotKey
-} from './task-page-github-work-item-mutation-keys'
-import { clearTaskPageGitHubQuietStates } from './task-page-github-work-item-quiet-state'
+} from "./task-page-github-work-item-mutation-keys"
+import { clearTaskPageGitHubQuietStates } from "./task-page-github-work-item-quiet-state"
 type Listener = () => void
 const listeners = new Set<Listener>()
 const pendingByKey = new Map<string, PendingOp>()
@@ -258,16 +256,4 @@ export function gcStickyHidesAbsentFromPages(
       softHiddenItemKeys.delete(itemKey)
     }
   }
-}
-export function resetTaskPageGitHubMutationRegistryForTests(): void {
-  pendingByKey.clear()
-  generations.clear()
-  confirmedSnapshots.clear()
-  clearLastConfirmedClientValues()
-  itemSourceScopeByItemKey.clear()
-  stickyHideByItemKey.clear()
-  softHiddenItemKeys.clear()
-  clearTaskPageGitHubQuietStates()
-  mutationQueryKey = null
-  listeners.clear()
 }

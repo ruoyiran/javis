@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react'
 import type { DragEndEvent, DragMoveEvent, DragOverEvent } from '@dnd-kit/core'
-import type { TabDragItemData } from './tab-drag-data'
+import type { TabDragItemData } from "./tab-drag-data"
 
 // Keep tabs anchored and draw the insertion bar on the hovered tab’s before/after edge.
 export type HoveredTabInsertion = {
@@ -38,7 +38,7 @@ export function resolveTabInsertion(
   return {
     groupId: overData.groupId,
     visibleTabId: overData.visibleTabId,
-    side: center.x < midpoint ? 'left' : 'right'
+    side: center.x < midpoint && !overData.fixedFirst ? 'left' : 'right'
   }
 }
 

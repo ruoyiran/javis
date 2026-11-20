@@ -1,10 +1,10 @@
 import {
   acquireBrowserAutomationVisibility,
   releaseBrowserAutomationVisibility
-} from '@/components/browser-pane/host-guest/browser-automation-visibility'
-import { requestBackgroundTerminalWorktreeMount } from '@/components/terminal/background-terminal-worktree-mount'
-import { useAppStore } from '../../store'
-import type { AppState } from '../../store/types'
+} from "../../components/browser-pane/host-guest/retention/browser-automation-visibility-store"
+import { requestBackgroundTerminalWorktreeMount } from "../../components/terminal/background-terminal-worktree-mount"
+import { useAppStore } from "../../store/index"
+import type { AppState } from "../../store/types"
 
 const BROWSER_AUTOMATION_BOOTSTRAP_LEASE_MS = 10_000
 const browserAutomationBootstrapLeaseByPageId = new Map<string, { token: string; timer: number }>()

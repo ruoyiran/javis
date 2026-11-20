@@ -1,9 +1,9 @@
-import type { RuntimeBrowserClientPlacement } from '../../../../shared/runtime-browser-placement'
-import { e2eSuppressesBrowserClientPageMetadataPublish } from './browser-client-page-metadata-publish-e2e-fault'
+import type { RuntimeBrowserClientPlacement } from "../../../../shared/runtime-browser-placement"
+import { e2eSuppressesBrowserClientPageMetadataPublish } from "./browser-client-page-metadata-publish-e2e-fault"
 import {
   createBrowserClientPageMetadataPublisher,
   type BrowserClientPageMetadataUnpublished
-} from './browser-client-page-metadata-publisher'
+} from "./browser-client-page-metadata-publisher"
 
 /** Warn once per page/reason: failed metadata leaves runtime, peers and recovery at the starting URL, but navigation-frequency logging would bury the signal. */
 const warnedByPageId = new Map<string, Set<string>>()
@@ -31,11 +31,13 @@ export function startBrowserClientPageMetadataPublisher(options: {
   environmentId: string
   placement: RuntimeBrowserClientPlacement
   nextRevision: () => number
+  faviconUrl: string | null
 }): ReturnType<typeof createBrowserClientPageMetadataPublisher> {
   return createBrowserClientPageMetadataPublisher({
     browserPageId: options.browserPageId,
     placement: options.placement,
     nextRevision: options.nextRevision,
+    faviconUrl: options.faviconUrl,
     publish: (params) =>
       e2eSuppressesBrowserClientPageMetadataPublish()
         ? Promise.resolve({ status: 'refused' as const })

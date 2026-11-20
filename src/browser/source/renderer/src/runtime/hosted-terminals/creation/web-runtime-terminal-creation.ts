@@ -1,17 +1,18 @@
-import { createWebRuntimeSessionTerminalResult } from './web-runtime-terminal-create-operation'
-import { resolveWebRuntimeSessionEnvironmentId } from '../../web-session-tabs-sync/workspace-selection/web-runtime-session-workspace-routing'
-import { useAppStore } from '../../../store/index'
+import { createWebRuntimeSessionTerminalResult } from "./web-runtime-terminal-create-operation"
+import { resolveWebRuntimeSessionEnvironmentId } from "../../web-session-tabs-sync/workspace-selection/web-runtime-session-workspace-routing"
+import { useAppStore } from "../../../store/index"
 import type {
   CreateWebRuntimeSessionTerminalArgs,
   WebRuntimeTerminalCreateOutcome,
   CreateWebRuntimeSessionTerminalOnHostArgs,
   CreatedWebRuntimeSessionTerminal
-} from './terminal-create-contracts'
-import { notifyWebRuntimeTerminalCreateFailure } from './web-runtime-terminal-create-failure-notice'
+} from "./terminal-create-contracts"
+import { notifyWebRuntimeTerminalCreateFailure } from "./web-runtime-terminal-create-failure-notice"
+import { webTerminalMirroredTabId } from "../placement/web-session-terminal-placement"
 import {
   startStoppedWslHostForUserAct,
   stoppedWslHostMessage
-} from '../../hosts/wsl/wsl-host-user-start'
+} from "../../hosts/wsl/wsl-host-user-start"
 
 type TerminalCreateOptions = { notifyFailure?: boolean; userAct?: boolean }
 
@@ -64,5 +65,7 @@ async function createWebRuntimeTerminal(
       worktreeId: args.worktreeId
     })
   }
-  return created.outcome
+  return created.outcome.status === 'created' && created.hostTabId
+    ? { ...created.outcome, mirroredTabId: webTerminalMirroredTabId(created.hostTabId) }
+    : created.outcome
 }

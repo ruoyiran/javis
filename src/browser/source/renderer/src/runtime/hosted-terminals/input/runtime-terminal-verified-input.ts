@@ -1,11 +1,11 @@
-import type { RuntimeTerminalSend } from '../../../../../shared/runtime-terminal-send-contract'
-import type { TerminalInputKind } from '../../../../../shared/terminal/input/terminal-input-kind'
-import { isTerminalInputTooLargeWithDeferredMeasurement } from '../../../../../shared/terminal/input/terminal-input'
-import { readTerminalSendAcknowledgment } from '../../../../../shared/terminal/pty/lifecycle/terminal-send-acknowledgment'
-import { classifyTerminalProcessInspectionFailure } from '../../../../../shared/terminal/pty/lifecycle/terminal-process-inspection'
-import { callRuntimeRpc } from '../../rpc/calls/runtime-rpc-call'
-import { getRemoteRuntimePtyOwner } from '../identity/remote-runtime-pty-owner'
-import { recordRuntimeTerminalInputForPtyId } from './runtime-terminal-input-recording'
+import type { RuntimeTerminalSend } from "../../../../../shared/runtime-terminal-send-contract"
+import type { TerminalInputKind } from "../../../../../shared/terminal/input/terminal-input-kind"
+import { isTerminalInputTooLargeWithDeferredMeasurement } from "../../../../../shared/terminal/input/terminal-input"
+import { readTerminalSendAcknowledgment } from "../../../../../shared/terminal/pty/lifecycle/terminal-send-acknowledgment"
+import { classifyTerminalProcessInspectionFailure } from "../../../../../shared/terminal/pty/lifecycle/terminal-process-inspection"
+import { callRuntimeRpc } from "../../rpc/calls/runtime-rpc-call"
+import { getRemoteRuntimePtyOwner } from "../identity/remote-runtime-pty-owner"
+import { recordRuntimeTerminalInputForPtyId } from "./runtime-terminal-input-recording"
 
 const DESKTOP_RUNTIME_CLIENT = { id: 'orca-desktop', type: 'desktop' } as const
 
@@ -17,7 +17,7 @@ export async function sendRuntimePtyInputVerified(
   ptyId: string,
   data: string,
   inputKind: TerminalInputKind,
-  options?: { requireWriteSettlement?: true }
+  options?: { requireWriteSettlement?: true; requireStartupDialog?: string }
 ): Promise<boolean> {
   const tooLarge = isTerminalInputTooLargeWithDeferredMeasurement(data)
   if (typeof tooLarge === 'boolean' ? tooLarge : await tooLarge) {
@@ -53,7 +53,10 @@ export async function sendRuntimePtyInputVerified(
         terminal,
         text: data,
         client: DESKTOP_RUNTIME_CLIENT,
-        ...(options?.requireWriteSettlement ? { requireWriteSettlement: true } : {})
+        ...(options?.requireWriteSettlement ? { requireWriteSettlement: true } : {}),
+        ...(options?.requireStartupDialog !== undefined
+          ? { requireStartupDialog: options.requireStartupDialog }
+          : {})
       },
       { timeoutMs: 15_000 }
     )

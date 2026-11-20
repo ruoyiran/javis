@@ -3,18 +3,21 @@ import {
   parseExecutionHostId,
   toSshExecutionHostId,
   type ExecutionHostId
-} from '../../../../../shared/execution-host'
-import { FLOATING_TERMINAL_WORKTREE_ID } from '../../../../../shared/constants'
-import { folderWorkspaceKey, parseWorkspaceKey } from '../../../../../shared/workspace-scope'
+} from "../../../../../shared/execution-host"
+import { FLOATING_TERMINAL_WORKTREE_ID } from "../../../../../shared/workspace/identity/floating-workspace-id"
+import {
+  folderWorkspaceKey,
+  parseWorkspaceKey
+} from "../../../../../shared/workspace-scope"
 import {
   findIndexedFolderWorkspaceOwner,
   findIndexedProjectGroupOwner
-} from './worktree-runtime-owner-index'
-import { selectWorktreesByRepo } from '@/store/workspaces/catalog/workspace-record-fields'
-import { resolveQualifiedWorktreeExecutionOwner } from './qualified-worktree-execution-owner'
-import type { WorktreeRuntimeOwnerState } from './worktree-runtime-owner-state'
-import { runtimeRpcTargetForAuthorityKey } from '@/runtime/rpc/targets/runtime-client-target'
-import type { RuntimeClientTarget } from '../../../../../shared/runtime-client-target'
+} from "./worktree-runtime-owner-index"
+import { selectWorktreesByRepo } from "../../../store/workspaces/catalog/workspace-record-fields"
+import { resolveQualifiedWorktreeExecutionOwner } from "./qualified-worktree-execution-owner"
+import type { WorktreeRuntimeOwnerState } from "./worktree-runtime-owner-state"
+import { runtimeRpcTargetForAuthorityKey } from "../../../runtime/rpc/targets/runtime-client-target"
+import type { RuntimeClientTarget } from "../../../../../shared/runtime-client-target"
 
 function getResolvedFolderHost(
   state: WorktreeRuntimeOwnerState,

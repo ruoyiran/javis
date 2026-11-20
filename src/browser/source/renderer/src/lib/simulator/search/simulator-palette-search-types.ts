@@ -1,13 +1,17 @@
-import type { ExecutionHostId } from '../../../../../shared/execution-host'
-import type { Tab, TabGroup, WorkspaceVisibleTabType } from '../../../../../shared/tab-types'
-import type { Worktree } from '../../../../../shared/worktree/types'
-import type { MatchRange } from '../../../../../shared/palette-match/normalized-text'
+import type { ExecutionHostId } from "../../../../../shared/execution-host"
+import type {
+  Tab,
+  TabGroup,
+  WorkspaceVisibleTabType
+} from "../../../../../shared/tab-types"
+import type { Worktree } from "../../../../../shared/worktree/types"
+import type { MatchRange } from "../../../../../shared/palette-match/normalized-text"
 import type {
   PaletteDocument,
   PaletteDocumentRank
-} from '../../../../../shared/palette-match/palette-document'
-import type { PaletteResultQualityClass } from '../../../../../shared/palette-match/match-quality'
-import type { PaletteActivityRank } from '../../../../../shared/palette-match/palette-ranking'
+} from "../../../../../shared/palette-match/palette-document"
+import type { PaletteResultQualityClass } from "../../../../../shared/palette-match/match-quality"
+import type { PaletteActivityRank } from "../../../../../shared/palette-match/palette-ranking"
 
 export type SearchableSimulatorTab = {
   tab: Tab

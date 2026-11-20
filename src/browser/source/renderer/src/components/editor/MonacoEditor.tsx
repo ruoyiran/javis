@@ -1,41 +1,43 @@
 import React, { useRef, useEffect, useLayoutEffect, useMemo, useState } from 'react'
 import Editor from '@monaco-editor/react'
 import type { editor, IRange } from 'monaco-editor'
-import type { MarkdownDocument } from '../../../../shared/file-listing/file-document'
-import { useAppStore } from '@/store'
-import '@/lib/editor/monaco/monaco-setup'
-import { monacoTypographyOptions } from '@/lib/editor/appearance/editor-typography'
-import { useEditorTypography } from '@/hooks/use-editor-typography'
-import { useContextualCopySetup } from './useContextualCopySetup'
-import { MonacoGutterContextMenu } from './MonacoGutterContextMenu'
-import { isLinuxUserAgent } from '../../app-shell/platform/user-agent-platform'
-import { MAX_TOKENIZATION_LINE_LENGTH } from '@/lib/monaco-languages/monarch-embed-entry-budget'
-import { buildFileEditorWordWrapOptions } from './file-editor-word-wrap-options'
-import { resolveFileEditorMinimapEnabled } from '../../../../shared/editor/editor-typography'
-import { toEditorModelUri } from './model-lifetime/identity/editor-model-uri'
-import { getEditorModelOwnerKey } from './model-lifetime/identity/editor-model-owner'
+import type { MarkdownDocument } from "../../../../shared/file-listing/file-document"
+import { useAppStore } from "../../store/index"
+import "../../lib/editor/monaco/monaco-setup"
+import { monacoTypographyOptions } from "../../lib/editor/appearance/editor-typography"
+import { useEditorTypography } from "../../hooks/use-editor-typography"
+import { useContextualCopySetup } from "./useContextualCopySetup"
+import { MonacoGutterContextMenu } from "./MonacoGutterContextMenu"
+import { isLinuxUserAgent } from "../../app-shell/platform/user-agent-platform"
+import { MAX_TOKENIZATION_LINE_LENGTH } from "../../lib/monaco-languages/monarch-embed-entry-budget"
+import { buildFileEditorWordWrapOptions } from "./file-editor-word-wrap-options"
+import { resolveFileEditorMinimapEnabled } from "../../../../shared/editor/editor-typography"
+import { toEditorModelUri } from "./model-lifetime/identity/editor-model-uri"
+import { getEditorModelOwnerKey } from "./model-lifetime/identity/editor-model-owner"
 import {
   NO_RESOURCE_EVIDENCE,
   type WorkspaceResource
-} from '@/lib/workspace/ownership/workspace-copy-owner'
-import { getMonacoAutoHeightForContent, isMonacoAutoHeightCapped } from './monaco-auto-height'
-import { monacoFindOptions } from './monaco-find-options'
-import { buildEditorUnicodeHighlightOptions } from './editor-unicode-highlight-options'
-import { useMonacoRevealScheduler } from './use-monaco-reveal-scheduler'
-import type { MonacoContentSyncMode } from './monaco-content-sync'
-import { useMonacoContentSyncBridge } from './use-monaco-content-sync-bridge'
-import { useMonacoMarkdownAnnotations } from './markdown-source-tools/monaco/use-monaco-markdown-annotations'
-import { useMonacoEditorDecorations } from './use-monaco-editor-decorations'
-import { useMonacoEditorMount } from './use-monaco-editor-mount'
-import { snapshotMonacoViewState } from './monaco-view-state-persistence'
-import { MonacoMarkdownAnnotationOverlay } from './markdown-source-tools/monaco/MonacoMarkdownAnnotationOverlay'
-import { usePluginSyntaxLanguage } from './use-plugin-syntax-language'
+} from "../../lib/workspace/ownership/workspace-copy-owner"
+import { getMonacoAutoHeightForContent, isMonacoAutoHeightCapped } from "./monaco-auto-height"
+import { monacoFindOptions } from "./monaco-find-options"
+import { buildEditorUnicodeHighlightOptions } from "./editor-unicode-highlight-options"
+import { useMonacoRevealScheduler } from "./use-monaco-reveal-scheduler"
+import type { MonacoContentSyncMode } from "./monaco-content-sync"
+import { useMonacoContentSyncBridge } from "./use-monaco-content-sync-bridge"
+import { useMonacoMarkdownAnnotations } from "./markdown-source-tools/monaco/use-monaco-markdown-annotations"
+import { useMonacoEditorDecorations } from "./use-monaco-editor-decorations"
+import { useMonacoGitBlame } from "./blame/use-monaco-git-blame"
+import { useMonacoEditorMount } from "./use-monaco-editor-mount"
+import { snapshotMonacoViewState } from "./monaco-view-state-persistence"
+import { MonacoMarkdownAnnotationOverlay } from "./markdown-source-tools/monaco/MonacoMarkdownAnnotationOverlay"
+import { usePluginSyntaxLanguage } from "./use-plugin-syntax-language"
 import {
   PLUGIN_SYNTAX_EDITOR_OPTIONS,
   applyModelLanguage
-} from '@/lib/monaco-languages/plugin-syntax-editor-options'
-import { useMonacoTheme } from '@/hooks/use-monaco-theme'
-import { useEditorModelRekeyCarry } from './model-lifetime/identity/editor-model-rekey-carry'
+} from "../../lib/monaco-languages/plugin-syntax-editor-options"
+import { useMonacoTheme } from "../../hooks/use-monaco-theme"
+import { useEditorModelRekeyCarry } from "./model-lifetime/identity/editor-model-rekey-carry"
+import { useNewModelLineEnding } from "./model-lifetime/buffer-text/editor-new-model-line-ending"
 
 type MonacoEditorProps = {
   fileId: string
@@ -129,6 +131,7 @@ export default function MonacoEditor({
     [filePath, modelOwnerKey]
   )
   useEditorModelRekeyCarry(fileId, modelUri)
+  useNewModelLineEnding(mountedEditor, modelUri, fileId, language)
   const estimatedAutoHeight = useMemo(() => {
     if (!autoHeight) {
       return null
@@ -198,6 +201,13 @@ export default function MonacoEditor({
       readOnly
     })
   }, [typographyOptions, editorWordWrap, readOnly])
+
+  useMonacoGitBlame({
+    mountedEditor,
+    fileId,
+    passiveMirror,
+    inlineEnabled: settings?.editorInlineBlame === true
+  })
 
   const decorations = useMonacoEditorDecorations({
     editorRef,

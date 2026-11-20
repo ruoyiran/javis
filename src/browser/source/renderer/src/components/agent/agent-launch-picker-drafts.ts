@@ -8,26 +8,26 @@ import {
   useState,
   useSyncExternalStore
 } from 'react'
-import { sameAgentPickerSetupSource as sameSource } from './agent-launch-picker-setup-source'
+import { sameAgentPickerSetupSource as sameSource } from "./agent-launch-picker-setup-source"
 import {
   agentPickerDraft,
   type AgentPickerDraft,
   type AgentPickerDraftOwner,
   type AgentPickerEntry
-} from '../../../../shared/agent-launch/picker/agent-launch-picker'
+} from "../../../../shared/agent-launch/picker/agent-launch-picker"
 
 import {
   type AgentPickerRetainedSetup as RetainedSetup,
   currentAgentPickerDraft,
   launchAgentPickerDraft
-} from '../../../../shared/agent-launch/picker/agent-launch-picker-authority'
-import { retireAgentPickerSetups } from './agent-launch-picker-retirement'
+} from "../../../../shared/agent-launch/picker/agent-launch-picker-authority"
+import { retireAgentPickerSetups } from "./agent-launch-picker-retirement"
 import {
   launchDraftSource,
   nativeChatLaunchPromptDraftScopeKey
-} from '../native-chat/drafts/native-chat-launch-draft-source'
-import { subscribeToNativeChatComposerDraft } from '../native-chat/drafts/native-chat-composer-draft-store'
-import { writeLaunchSetupOptions } from '../native-chat/drafts/native-chat-composer-draft-memory'
+} from "../native-chat/drafts/native-chat-launch-draft-source"
+import { subscribeToNativeChatComposerDraft } from "../native-chat/drafts/native-chat-composer-draft-store"
+import { writeLaunchSetupOptions } from "../native-chat/drafts/native-chat-composer-draft-memory"
 
 export type AgentPickerSetupIdentity = { model: string; effort?: string }
 const appSession: AgentPickerDraftOwner = {}
@@ -218,6 +218,21 @@ export function useAgentPickerSetup({
       activeRecord.active = false
     }
   }, [open, read, acquire, retained, mode, initial])
+  const readOnUnmount = useRef(read)
+  useLayoutEffect(() => {
+    readOnUnmount.current = read
+  }, [read])
+  // Why: a panel that unmounts while open (a closed dropdown) never renders closed, so release its
+  // pick here; reopening then starts from the form's saved setup, including edits made meanwhile.
+  useLayoutEffect(
+    () => () => {
+      const current = readOnUnmount.current()
+      if (current) {
+        pickedSetups.delete(current)
+      }
+    },
+    []
+  )
   let record = retained && matches(retained) ? retained : undefined
   const currentDraft = (draft: AgentPickerDraft) => {
     const current =

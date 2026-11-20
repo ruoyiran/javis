@@ -1,10 +1,10 @@
 import React from 'react'
 import { PenTool } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { cn } from '@/lib/class-names'
-import { useTranslate } from '@/i18n/use-translate'
-import { MarkupDrawHintPopover, useMarkupDrawHintState } from './markup-draw-hint-popover'
+import { Button } from "../../ui/button"
+import { Tooltip, TooltipContent, TooltipTrigger } from "../../ui/tooltip"
+import { cn } from "../../../lib/class-names"
+import { useTranslate } from "../../../i18n/use-translate"
+import { MarkupDrawHintPopover, useMarkupDrawHintState } from "./markup-draw-hint-popover"
 
 export type MarkupDrawButtonProps = {
   onClick: () => void
@@ -12,7 +12,6 @@ export type MarkupDrawButtonProps = {
   active?: boolean
   /** Explicitly gate on pane activity: a hidden trigger anchors portaled content at the viewport origin. */
   surfaceActive: boolean
-  className?: string
 }
 
 /** Standalone Draw for surfaces without the element picker (remote and client-hosted pages). */
@@ -20,8 +19,7 @@ export function MarkupDrawButton({
   onClick,
   disabled,
   active,
-  surfaceActive,
-  className
+  surfaceActive
 }: MarkupDrawButtonProps): React.JSX.Element {
   const t = useTranslate()
   const label = t('auto.components.browser-pane.markup.drawButton', 'Draw on screenshot')
@@ -40,10 +38,9 @@ export function MarkupDrawButton({
             {/* Why: wrap in a span so the tooltip still fires when disabled. */}
             <span className="inline-flex">
               <Button
-                size="icon"
-                variant={active ? 'default' : 'ghost'}
+                size="icon-xs"
+                variant={active ? 'default' : 'muted-field-icon'}
                 className={cn(
-                  className ?? 'h-7 w-7',
                   active && 'bg-foreground/80 text-background hover:bg-foreground/90',
                   showHint && 'ring-2 ring-ring/45 ring-offset-1 ring-offset-background'
                 )}
@@ -52,7 +49,7 @@ export function MarkupDrawButton({
                 aria-label={label}
                 aria-pressed={active}
               >
-                <PenTool className="size-4" />
+                <PenTool className="size-3.5" />
               </Button>
             </span>
           </TooltipTrigger>

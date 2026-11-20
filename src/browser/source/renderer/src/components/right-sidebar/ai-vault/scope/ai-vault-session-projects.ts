@@ -1,27 +1,27 @@
-import { createNormalizedAiVaultScopeCwdMatcher } from '../../../../../../shared/ai-vault/scanning/ai-vault-scope-cwd-match'
-import { resolveActiveProjectKey } from './ai-vault-project-key'
-import { toAiVaultProjectKey } from '../../../../../../shared/ai-vault/scanning/ai-vault-project-key'
+import { createNormalizedAiVaultScopeCwdMatcher } from "../../../../../../shared/ai-vault/scanning/ai-vault-scope-cwd-match"
+import { resolveActiveProjectKey } from "./ai-vault-project-key"
+import { toAiVaultProjectKey } from "../../../../../../shared/ai-vault/scanning/ai-vault-project-key"
 import {
   getRepoExecutionHostId,
   LOCAL_EXECUTION_HOST_ID,
   normalizeExecutionHostId,
   type ExecutionHostId
-} from '../../../../../../shared/execution-host'
-import type { ProjectHostSetupProjection } from '../../../../../../shared/project-host-setup-projection'
-import type { AiVaultSession } from '../../../../../../shared/ai-vault/contracts/ai-vault-types'
-import type { ProjectHostSetup } from '../../../../../../shared/project-types'
-import type { Repo } from '../../../../../../shared/repo-types'
-import type { Worktree } from '../../../../../../shared/worktree/types'
-import { normalizeRuntimePathForComparison } from '../../../../../../shared/cross-platform-path'
+} from "../../../../../../shared/execution-host"
+import type { ProjectHostSetupProjection } from "../../../../../../shared/project-host-setup-projection"
+import type { AiVaultSession } from "../../../../../../shared/ai-vault/contracts/ai-vault-types"
+import type { ProjectHostSetup } from "../../../../../../shared/project/project-types"
+import type { Repo } from "../../../../../../shared/repo-types"
+import type { Worktree } from "../../../../../../shared/worktree/types"
+import { normalizeRuntimePathForComparison } from "../../../../../../shared/cross-platform-path"
 import {
   aiVaultSessionProjectCwdKey,
   matchAiVaultSessionCwdCandidates
-} from '../../../../../../shared/ai-vault/scanning/ai-vault-session-cwd-candidates'
+} from "../../../../../../shared/ai-vault/scanning/ai-vault-session-cwd-candidates"
 import {
   folderGroupKey,
   folderLabel,
   type AiVaultSessionProject
-} from '../../../../../../shared/ai-vault/session-display/ai-vault-session-filters'
+} from "../../../../../../shared/ai-vault/session-display/ai-vault-session-filters"
 
 export type AiVaultProjectContext = {
   activeProjectKey: string | null

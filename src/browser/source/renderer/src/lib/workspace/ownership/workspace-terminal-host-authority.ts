@@ -1,21 +1,24 @@
-import { FLOATING_TERMINAL_WORKTREE_ID } from '../../../../../shared/constants'
-import { parseExecutionHostId, type ExecutionHostId } from '../../../../../shared/execution-host'
-import { parseWorkspaceKey } from '../../../../../shared/workspace-scope'
-import type { HostLiveTerminalProbeVerdict } from '@/runtime/hosted-terminals/inventory/host-live-terminal-probe'
-import type { SshConnectionState } from '../../../../../shared/ssh-types'
-import { isWebRuntimeSessionActive } from '@/runtime/web-session-tabs-sync/identity/web-runtime-session-environment'
-import { resolveExplicitWorktreeOperationRouteResult } from '@/lib/workspace/ownership/worktree-operation-catalog-route'
-import { resolveWorktreeOperationRouteResultForHost } from '@/lib/workspace/ownership/worktree-operation-route'
-import { getPairedWebClientEnvironmentId } from '@/app-shell/platform/paired-web-client-host'
+import { FLOATING_TERMINAL_WORKTREE_ID } from "../../../../../shared/workspace/identity/floating-workspace-id"
+import {
+  parseExecutionHostId,
+  type ExecutionHostId
+} from "../../../../../shared/execution-host"
+import { parseWorkspaceKey } from "../../../../../shared/workspace-scope"
+import type { HostLiveTerminalProbeVerdict } from "../../../runtime/hosted-terminals/inventory/host-live-terminal-probe"
+import type { SshConnectionState } from "../../../../../shared/ssh-types"
+import { isWebRuntimeSessionActive } from "../../../runtime/web-session-tabs-sync/identity/web-runtime-session-environment"
+import { resolveExplicitWorktreeOperationRouteResult } from "./worktree-operation-catalog-route"
+import { resolveWorktreeOperationRouteResultForHost } from "./worktree-operation-route"
+import { getPairedWebClientEnvironmentId } from "../../../app-shell/platform/paired-web-client-host"
 import {
   findFolderWorkspaceOwner,
   getExplicitRuntimeEnvironmentIdForFolderWorkspace
-} from '@/lib/workspace/ownership/folder-workspace-runtime-owner'
+} from "./folder-workspace-runtime-owner"
 import {
   findIndexedProjectGroupOwner,
   hasIndexedDetectedWorktree
-} from '@/lib/workspace/ownership/worktree-runtime-owner-index'
-import type { WorktreeRuntimeOwnerState } from '@/lib/workspace/ownership/worktree-runtime-owner-state'
+} from "./worktree-runtime-owner-index"
+import type { WorktreeRuntimeOwnerState } from "./worktree-runtime-owner-state"
 
 export type WorkspaceTerminalHostAuthorityState = WorktreeRuntimeOwnerState & {
   sshConnectionStates?: ReadonlyMap<string, SshConnectionState>

@@ -1,11 +1,13 @@
 import {
   keybindingMatchesAction,
-  matchKeybindingDigitIndex,
-  type KeybindingActionId,
-  type KeybindingMatchOptions,
-  type KeybindingOverrides,
-  type PhysicalModifierToken
-} from '../../../../shared/keybindings'
+  matchKeybindingDigitIndex
+} from "../../../../shared/keybindings/matching"
+import type {
+  KeybindingActionId,
+  KeybindingMatchOptions,
+  KeybindingOverrides,
+  PhysicalModifierToken
+} from "../../../../shared/keybindings/types"
 
 // Allow synthetic double-tap inputs without key/modifier fields, but still require their event target.
 type FloatingWorkspaceShortcutEvent = Partial<

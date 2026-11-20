@@ -1,15 +1,19 @@
-import { editorTabContentTypeForMode, isEditorTabContentType } from './editor-tab-content-type'
-import { ownsGlobalSelection } from '../../../workspaces/selection/global-selection-owner'
-import { pickAdjacentEditorOpenGroupId } from './editor-open-adjacent-group'
-import { captureLinkOpenIntent, isLiveLinkOpenGroup } from '@/lib/links/placement/link-open-intent'
-import type { LinkPlacementState } from '@/lib/links/placement/link-open-intent'
-import { collectTabGroupLayoutGroupIds } from '../../../../../../shared/workspace-layout/tab-group-moves'
-import { resolveLinkOpenSidePlacement } from '@/lib/links/placement/adjacent-link-open-group'
-import type { AppState } from '../../../types'
-import type { Tab, TabGroup, WorkspaceVisibleTabType } from '../../../../../../shared/tab-types'
-import type { OpenFile } from '../types/open-file'
-import type { EditorOpenLinkIntent } from '../types/editor-open-link-intent'
-import type { TabSplitTarget } from '../../tabs/tabs-slice-contract'
+import { editorTabContentTypeForMode, isEditorTabContentType } from "./editor-tab-content-type"
+import { ownsGlobalSelection } from "../../../workspaces/selection/global-selection-owner"
+import { pickAdjacentEditorOpenGroupId } from "./editor-open-adjacent-group"
+import { captureLinkOpenIntent, isLiveLinkOpenGroup } from "../../../../lib/links/placement/link-open-intent"
+import type { LinkPlacementState } from "../../../../lib/links/placement/link-open-intent"
+import { collectTabGroupLayoutGroupIds } from "../../../../../../shared/workspace-layout/tab-group-moves"
+import { resolveLinkOpenSidePlacement } from "../../../../lib/links/placement/adjacent-link-open-group"
+import type { AppState } from "../../../types"
+import type {
+  Tab,
+  TabGroup,
+  WorkspaceVisibleTabType
+} from "../../../../../../shared/tab-types"
+import type { OpenFile } from "../types/open-file"
+import type { EditorOpenLinkIntent } from "../types/editor-open-link-intent"
+import type { TabSplitTarget } from "../../tabs/tabs-slice-contract"
 
 export function captureEditorOpenLinkIntent(
   state: Pick<AppState, 'unifiedTabsByWorktree'>,

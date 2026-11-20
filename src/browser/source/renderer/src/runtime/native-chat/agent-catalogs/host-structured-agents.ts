@@ -2,15 +2,15 @@ import {
   AGENT_SESSION_AGENTS_METHOD,
   decodeAgentSessionAgentsResult,
   type AgentSessionRegisteredAgent
-} from '../../../../../shared/agent-session/agent-session-registered-agents'
-import { parseExecutionHostId } from '../../../../../shared/execution-host'
-import { STRUCTURED_AGENT_SESSION_REGISTERED_AGENTS_RUNTIME_CAPABILITY } from '../../../../../shared/agent-session/structured-agent-session-surface-capabilities'
+} from "../../../../../shared/agent-session/agent-session-registered-agents"
+import { parseExecutionHostId } from "../../../../../shared/execution-host"
+import { STRUCTURED_AGENT_SESSION_REGISTERED_AGENTS_RUNTIME_CAPABILITY } from "../../../../../shared/agent-session/structured-agent-session-surface-capabilities"
 import {
   lastVerifiedRuntimeStatus,
   type RuntimeEnvironmentStatus
-} from '../../../../../shared/remote-runtime/host-status/runtime-host-status'
-import { ensureLocalRuntimeCapabilities } from '../../hosts/capabilities/local-runtime-capabilities'
-import { callRuntimeRpc } from '../../rpc/calls/runtime-rpc-call'
+} from "../../../../../shared/remote-runtime/host-status/runtime-host-status"
+import { ensureLocalRuntimeCapabilities } from "../../hosts/capabilities/local-runtime-capabilities"
+import { callRuntimeRpc } from "../../rpc/calls/runtime-rpc-call"
 
 /** One registered-agent cache per execution host/runtime. Query only capable hosts; unknown/unsupported hosts offer built-ins. Runtime changes invalidate learned lists until that instance answers. */
 
@@ -85,6 +85,16 @@ export function readHostStructuredAgents(
   )
 }
 
+/** Agents the host publishes Orca's managed runtime for; undefined until its agents are read. */
+export function readHostManagedRuntimeAgents(
+  executionHostId: string,
+  state: { runtimeStatusByEnvironmentId: HostStructuredAgentsStatuses }
+): readonly string[] | undefined {
+  return readHostStructuredAgents(executionHostId, state.runtimeStatusByEnvironmentId)
+    ?.filter(({ managedRuntime }) => managedRuntime)
+    .map(({ agent }) => agent)
+}
+
 /** Asks a host for its agents unless its current runtime already answered. Never rejects: a
  *  failed read leaves the host unlearned, and the next status change asks again. */
 export function loadHostStructuredAgents(
@@ -151,18 +161,20 @@ export async function relearnHostStructuredAgents(
   await loadHostStructuredAgents(executionHostId, capabilities, runtimeId)
 }
 
-/** Drops hosts no longer paired; a stale runtime is already ignored by the reader. */
-export function retainHostStructuredAgents(executionHostIds: ReadonlySet<string>): void {
+/** Drops the agents learned from hosts that were unpaired; other hosts keep theirs. */
+export function forgetHostStructuredAgents(executionHostIds: Iterable<string>): void {
   let removed = false
-  for (const id of entries.keys()) {
-    if (!executionHostIds.has(id)) {
-      entries.delete(id)
-      removed = true
-    }
+  for (const id of executionHostIds) {
+    removed = entries.delete(id) || removed
   }
   if (removed) {
     publish()
   }
+}
+
+/** Drops hosts no longer paired; a stale runtime is already ignored by the reader. */
+export function retainHostStructuredAgents(executionHostIds: ReadonlySet<string>): void {
+  forgetHostStructuredAgents([...entries.keys()].filter((id) => !executionHostIds.has(id)))
 }
 
 export function subscribeHostStructuredAgents(listener: () => void): () => void {

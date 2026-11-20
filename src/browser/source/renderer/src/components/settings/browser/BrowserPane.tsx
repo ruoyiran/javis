@@ -1,51 +1,54 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type MutableRefObject } from 'react'
-import type { GlobalSettings } from '../../../../../shared/global-settings-types'
-import { useAppStore } from '../../../store/index'
-import { matchesSettingsSearch } from '../search/settings-search'
-import { getBrowserPaneSearchEntries } from './browser-search'
-import { getBrowserLinkRoutingDescription } from './routing/browser-link-routing-copy'
-import { getBrowserUsePaneSearchEntries } from './use/browser-use-search'
-import { BrowserHomePageSetting } from './BrowserHomePageSetting'
-import { BrowserDefaultZoomSetting } from './BrowserDefaultZoomSetting'
-import { BrowserUseSetup } from './use/BrowserUsePane'
-import { BrowserSearchEngineSetting } from './BrowserSearchEngineSetting'
-import { BrowserLinkRoutingSetting } from './routing/BrowserLinkRoutingSetting'
-import { BrowserLinkRoutingModifierSetting } from './routing/BrowserLinkRoutingModifierSetting'
-import { BrowserLinkRoutingBackgroundSetting } from './routing/BrowserLinkRoutingBackgroundSetting'
-import { BrowserTerminalLinkActionsSetting } from './routing/BrowserTerminalLinkActionsSetting'
-import { BrowserLocalhostWorktreeLabelsSetting } from './routing/BrowserLocalhostWorktreeLabelsSetting'
-import { BrowserClientHostedRemoteSetting } from './routing/BrowserClientHostedRemoteSetting'
-import { BrowserSshWorkspaceRoutingSetting } from './routing/BrowserSshWorkspaceRoutingSetting'
-import { BrowserProfileScopeSetting } from './profiles/BrowserProfileScopeSetting'
-import { BrowserUserAgentSetting } from './BrowserUserAgentSetting'
-import { BrowserSitePermissionsSetting } from './BrowserSitePermissionsSetting'
-import { SettingsGroup } from '../section-layout/SettingsGroup'
-import { BrowserSessionCookiesSection } from './profiles/BrowserSessionCookiesSection'
-import { BrowserNewProfileDialog } from './profiles/BrowserNewProfileDialog'
-import { BrowserExtensionsSection } from './extensions/BrowserExtensionsSection'
-import { getBrowserExtensionsSearchEntry } from './extensions/browser-extensions-search'
-import { BrowserPasswordsSection } from './passwords/BrowserPasswordsSection'
-import { getBrowserPasswordsSearchEntry } from './passwords/browser-passwords-copy'
+import type { GlobalSettings } from "../../../../../shared/global-settings-types"
+import { useRuntimeStatusByEnvironmentId } from "../../../store/slices/runtime-status/views/use-runtime-status-view"
+import { useAppStore } from "../../../store/index"
+import { matchesSettingsSearch } from "../search/settings-search"
+import { getBrowserPaneSearchEntries } from "./browser-search"
+import { getBrowserLinkRoutingDescription } from "./routing/browser-link-routing-copy"
+import { getBrowserUsePaneSearchEntries } from "./use/browser-use-search"
+import { BrowserHomePageSetting } from "./BrowserHomePageSetting"
+import { BrowserDefaultZoomSetting } from "./BrowserDefaultZoomSetting"
+import { BrowserMemorySaverSetting } from "./BrowserMemorySaverSetting"
+import { getBrowserMemorySaverSearchEntry } from "./browser-memory-saver-search"
+import { BrowserUseSetup } from "./use/BrowserUsePane"
+import { BrowserSearchEngineSetting } from "./BrowserSearchEngineSetting"
+import { BrowserLinkRoutingSetting } from "./routing/BrowserLinkRoutingSetting"
+import { BrowserLinkRoutingModifierSetting } from "./routing/BrowserLinkRoutingModifierSetting"
+import { BrowserLinkRoutingBackgroundSetting } from "./routing/BrowserLinkRoutingBackgroundSetting"
+import { BrowserTerminalLinkActionsSetting } from "./routing/BrowserTerminalLinkActionsSetting"
+import { BrowserLocalhostWorktreeLabelsSetting } from "./routing/BrowserLocalhostWorktreeLabelsSetting"
+import { BrowserClientHostedRemoteSetting } from "./routing/BrowserClientHostedRemoteSetting"
+import { BrowserSshWorkspaceRoutingSetting } from "./routing/BrowserSshWorkspaceRoutingSetting"
+import { BrowserProfileScopeSetting } from "./profiles/BrowserProfileScopeSetting"
+import { BrowserUserAgentSetting } from "./BrowserUserAgentSetting"
+import { BrowserSitePermissionsSetting } from "./BrowserSitePermissionsSetting"
+import { SettingsGroup } from "../section-layout/SettingsGroup"
+import { BrowserSessionCookiesSection } from "./profiles/BrowserSessionCookiesSection"
+import { BrowserNewProfileDialog } from "./profiles/BrowserNewProfileDialog"
+import { BrowserExtensionsSection } from "./extensions/BrowserExtensionsSection"
+import { getBrowserExtensionsSearchEntry } from "./extensions/browser-extensions-search"
+import { BrowserPasswordsSection } from "./passwords/BrowserPasswordsSection"
+import { getBrowserPasswordsSearchEntry } from "./passwords/browser-passwords-copy"
 import {
   createBrowserHomePageDraftState,
   resolveBrowserHomePageDraftState
-} from './browser-home-page-draft-state'
-import { buildSidebarHostOptions } from '../../sidebar/worktree-list/controls/sidebar-host-options'
-import { getHostDisplayLabelOverrides } from '../../../../../shared/host-setting-overrides'
+} from "./browser-home-page-draft-state"
+import { buildSidebarHostOptions } from "../../sidebar/worktree-list/controls/sidebar-host-options"
+import { getHostDisplayLabelOverrides } from "../../../../../shared/host-setting-overrides"
 import {
   getSettingsFocusedExecutionHostId,
   LOCAL_EXECUTION_HOST_ID,
   type ExecutionHostId
-} from '../../../../../shared/execution-host'
-import { isMacUserAgent } from '@/app-shell/platform/user-agent-platform'
-import { isWebClientLocation } from '@/app-shell/platform/web-client-location'
-import { useTranslate } from '@/i18n/use-translate'
-import { translateHostDisplayLabel } from '../../sidebar/execution-host-label'
-import { translateBrowserSessionProfileLabel } from '@/lib/browser/profiles/browser-session-profile-label'
-import { useUiLanguageRevision } from '@/i18n/use-ui-language-revision'
-import { resolveAvailableBrowserSessionHostId } from './profiles/browser-session-host-selection'
-import { getDefaultBrowserProfileForHost } from '@/store/slices/browser/hosts/browser-host-state'
-import { motionSafeScrollBehavior } from '@/hooks/usePrefersReducedMotion'
+} from "../../../../../shared/execution-host"
+import { isMacUserAgent } from "../../../app-shell/platform/user-agent-platform"
+import { isWebClientLocation } from "../../../app-shell/platform/web-client-location"
+import { useTranslate } from "../../../i18n/use-translate"
+import { translateHostDisplayLabel } from "../../sidebar/execution-host-label"
+import { translateBrowserSessionProfileLabel } from "../../../lib/browser/profiles/browser-session-profile-label"
+import { useUiLanguageRevision } from "../../../i18n/use-ui-language-revision"
+import { resolveAvailableBrowserSessionHostId } from "./profiles/browser-session-host-selection"
+import { getDefaultBrowserProfileForHost } from "../../../store/slices/browser/hosts/browser-host-state"
+import { motionSafeScrollBehavior } from "../../../hooks/usePrefersReducedMotion"
 
 type BrowserPaneProps = {
   settings: GlobalSettings
@@ -79,7 +82,7 @@ export function BrowserPane({
   const sshTargetLabels = useAppStore((s) => s.sshTargetLabels)
   const sshConnectionStates = useAppStore((s) => s.sshConnectionStates)
   const runtimeEnvironments = useAppStore((s) => s.runtimeEnvironments)
-  const runtimeStatusByEnvironmentId = useAppStore((s) => s.runtimeStatusByEnvironmentId)
+  const runtimeStatusByEnvironmentId = useRuntimeStatusByEnvironmentId()
   const browserSessionHostIdOverride = useAppStore((s) => s.browserSessionHostIdOverride)
   const setBrowserSessionHostId = useAppStore((s) => s.setBrowserSessionHostId)
   const detectedBrowsers = useAppStore((s) => s.detectedBrowsers)
@@ -131,6 +134,10 @@ export function BrowserPane({
   const showProfileScope = matchesSettingsSearch(searchQuery, [browserSearchEntries[12]])
   const showLinkRoutingBackground = matchesSettingsSearch(searchQuery, [browserSearchEntries[13]])
   const showPasswords = matchesSettingsSearch(searchQuery, [getBrowserPasswordsSearchEntry(t)])
+  // Browser tabs run in this desktop app; the web client has none to free.
+  const showMemorySaver =
+    !isWebClientLocation() &&
+    matchesSettingsSearch(searchQuery, [getBrowserMemorySaverSearchEntry()])
   const showBrowserUse = matchesSettingsSearch(searchQuery, getBrowserUsePaneSearchEntries())
   const isMac = isMacUserAgent()
   const linkRoutingDescription = getBrowserLinkRoutingDescription(
@@ -253,6 +260,7 @@ export function BrowserPane({
       {showBrowserUse ? (
         <SettingsGroup>
           <BrowserUseSetup
+            hostId={selectedBrowserSessionHostId}
             onConfigureMoreBrowsers={scrollToSessionCookies}
             onOpenComputerUse={onOpenComputerUse}
           />
@@ -262,6 +270,7 @@ export function BrowserPane({
       {showHomePage ||
       showSearchEngine ||
       showDefaultZoom ||
+      showMemorySaver ||
       showUserAgent ||
       showSitePermissions ||
       showLinkRouting ||
@@ -293,6 +302,10 @@ export function BrowserPane({
               value={browserDefaultZoomLevel}
               onChange={setBrowserDefaultZoomLevel}
             />
+          ) : null}
+
+          {showMemorySaver ? (
+            <BrowserMemorySaverSetting settings={settings} updateSettings={updateSettings} />
           ) : null}
 
           {showUserAgent ? <BrowserUserAgentSetting hostId={settingsFocusedHostId} /> : null}

@@ -1,45 +1,43 @@
 import {
   getTerminalNoticeLifetime,
   retireTerminalNoticeLifetime
-} from '../terminal-pane/provider-notices/terminal-notice-lifetime'
-import { useAppStore } from '@/store'
-import { closeWebRuntimeSessionTab } from '@/runtime/web-session-tabs-sync/actions/web-runtime-session-tab-lifecycle'
-import { isWebRuntimeSessionActive } from '@/runtime/web-session-tabs-sync/identity/web-runtime-session-environment'
-import { toHostSessionTabId } from '../../../../shared/workspace-layout/terminal-surface-id'
-import { getLatestWebSessionTabsPublicationEpoch } from '@/runtime/web-session-tabs-sync/tracking-lifecycle'
-import { resolveHostSessionTabIdForWebSessionTab } from '@/runtime/web-session-tabs-sync/tracking-mappings'
-import { resolveTerminalCloseRoute } from '@/lib/workspace/ownership/terminal-close-route'
+} from "../terminal-pane/provider-notices/terminal-notice-lifetime"
+import { useAppStore } from "../../store/index"
+import { closeWebRuntimeSessionTab } from "../../runtime/web-session-tabs-sync/actions/web-runtime-session-tab-lifecycle"
+import { isWebRuntimeSessionActive } from "../../runtime/web-session-tabs-sync/identity/web-runtime-session-environment"
+import { toHostSessionTabId } from "../../../../shared/workspace-layout/terminal-surface-id"
+import { getLatestWebSessionTabsPublicationEpoch } from "../../runtime/web-session-tabs-sync/tracking-lifecycle"
+import { resolveHostSessionTabIdForWebSessionTab } from "../../runtime/web-session-tabs-sync/tracking-mappings"
+import { resolveTerminalCloseRoute } from "../../lib/workspace/ownership/terminal-close-route"
 import {
   guardPinnedTabClose,
   isUnifiedTabPinned,
   resolvePinnedTabLabel,
   shouldConfirmPinnedTabClose
-} from '@/store/slices/tabs/closing/pinned-tab-close-guard'
+} from "../../store/slices/tabs/closing/pinned-tab-close-guard"
 import type {
   TerminalTabCloseReason,
   TerminalTabRetirementPlan
-} from '@/store/terminals/terminal-tab-retirement'
+} from "../../store/terminals/terminal-tab-retirement"
 import {
   guardRunningTerminalClose,
   shouldConfirmRunningTerminalClose
-} from './running-terminal-close-guard'
-import { closeLocalTerminalTabState } from './close-local-terminal-tab-state'
-import { runAsAutomaticDeselection } from '@/store/workspaces/selection/active-worktree-deselection-intent'
-import { hasSplitLandingGroup } from '@/store/slices/tabs/split-landing-groups'
-import { getTerminalIncarnationHandle } from './terminal-close-incarnation'
+} from "./running-terminal-close-guard"
+import { closeLocalTerminalTabState } from "./close-local-terminal-tab-state"
+import { runAsAutomaticDeselection } from "../../store/workspaces/selection/active-worktree-deselection-intent"
+import { hasSplitLandingGroup } from "../../store/slices/tabs/split-landing-groups"
+import { getTerminalIncarnationHandle } from "./terminal-close-incarnation"
 import {
   terminalTabCloseStoreReason,
   terminalTabCloseWireReason,
   type TerminalTabCloseIntent
-} from './terminal-tab-close-intent'
+} from "./terminal-tab-close-intent"
 import {
   getWorktreeTerminalTabIds,
   resolveTerminalCloseTarget,
   validatePrecomputedTerminalCloseState,
   type PrecomputedTerminalCloseState
-} from './terminal-close-target'
-export type { PrecomputedTerminalCloseState } from './terminal-close-target'
-export { closeOtherTerminalTabs } from './terminal-tab-bulk-actions'
+} from "./terminal-close-target"
 
 type CloseTerminalTabOptions = {
   force?: boolean
@@ -126,7 +124,7 @@ export function closeTerminalTab(tabId: string, options: CloseTerminalTabOptions
   if (shouldConfirmRunningTerminalClose(options)) {
     guardRunningTerminalClose({
       terminalTabId,
-      tabLabel: resolvePinnedTabLabel(state, owningWorktreeId, terminalTabId),
+      worktreeId: owningWorktreeId,
       ...(options?.consentedPtyId ? { consentedPtyId: options.consentedPtyId } : {}),
       // Re-enter after consent to revalidate pinned, route, and precomputed state against the latest store.
       onClose: () => closeTerminalTab(tabId, { ...options, skipRunningProcessConfirm: true }),

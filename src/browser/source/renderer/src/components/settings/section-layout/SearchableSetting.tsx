@@ -1,9 +1,7 @@
-import { useContext } from 'react'
-import { SettingsTargetHighlightContext } from './settings-target-highlight'
-import { useAppStateValue } from '@/store/retained-views/app-state-view'
+import { useAppStateValue } from "../../../store/retained-views/app-state-view"
 import type React from 'react'
-import { cn } from '@/lib/class-names'
-import { matchesSettingsSearch, type SettingsSearchEntry } from '../search/settings-search'
+import { cn } from "../../../lib/class-names"
+import { matchesSettingsSearch, type SettingsSearchEntry } from "../search/settings-search"
 
 type SearchableSettingProps = SettingsSearchEntry & {
   children: React.ReactNode
@@ -21,7 +19,6 @@ export function SearchableSetting({
   className,
   id
 }: SearchableSettingProps): React.JSX.Element | null {
-  const highlighted = useContext(SettingsTargetHighlightContext) === id
   const query = useAppStateValue((state) => state.settingsSearchQuery)
   if (!forceVisible && !matchesSettingsSearch(query, { title, description, keywords })) {
     return null
@@ -30,11 +27,8 @@ export function SearchableSetting({
   return (
     <div
       data-settings-row=""
-      className={cn(
-        'scroll-mt-6 w-full',
-        highlighted && 'rounded-md bg-accent ring-2 ring-ring/50',
-        className
-      )}
+      data-settings-search-title={title}
+      className={cn('scroll-mt-6 w-full', className)}
       id={id}
     >
       {children}

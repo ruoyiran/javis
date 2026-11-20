@@ -2,33 +2,33 @@
 import {
   runtimeEnvironmentIdForWorkspaceOwner,
   runtimeEnvironmentIdUnlessTwin
-} from '@/lib/workspace/ownership/resolve-owner'
-import { callLayoutApply } from '@/runtime/workspace-layout/commands/layout-apply-call'
-import { holdTabPaneTree } from '@/runtime/workspace-layout/intents/layout-owner-pane-tree-holds'
+} from "../../../lib/workspace/ownership/resolve-owner"
+import { callLayoutApply } from "./layout-apply-call"
+import { holdTabPaneTree } from "../intents/layout-owner-pane-tree-holds"
 import {
   holdDrawnTabs,
   type DrawnTabHold
-} from '@/runtime/workspace-layout/intents/layout-owner-drawn-tab-holds'
+} from "../intents/layout-owner-drawn-tab-holds"
 import {
   holdsPaneTree,
   releaseLayoutApplyHolds
-} from '@/runtime/workspace-layout/commands/layout-apply-hold-release'
+} from "./layout-apply-hold-release"
 import {
   handleServerLayoutReply,
   serverLayoutApplyFor
-} from '@/runtime/workspace-layout/server/server-layout-apply'
-import type { ServerMoveDrawnTabs } from '@/runtime/workspace-layout/server/server-layout-apply'
+} from "../server/server-layout-apply"
+import type { ServerMoveDrawnTabs } from "../server/server-layout-apply"
 import {
   LOCAL_LAYOUT_APPLY_ORIGIN,
   type LayoutApplyOrigin
-} from '@/runtime/workspace-layout/server/server-layout-apply-routes'
-import type { RuntimeClientTarget } from '../../../../../shared/runtime-client-target'
-import type { SleepingAgentSessionRecord } from '../../../../../shared/agent-session/lifecycle/agent-session-resume'
-import type { SplitRatioIntent } from '../../../../../shared/workspace-layout/split-ratio-intents'
-import type { PaneSide } from '../../../../../shared/workspace-layout/terminal-pane-tree'
-import type { LayoutEditorFile } from '../../../../../shared/workspace-layout/workspace-layout-model'
-import type { LayoutEditorView } from '../../../../../shared/workspace-layout/layout-editor-view'
-import type { EditorTabContentType } from '@/store/slices/editor/tabs/editor-tab-content-type'
+} from "../server/server-layout-apply-routes"
+import type { RuntimeClientTarget } from "../../../../../shared/runtime-client-target"
+import type { SleepingAgentSessionRecord } from "../../../../../shared/agent-session/lifecycle/agent-session-resume"
+import type { SplitRatioIntent } from "../../../../../shared/workspace-layout/split-ratio-intents"
+import type { PaneSide } from "../../../../../shared/workspace-layout/terminal-pane-tree"
+import type { LayoutEditorFile } from "../../../../../shared/workspace-layout/workspace-layout-model"
+import type { LayoutEditorView } from "../../../../../shared/workspace-layout/layout-editor-view"
+import type { EditorTabContentType } from "../../../store/slices/editor/tabs/editor-tab-content-type"
 import type {
   CommandOf,
   EditorFileRename,
@@ -37,7 +37,7 @@ import type {
   LayoutCommandResult,
   NewGroupSplit,
   TabTitle
-} from '../../../../../shared/workspace-layout/workspace-layout-command-types'
+} from "../../../../../shared/workspace-layout/workspace-layout-command-types"
 
 /** What a window sends `layout.apply`; main mints any new id but one the window already drew. */
 export type WindowLayoutCommand =
@@ -99,7 +99,7 @@ export type WindowLayoutCommand =
       split?: NewGroupSplit
     }
   | { type: 'openBrowserPage' | 'closeBrowserPage'; browserTabId: string; pageId: string }
-  | { type: 'replaceBrowserPage'; browserTabId: string; pageId: string; newPageId: string }
+  | Omit<CommandOf<'replaceTabContent'>, 'workspace'>
   | {
       type: 'setBrowserTabProfile'
       browserTabId: string
@@ -132,6 +132,16 @@ export type WindowLayoutCommand =
       split?: NewGroupSplit
     }
   | { type: 'promotePreviewTab'; tabId: string }
+  | {
+      type: 'openRoomTab'
+      tabId: string
+      botGroupId: string
+      groupId: string
+      afterTabId?: string
+      index?: number
+      createdAt?: number
+      split?: NewGroupSplit
+    }
   | {
       type: 'openSimulatorTab'
       tabId: string
@@ -198,10 +208,11 @@ function drawnTabHolds(worktreeId: string, command: WindowLayoutCommand): DrawnT
     case 'openBrowserTab':
     case 'openBrowserPage':
     case 'closeBrowserPage':
-    case 'replaceBrowserPage':
+    case 'replaceTabContent':
     case 'setBrowserTabProfile':
     case 'openAgentSessionTab':
     case 'openSimulatorTab':
+    case 'openRoomTab':
     case 'openEditorTab':
     case 'promotePreviewTab':
     case 'moveTabToWorkspace':

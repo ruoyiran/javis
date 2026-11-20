@@ -1,16 +1,14 @@
-import { useAppStore } from '@/store'
-import type { AppState } from '@/store/types'
-import {
-  closeTerminalTab,
-  type PrecomputedTerminalCloseState
-} from '../terminal/terminal-tab-actions'
+import { useAppStore } from "../../store/index"
+import type { AppState } from "../../store/types"
+import { closeTerminalTab } from "../terminal/terminal-tab-actions"
+import type { PrecomputedTerminalCloseState } from "../terminal/terminal-close-target"
 import {
   buildTerminalTabRetirementPlans,
   type TerminalTabRetirementPlan,
   type TerminalTabRetirementState
-} from '@/store/terminals/terminal-tab-retirement'
-import { reserveTerminalRetirementTeardowns } from '@/store/terminals/terminal-retirement-teardown-reservation'
-import { notifyDaemonSessionInventoryInvalidated } from '../status-bar/daemon-session-inventory-invalidation'
+} from "../../store/terminals/terminal-tab-retirement"
+import { reserveTerminalRetirementTeardowns } from "../../store/terminals/terminal-retirement-teardown-reservation"
+import { notifyDaemonSessionInventoryInvalidated } from "../status-bar/daemon-session-inventory-invalidation"
 
 const CLOSE_BATCH_SIZE = 2
 

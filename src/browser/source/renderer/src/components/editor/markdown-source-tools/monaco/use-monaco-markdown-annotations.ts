@@ -1,7 +1,7 @@
 import {
   useDiffCommentView,
   useOwnedDiffCommentTarget
-} from '../../../diff-comments/use-diff-comment-owner'
+} from "../../../diff-comments/use-diff-comment-owner"
 import {
   useCallback,
   useEffect,
@@ -13,25 +13,26 @@ import {
   type SetStateAction
 } from 'react'
 import type { editor } from 'monaco-editor'
-import type { DiffComment } from '../../../../../../shared/diff-comment-types'
-import type { WorkspaceResource } from '@/lib/workspace/ownership/workspace-copy-owner'
+import type { DiffComment } from "../../../../../../shared/diff-comment-types"
+import type { WorkspaceResource } from "../../../../lib/workspace/ownership/workspace-copy-owner"
 import { toast } from 'sonner'
-import { useTranslate } from '@/i18n/use-translate'
-import { useAppStore } from '@/store/index'
-import { isMarkdownComment } from '@/lib/source-control/review/comments/diff-comment-compat'
+import { useTranslate } from "../../../../i18n/use-translate"
+import { useAppStore } from "../../../../store/index"
+import { isMarkdownComment } from "../../../../lib/source-control/review/comments/diff-comment-compat"
 import {
   formatMarkdownReviewNotes,
+  getMarkdownReviewHighlightedText,
   type MarkdownReviewNote
-} from '@/lib/editor/markdown/review-notes/markdown-review-notes'
-import { useDiffCommentDecorator } from '../../../diff-comments/useDiffCommentDecorator'
+} from "../../../../lib/editor/markdown/review-notes/markdown-review-notes"
+import { useDiffCommentDecorator } from "../../../diff-comments/useDiffCommentDecorator"
 import {
   getDiffCommentPopoverLeft,
   getDiffCommentPopoverTop
-} from '../../../diff-comments/diff-comment-popover-position'
+} from "../../../diff-comments/diff-comment-popover-position"
 import {
   getMonacoMarkdownSelectionAnnotationTarget,
   type MonacoMarkdownSelectionAnnotationTarget
-} from './monaco-markdown-selection-annotation'
+} from "./monaco-markdown-selection-annotation"
 
 export type MarkdownCommentPopoverState = Omit<
   MonacoMarkdownSelectionAnnotationTarget,
@@ -137,7 +138,10 @@ export function useMonacoMarkdownAnnotations(params: {
         top,
         left: mountedEditor
           ? (getDiffCommentPopoverLeft(mountedEditor, editorContainerRef.current) ?? undefined)
-          : undefined
+          : undefined,
+        // Snapshot at open so edits above the composer or later can't re-point the note's excerpt.
+        selectedText:
+          getMarkdownReviewHighlightedText(content, { lineNumber, startLine }) || undefined
       })
     },
     onDeleteComment: (id) => {

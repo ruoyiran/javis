@@ -1,29 +1,29 @@
-import type { SleepingAgentSessionRecord } from '../../../../../shared/agent-session/lifecycle/agent-session-resume'
-import type { AgentStatusSlice } from './agent-status-slice-contract'
-import type { AgentStatusRuntime } from './agent-status-runtime'
-import { rendererAgentStatusObservations } from '../../../lib/agent-status/evidence/renderer-agent-status-observations'
+import type { SleepingAgentSessionRecord } from "../../../../../shared/agent-session/lifecycle/agent-session-resume"
+import type { AgentStatusSlice } from "./agent-status-slice-contract"
+import type { AgentStatusRuntime } from "./agent-status-runtime"
+import { rendererAgentStatusObservations } from "../../../lib/agent-status/evidence/renderer-agent-status-observations"
 import {
   resolveAgentPaneAuthorityKey,
   retireAgentPaneAuthorityAliases,
   transferAgentPaneAuthorityAlias
-} from './agent-pane-authority'
+} from "./agent-pane-authority"
 import {
   boundRecentlyRetiredAgentStatusPaneKeys,
   movePaneKeyedRecord,
   removePaneKeys
-} from './agent-status-pane-keyed-records'
+} from "./agent-status-pane-keyed-records"
 import {
   getLeafIdFromPaneKey,
   getTabIdFromPaneKey,
   isRecentlyClosedAgentStatusTab
-} from './agent-status-pane-key-tab-binding'
-import { createNonSecureContextUuid as createBrowserUuid } from '../../../../../shared/non-secure-context-uuid'
+} from "./agent-status-pane-key-tab-binding"
+import { createNonSecureContextUuid as createBrowserUuid } from "../../../../../shared/non-secure-context-uuid"
 import {
   movePaneAttention,
   removePanesAttention
-} from '../workspace-attention/subject-attention-transitions'
-import { settleAttentionRemovedBy } from '../workspace-attention/attention-removal-follow-up'
-import { replaceRecordEntries } from '../../keyed-record-transitions'
+} from "../workspace-attention/subject-attention-transitions"
+import { settleAttentionRemovedBy } from "../workspace-attention/attention-removal-follow-up"
+import { replaceRecordEntries } from "../../keyed-record-transitions"
 
 export function createAgentStatusAuthorityActions(
   runtime: AgentStatusRuntime
@@ -59,24 +59,13 @@ export function createAgentStatusAuthorityActions(
       let hadLive = false
       settleAttentionRemovedBy(set, get, () =>
         set((s, changedPaneKeys) => {
-          const retiredLivePaneKeys = retiredPaneKeys.filter((key) => key in s.agentStatusByPaneKey)
+          const retiredLivePaneKeys = retiredPaneKeys.filter((key) =>
+            s.agentStatusByPaneKey.has(key)
+          )
           for (const key of retiredLivePaneKeys) {
             changedPaneKeys.add(key)
           }
           hadLive = retiredLivePaneKeys.length > 0
-          let nextRetentionSuppressedPaneKeys = removePaneKeys(
-            s.retentionSuppressedPaneKeys,
-            retiredPaneKeySet
-          )
-          if (
-            retiredLivePaneKeys.length > 0 &&
-            nextRetentionSuppressedPaneKeys === s.retentionSuppressedPaneKeys
-          ) {
-            nextRetentionSuppressedPaneKeys = { ...nextRetentionSuppressedPaneKeys }
-          }
-          for (const key of retiredLivePaneKeys) {
-            nextRetentionSuppressedPaneKeys[key] = true
-          }
           return {
             agentStatusByPaneKey: removePaneKeys(s.agentStatusByPaneKey, retiredPaneKeySet),
             agentConversationsByPaneKey: removePaneKeys(
@@ -87,7 +76,6 @@ export function createAgentStatusAuthorityActions(
               s.runtimeAgentOrchestrationByPaneKey,
               retiredPaneKeySet
             ),
-            retainedAgentsByPaneKey: removePaneKeys(s.retainedAgentsByPaneKey, retiredPaneKeySet),
             sleepingAgentSessionsByPaneKey: options?.preserveSleepingAgentSession
               ? s.sleepingAgentSessionsByPaneKey
               : removePaneKeys(s.sleepingAgentSessionsByPaneKey, retiredPaneKeySet),
@@ -117,7 +105,6 @@ export function createAgentStatusAuthorityActions(
               retiredPaneKeySet
             ),
             cacheTimerByKey: removePaneKeys(s.cacheTimerByKey, retiredPaneKeySet),
-            retentionSuppressedPaneKeys: nextRetentionSuppressedPaneKeys,
             recentlyRetiredAgentStatusPaneKeys: boundRecentlyRetiredAgentStatusPaneKeys(
               s.recentlyRetiredAgentStatusPaneKeys,
               retiredPaneKeys,
@@ -205,24 +192,14 @@ export function createAgentStatusAuthorityActions(
             to,
             (identity) => ({ ...identity, paneKey: to })
           ),
-          // Bump epoch on live pane-key moves so retention/sidebar consumers observe the remap.
-          ...(from in s.agentStatusByPaneKey
+          // Bump epoch on live pane-key moves so sidebar consumers observe the remap.
+          ...(s.agentStatusByPaneKey.has(from)
             ? { agentStatusEpoch: s.agentStatusEpoch + 1, sortEpoch: s.sortEpoch + 1 }
             : {}),
           runtimeAgentOrchestrationByPaneKey: movePaneKeyedRecord(
             s.runtimeAgentOrchestrationByPaneKey,
             from,
             to
-          ),
-          retainedAgentsByPaneKey: movePaneKeyedRecord(
-            s.retainedAgentsByPaneKey,
-            from,
-            to,
-            (retained) => ({
-              ...retained,
-              entry: { ...retained.entry, paneKey: to, tabId: targetTabId },
-              tab: targetTabId ? { ...retained.tab, id: targetTabId } : retained.tab
-            })
           ),
           sleepingAgentSessionsByPaneKey:
             sleepingSession === undefined
@@ -258,8 +235,7 @@ export function createAgentStatusAuthorityActions(
             from,
             to
           ),
-          cacheTimerByKey: movePaneKeyedRecord(s.cacheTimerByKey, from, to),
-          retentionSuppressedPaneKeys: movePaneKeyedRecord(s.retentionSuppressedPaneKeys, from, to)
+          cacheTimerByKey: movePaneKeyedRecord(s.cacheTimerByKey, from, to)
         }
       })
       if (typeof window !== 'undefined') {

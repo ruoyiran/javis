@@ -1,33 +1,33 @@
-import { createNonSecureContextUuid as createUuidV4 } from '../../../../../shared/non-secure-context-uuid'
-import { releaseBrowserAttachmentFiles } from '@/lib/files/drop/browser-attachment-files'
-import { stageNativeChatDraftFile } from '../drafts/native-chat-draft-attachment-staging'
+import { createNonSecureContextUuid as createUuidV4 } from "../../../../../shared/non-secure-context-uuid"
+import { releaseBrowserAttachmentFiles } from "../../../lib/files/drop/browser-attachment-files"
+import { stageNativeChatDraftFile } from "../drafts/native-chat-draft-attachment-staging"
 import {
   nativeChatPastedTextLabel,
   nativeChatPastedTextOperations,
   nativeChatPastedTextToken
-} from './native-chat-pasted-text-reference'
+} from "./native-chat-pasted-text-reference"
 
 import { useCallback } from 'react'
-import { translate } from '@/i18n/i18n'
-import { extractIpcErrorMessage } from '@/runtime/errors/ipc-error'
-import { isNativeChatLongPaste } from '../../../../../shared/native-chat/input/native-chat-long-paste'
-import { structuredAgentSessionBlocksTooLarge } from '../../../../../shared/rpc-contract/structured-agent-session-message-params'
-import { structuredAgentSessionSendBody } from '../../../../../shared/agent-session/requests/structured-agent-session-send-mutation'
-import { imageReferencesToPromptMarkers } from '../../../../../shared/native-chat/transcript/native-chat-image-transcript-markers'
+import { translate } from "../../../i18n/i18n"
+import { extractIpcErrorMessage } from "../../../runtime/errors/ipc-error"
+import { isNativeChatLongPaste } from "../../../../../shared/native-chat/input/native-chat-long-paste"
+import { structuredAgentSessionBlocksTooLarge } from "../../../../../shared/rpc-contract/structured-agent-session-message-params"
+import { structuredAgentSessionSendBody } from "../../../../../shared/agent-session/requests/structured-agent-session-send-mutation"
+import { imageReferencesToPromptMarkers } from "../../../../../shared/native-chat/transcript/images/native-chat-sent-image-prompt-markers"
 import {
   nativeChatAttachFailedNotice,
   nativeChatAttachmentOwnerChangedNotice
-} from '../attachments/intake/native-chat-attachment-notices'
-import { cachedNativeChatPasteUploadTarget } from '../attachments/uploads/native-chat-session-attachment-upload'
-import type { NativeChatAttachmentOwner } from '../attachments/uploads/native-chat-attachment-owner'
-import { nativeChatAttachmentOwnerUnchanged } from '../attachments/uploads/native-chat-resolved-path-ownership'
-import type { NativeChatComposerInput } from '../composer/editor/native-chat-composer-input'
-import { readNativeChatComposerDraft } from '../drafts/native-chat-composer-draft-store'
-import { nativeChatImageRowIds } from '../composer/editor/native-chat-composer-image-references'
+} from "../attachments/intake/native-chat-attachment-notices"
+import { cachedNativeChatPasteUploadTarget } from "../attachments/uploads/native-chat-session-attachment-upload"
+import type { NativeChatAttachmentOwner } from "../attachments/uploads/native-chat-attachment-owner"
+import { nativeChatAttachmentOwnerUnchanged } from "../attachments/uploads/native-chat-resolved-path-ownership"
+import type { NativeChatComposerInput } from "../composer/editor/native-chat-composer-input"
+import { readNativeChatComposerDraft } from "../drafts/native-chat-composer-draft-store"
+import { nativeChatImageRowIds } from "../composer/editor/native-chat-composer-image-references"
 import {
   resolveNativeChatPastedText,
   settleNativeChatPastedText
-} from './native-chat-composer-pasted-text-references'
+} from "./native-chat-composer-pasted-text-references"
 
 function pastedTextTooLargeNotice(): string {
   return translate(
@@ -56,8 +56,16 @@ export function useNativeChatPastedTextFile(args: {
   resolveAttachmentOwner: () => NativeChatAttachmentOwner
   insertTypedText: (text: string) => boolean
   setNotice: (notice: string | null, errorText?: string) => void
+  longPasteThreshold?: number
 }): (text: string) => boolean {
-  const { scopeKey, scopeEditor, resolveAttachmentOwner, insertTypedText, setNotice } = args
+  const {
+    scopeKey,
+    scopeEditor,
+    resolveAttachmentOwner,
+    insertTypedText,
+    setNotice,
+    longPasteThreshold
+  } = args
   return useCallback(
     (text: string): boolean => {
       const input = scopeEditor?.()
@@ -69,7 +77,7 @@ export function useNativeChatPastedTextFile(args: {
         scopeKey,
         `${value.slice(0, selectionStart ?? 0)}${text}${value.slice(selectionEnd ?? 0)}`
       )
-      const long = isNativeChatLongPaste(text)
+      const long = isNativeChatLongPaste(text, longPasteThreshold)
       const owner = resolveAttachmentOwner()
       const target =
         owner.kind === 'runtime-session' ? cachedNativeChatPasteUploadTarget(owner) : null
@@ -124,6 +132,6 @@ export function useNativeChatPastedTextFile(args: {
         )
       return true
     },
-    [insertTypedText, resolveAttachmentOwner, scopeEditor, scopeKey, setNotice]
+    [insertTypedText, longPasteThreshold, resolveAttachmentOwner, scopeEditor, scopeKey, setNotice]
   )
 }

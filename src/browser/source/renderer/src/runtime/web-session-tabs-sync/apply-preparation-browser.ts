@@ -1,29 +1,34 @@
-import { buildWebSessionExistingTabIndex } from './placement/web-session-existing-tab-index'
-import { resolveWebSessionVisibleTabId } from './navigation/web-session-focus-intent'
-import { chooseTargetGroupId, buildHostGroupIdByTabId } from './tab-group-layout-tree'
+import { browserInitializationReceiptStale } from "./tab-projection/browser-initialization-presentation"
+import { buildWebSessionExistingTabIndex } from "./placement/web-session-existing-tab-index"
+import { resolveWebSessionVisibleTabId } from "./navigation/web-session-focus-intent"
+import { chooseTargetGroupId, buildHostGroupIdByTabId } from "./tab-group-layout-tree"
 import {
   buildMirroredBrowserTabs,
   browserWorkspaceHasRemoteEnvironmentPage,
   browserWorkspaceHasClientHostedEnvironmentPage
-} from './mirrored-browser-tabs'
-import { buildMirroredEditorTabs } from './tab-builders'
-import { buildMirroredAgentTabs, isReadyBrowserTab, isReadyEditorTab } from './terminal-surfaces'
+} from "./mirrored-browser-tabs"
+import { buildMirroredEditorTabs } from "./tab-builders"
+import {
+  buildMirroredAgentTabs,
+  isReadyBrowserTab,
+  isReadyEditorTab
+} from "./terminal-surfaces"
 import {
   hostSnapshotAffirmsAgentSessions,
   hostSnapshotAffirmsClientHostedPages,
   hostSnapshotAffirmsWorktreeContents
-} from './hydration/host-session-snapshot-authority'
-import type { prepareWebSessionTabsSnapshotBase } from './apply-preparation-base'
-import type { OpenFile } from '../../store/slices/editor/types/open-file'
+} from "./hydration/host-session-snapshot-authority"
+import type { prepareWebSessionTabsSnapshotBase } from "./apply-preparation-base"
+import type { OpenFile } from "../../store/slices/editor/types/open-file"
 import {
   advanceWebSessionOpenFilesIndex,
   sameOpenFiles,
   webSessionOpenFilesForWorktree
-} from './state-equality-files'
-import { shouldRetainStructuredAgentSessionLaunchTab } from '@/lib/agent-session/launch/structured-agent-session-launch-registry'
-import { executionHostIdForSessionTabsOwner } from '../native-chat/local-sessions/local-structured-session-owner'
-import { isAgentSessionTabOfAnotherHost } from './mirror-row-ownership'
-import { isUnlistedCreatedChat } from '@/lib/agent-session/launch/pane/structured-agent-session-unlisted-created-chats'
+} from "./state-equality-files"
+import { shouldRetainStructuredAgentSessionLaunchTab } from "../../lib/agent-session/launch/structured-agent-session-launch-registry"
+import { executionHostIdForSessionTabsOwner } from "../native-chat/local-sessions/local-structured-session-owner"
+import { isAgentSessionTabOfAnotherHost } from "./mirror-row-ownership"
+import { isUnlistedCreatedChat } from "../../lib/agent-session/launch/pane/structured-agent-session-unlisted-created-chats"
 
 export function prepareWebSessionTabsSnapshotBrowser(
   base: ReturnType<typeof prepareWebSessionTabsSnapshotBase>
@@ -57,23 +62,28 @@ export function prepareWebSessionTabsSnapshotBrowser(
   const snapshotExecutionHostId = executionHostIdForSessionTabsOwner(environmentId)
   const agentSessionsAffirmed = hostSnapshotAffirmsAgentSessions(snapshot)
   const existingTabIndex = buildWebSessionExistingTabIndex({ unifiedTabs: currentUnifiedTabs })
-  const readyBrowserTabs = reconcilesNonAgentTabs ? snapshot.tabs.filter(isReadyBrowserTab) : []
+  const reconcilesBrowserTabs =
+    reconcilesNonAgentTabs && !browserInitializationReceiptStale(snapshot)
+  const readyBrowserTabs = reconcilesBrowserTabs ? snapshot.tabs.filter(isReadyBrowserTab) : []
   const nextRemoteBrowserPageIds = new Set(readyBrowserTabs.map((tab) => tab.browserPageId))
-  const mirroredBrowserTabs = buildMirroredBrowserTabs(
-    snapshot,
-    environmentId,
-    state,
-    hostGroupIdByTabId,
-    targetGroupId,
-    mirroredTerminalTabEntries.length,
-    now
-  )
+  const mirroredBrowserTabs = reconcilesBrowserTabs
+    ? buildMirroredBrowserTabs(
+        snapshot,
+        environmentId,
+        state,
+        hostGroupIdByTabId,
+        targetGroupId,
+        mirroredTerminalTabEntries.length,
+        now,
+        base.options?.reconcileBrowserPage
+      )
+    : []
   const mirroredBrowserWorkspaceIds = new Set(
     mirroredBrowserTabs.map((entry) => entry.workspace.id)
   )
   const currentBrowserTabs = state.browserTabsByWorktree[worktreeId] ?? []
   const removedBrowserWorkspaceIds = new Set(
-    (reconcilesNonAgentTabs ? currentBrowserTabs : [])
+    (reconcilesBrowserTabs ? currentBrowserTabs : [])
       .filter((tab) => {
         if (mirroredBrowserWorkspaceIds.has(tab.id)) {
           return true

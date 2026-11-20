@@ -1,8 +1,8 @@
-import type { RuntimeMobileSessionTabsResult } from '../../../../shared/runtime-types'
-import { toWebTerminalSurfaceTabId } from '../../../../shared/workspace-layout/terminal-surface-id'
-import { sessionTabsFreshnessKey } from './state'
-import { isReadyTerminalTab, isTerminalSurfaceTab } from './terminal-surfaces'
-import { isWebSessionTabsWorktreeRemovalFrame } from './session-tabs-inventory-absence'
+import type { RuntimeMobileSessionTabsResult } from "../../../../shared/runtime-session-contracts"
+import { toWebTerminalSurfaceTabId } from "../../../../shared/workspace-layout/terminal-surface-id"
+import { sessionTabsFreshnessKey } from "./state"
+import { isReadyTerminalTab, isTerminalSurfaceTab } from "./terminal-surfaces"
+import { isWebSessionTabsWorktreeRemovalFrame } from "./session-tabs-inventory-absence"
 
 type WorktreeSurfaces = {
   environmentId: string

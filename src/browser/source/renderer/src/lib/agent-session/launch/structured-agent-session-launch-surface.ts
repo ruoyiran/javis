@@ -1,41 +1,44 @@
 import {
   findIndexedProjectGroupOwner,
   findIndexedWorktreeOwner
-} from '../../workspace/ownership/worktree-runtime-owner-index'
-import '../../workspace/ownership/workspace-catalog-owner-index'
-import { findIndexedRepoOwner } from '../../workspace/ownership/repo-owner-index'
-import { folderWorkspaceToWorktree } from '../../../../../shared/folder-workspaces/folder-workspace-worktree'
-import type { Tab } from '../../../../../shared/tab-types'
-import { getRepoExecutionHostId, type ExecutionHostId } from '../../../../../shared/execution-host'
-import type { TuiAgent } from '../../../../../shared/agent-launch/catalog/tui-agent'
-import { defaultAgentChatLabel } from '../../../../../shared/agent-session/agent-session-chat-label'
-import { structuredAgentSessionTabId } from '../../../../../shared/agent-session/view/structured-agent-session-projection'
-import { useAppStore } from '@/store/index'
-import { resolveUnifiedTabCreatePlacement } from '@/store/slices/tabs/tabs-create-placement'
-import type { StructuredLaunchSurfaceAddress } from './structured-agent-session-launch-record'
+} from "../../workspace/ownership/worktree-runtime-owner-index"
+import "../../workspace/ownership/workspace-catalog-owner-index"
+import { findIndexedRepoOwner } from "../../workspace/ownership/repo-owner-index"
+import { folderWorkspaceToWorktree } from "../../../../../shared/folder-workspaces/folder-workspace-worktree"
+import type { Tab } from "../../../../../shared/tab-types"
+import {
+  getRepoExecutionHostId,
+  type ExecutionHostId
+} from "../../../../../shared/execution-host"
+import type { TuiAgent } from "../../../../../shared/agent-launch/catalog/tui-agent"
+import { defaultAgentChatLabel } from "../../../../../shared/agent-session/agent-session-chat-label"
+import { structuredAgentSessionTabId } from "../../../../../shared/agent-session/view/structured-agent-session-projection"
+import { useAppStore } from "../../../store/index"
+import { resolveUnifiedTabCreatePlacement } from "../../../store/slices/tabs/tabs-create-placement"
+import type { StructuredLaunchSurfaceAddress } from "./structured-agent-session-launch-record"
 import {
   readStructuredAgentLaunchRecord,
   readStructuredAgentLaunchRecords,
   writeStructuredAgentLaunchRecord
-} from './structured-agent-session-launch-persistence'
-import { getStructuredAgentSessionLaunchOwner } from './structured-agent-session-launch-registry'
-import { getStructuredLaunchStateBySessionId } from './structured-agent-session-launch-state-store'
+} from "./structured-agent-session-launch-persistence"
+import { getStructuredAgentSessionLaunchOwner } from "./structured-agent-session-launch-registry"
+import { getStructuredLaunchStateBySessionId } from "./structured-agent-session-launch-state-store"
 import {
   structuredAgentSessionFocusOwner,
   structuredAgentSessionTargetForHost
-} from '@/runtime/native-chat/session-ownership/structured-agent-session-owner'
-import { holdFrameDrawnProvisionalChatTab } from '../../../store/workspace-layout/frames/frame-drawn-chat-tab-placement'
-import { ORCA_LAYOUT_OWNER_IS_MAIN } from '../../../../../shared/layout-owner-switch'
+} from "../../../runtime/native-chat/session-ownership/structured-agent-session-owner"
+import { holdFrameDrawnProvisionalChatTab } from "../../../store/workspace-layout/frames/frame-drawn-chat-tab-placement"
+import { ORCA_LAYOUT_OWNER_IS_MAIN } from "../../../../../shared/layout-owner-switch"
 import {
   openAgentSessionTabThroughLayoutOwner,
   type OpenedAgentSessionTab
-} from './pane/structured-agent-session-tab-open-through-layout-owner'
+} from "./pane/structured-agent-session-tab-open-through-layout-owner"
 import {
   clearWebSessionFocusIntentIfMatches,
   peekWebSessionFocusIntent,
   resolveWebSessionVisibleTabId
-} from '@/runtime/web-session-tabs-sync/navigation/web-session-focus-intent'
-import { selectFolderWorkspaces } from '@/store/workspaces/catalog/workspace-record-fields'
+} from "../../../runtime/web-session-tabs-sync/navigation/web-session-focus-intent"
+import { selectFolderWorkspaces } from "../../../store/workspaces/catalog/workspace-record-fields"
 
 type LaunchSurface = {
   sessionId: string

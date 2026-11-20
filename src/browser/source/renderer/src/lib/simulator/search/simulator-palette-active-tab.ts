@@ -1,7 +1,10 @@
-import type { ExecutionHostId } from '../../../../../shared/execution-host'
-import type { TabGroup, WorkspaceVisibleTabType } from '../../../../../shared/tab-types'
-import type { Worktree } from '../../../../../shared/worktree/types'
-import { isPaletteCurrentWorktree } from '../../workspace/search/palette-repo-resolution'
+import type { ExecutionHostId } from "../../../../../shared/execution-host"
+import type {
+  TabGroup,
+  WorkspaceVisibleTabType
+} from "../../../../../shared/tab-types"
+import type { Worktree } from "../../../../../shared/worktree/types"
+import { isPaletteCurrentWorktree } from "../../workspace/search/palette-repo-resolution"
 
 export function getActiveSimulatorTabId({
   worktreeId,

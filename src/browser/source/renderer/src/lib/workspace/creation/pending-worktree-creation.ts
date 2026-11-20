@@ -1,35 +1,35 @@
-import type { LaunchAgentStartupPromptPlan } from '@/lib/agent-session/launch/prompt/launch-agent-startup-prompt-plan'
-import type { agentPickerLaunchInputs } from '../../../../../shared/agent-launch/picker/agent-launch-picker'
-import type { ExecutionHostId } from '../../../../../shared/execution-host'
-import { worktreeIdsEqual } from '../../../../../shared/worktree/id'
+import type { LaunchAgentStartupPromptPlan } from "../../agent-session/launch/prompt/launch-agent-startup-prompt-plan"
+import type { agentPickerLaunchInputs } from "../../../../../shared/agent-launch/picker/agent-launch-picker"
+import type { ExecutionHostId } from "../../../../../shared/execution-host"
+import { worktreeIdsEqual } from "../../../../../shared/worktree/id"
 import type {
   WorkspaceLinkedItem as FolderWorkspaceLinkedTask,
   GitPushTarget,
   WorkspaceLinkedItem,
   WorkspaceStatus
-} from '../../../../../shared/worktree/types'
-import type { TuiAgent } from '../../../../../shared/agent-launch/catalog/tui-agent'
-import type { WorkspaceSource as WorkspaceCreateTelemetrySource } from '../../../../../shared/workspace-source'
+} from "../../../../../shared/worktree/types"
+import type { TuiAgent } from "../../../../../shared/agent-launch/catalog/tui-agent"
+import type { WorkspaceSource as WorkspaceCreateTelemetrySource } from "../../../../../shared/workspace/creation/workspace-source"
 import type {
   CreateSparseCheckoutRequest,
   CreateWorktreeArgs,
   SetupDecision,
   WorktreeCheckoutProgress
-} from '../../../../../shared/worktree/create-types'
-import type { WorktreeStartupLaunch } from '../../../../../shared/worktree/launch-types'
+} from "../../../../../shared/worktree/create-types"
+import type { WorktreeStartupLaunch } from "../../../../../shared/worktree/launch-types"
 
-import type { AgentStartupPlan } from '../../../../../shared/agent-launch/startup/tui-agent-startup'
-import type { AgentStartedTelemetry } from '@/lib/workspace/creation/worktree-startup-payload'
+import type { AgentStartupPlan } from "../../../../../shared/agent-launch/startup/tui-agent-startup"
+import type { AgentStartedTelemetry } from "./worktree-startup-payload"
 import type {
   TaskSourceContext,
   WorkspaceRunContext
-} from '../../../../../shared/work-items/task-source-context'
-import type { AgentLaunchRoute } from '@/lib/agent-session/launch/routing/agent-launch-routing'
-import { translate } from '@/i18n/i18n'
-import type { Translate } from '@/i18n/use-translate'
-import type { EnvironmentDoctorCheck } from '../../../../../shared/environment-doctor-types'
-import type { NativeChatComposerDraftImage } from '@/components/native-chat/drafts/native-chat-composer-draft-storage'
-import type { AgentJournalSkillRef } from '../../../../../shared/agent-session/journal/agent-session-journal-types'
+} from "../../../../../shared/work-items/task-source-context"
+import type { AgentLaunchRoute } from "../../agent-session/launch/routing/agent-launch-routing"
+import { translate } from "../../../i18n/i18n"
+import type { Translate } from "../../../i18n/use-translate"
+import type { EnvironmentDoctorCheck } from "../../../../../shared/environment-doctor-types"
+import type { NativeChatComposerDraftImage } from "../../../components/native-chat/drafts/native-chat-composer-draft-storage"
+import type { AgentJournalSkillRef } from "../../../../../shared/agent-session/journal/agent-session-journal-types"
 
 /** Creation phases include renderer preflight, base fetch and worktree add; remote/runtime can skip git phases, while VM recipes provision before runtime creation. */
 export type WorktreeCreationPhase = 'preparing' | 'provisioning-vm' | 'fetching' | 'creating'

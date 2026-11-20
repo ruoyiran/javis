@@ -4,16 +4,16 @@ import {
   isRuntimeEnvironmentContinuationPending,
   getRuntimeEnvironmentRevision,
   resolveContinuedRuntimeEnvironmentRevision
-} from '@/runtime/rpc/environment-revisions/runtime-environment-revision'
-import '@/store/slices/runtime-status/create-runtime-status-slice'
-import { getRuntimeEnvironmentConnectionGeneration } from '@/store/slices/runtime-status/runtime-status-connection-generation'
+} from "../../../runtime/rpc/environment-revisions/runtime-environment-revision"
+import "../../../store/slices/runtime-status/create-runtime-status-slice"
+import { getRuntimeEnvironmentConnectionGeneration } from "../../../store/slices/runtime-status/runtime-status-connection-generation"
 import {
   createStructuredSessionSelectionController,
   type StructuredSessionSelectionController
-} from '../../../../../shared/agent-session/options/structured-agent-session-selection-operations'
-import type { RuntimeClientTarget } from '../../../../../shared/runtime-client-target'
-import type { AgentType } from '../../../../../shared/agent-status/contracts/agent-status-types'
-import { enqueueSessionOptionSettingsWrite } from '@/components/native-chat/session/options/native-chat-session-option-settings-write'
+} from "../../../../../shared/agent-session/options/structured-agent-session-selection-operations"
+import type { RuntimeClientTarget } from "../../../../../shared/runtime-client-target"
+import type { AgentType } from "../../../../../shared/agent-status/contracts/agent-status-types"
+import { enqueueSessionOptionSettingsWrite } from "../../../components/native-chat/session/options/native-chat-session-option-settings-write"
 
 type SelectionCatalogState = { runtimeEnvironmentCatalogHydrated: boolean }
 type SelectionCatalogStore = {
@@ -78,7 +78,7 @@ export function structuredSessionSelectionController(
     ...createStructuredSessionSelectionController((picks) => {
       void controller
         .request((options) => {
-          const mutation = { type: 'apply-picks', agent, picks } as const
+          const mutation = { type: 'apply-picks', agent, picks, sessionId } as const
           return options.expectedEnvironmentPairingRevision === undefined
             ? enqueueSessionOptionSettingsWrite(target, mutation)
             : enqueueSessionOptionSettingsWrite(target, mutation, options)

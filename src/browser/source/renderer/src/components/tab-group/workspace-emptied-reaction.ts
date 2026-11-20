@@ -1,4 +1,5 @@
-import { FLOATING_TERMINAL_WORKTREE_ID } from '../../../../shared/constants'
+import { FLOATING_TERMINAL_WORKTREE_ID } from '../../../../shared/workspace/identity/floating-workspace-id'
+
 import { useAppStore } from '../../store'
 import { armFloatingPanelReclaimIntent } from '@/components/floating-terminal/floating-workspace-focus-reclaim'
 import { isFloatingWorkspacePanelFocused } from '@/components/floating-terminal/floating-workspace-terminal-actions'

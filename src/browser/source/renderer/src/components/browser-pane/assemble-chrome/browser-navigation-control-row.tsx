@@ -1,11 +1,11 @@
 import { ArrowLeft, ArrowRight, RefreshCw, X } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { useTranslate } from '@/i18n/use-translate'
-import { cn } from '@/lib/class-names'
+import { Button } from "../../ui/button"
+import { useTranslate } from "../../../i18n/use-translate"
+import { cn } from "../../../lib/class-names"
 import {
   BROWSER_CHROME_ADDRESS_SLOT_ATTRIBUTE,
   BROWSER_CHROME_ADDRESS_SLOT_HEIGHT_CLASS
-} from './browser-chrome-address-slot'
+} from "./browser-chrome-address-slot"
 
 /** Local/client-hosted panes provide webview controls; legacy streamed panes provide runtime RPCs. */
 export type BrowserNavigationControls = {
@@ -49,34 +49,31 @@ export function BrowserNavigationControlRow({
       {...(showTourAnchors ? { 'data-contextual-tour-target': 'browser-toolbar' } : {})}
     >
       <Button
-        size="icon"
-        variant="ghost"
-        className="h-7 w-7"
+        size="icon-xs"
+        variant="muted-field-icon"
         onClick={controls.goBack}
         disabled={!controls.canGoBack}
         aria-label={t('browser.navigation.back', 'Back')}
       >
-        <ArrowLeft className="size-4" />
+        <ArrowLeft className="size-3.5" />
       </Button>
       <Button
-        size="icon"
-        variant="ghost"
-        className="h-7 w-7"
+        size="icon-xs"
+        variant="muted-field-icon"
         onClick={controls.goForward}
         disabled={!controls.canGoForward}
         aria-label={t('browser.navigation.forward', 'Forward')}
       >
-        <ArrowRight className="size-4" />
+        <ArrowRight className="size-3.5" />
       </Button>
       {reloadControl ?? (
         <Button
-          size="icon"
-          variant="ghost"
-          className="h-7 w-7"
+          size="icon-xs"
+          variant="muted-field-icon"
           onClick={controls.reload}
           aria-label={reloadLabel ?? t('browser.navigation.reload', 'Reload')}
         >
-          {reloadShowsStop ? <X className="size-4" /> : <RefreshCw className="size-4" />}
+          {reloadShowsStop ? <X className="size-3.5" /> : <RefreshCw className="size-3.5" />}
         </Button>
       )}
 

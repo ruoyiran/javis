@@ -1,18 +1,18 @@
 import {
   isRemoteRuntimePtyId,
   parseRemoteRuntimePtyId
-} from '../../../../shared/remote-runtime/remote-runtime-pty-id'
-import type { SleepingAgentSessionRecord } from '../../../../shared/agent-session/lifecycle/agent-session-resume'
-import type { AppState } from '../types'
-import type { WorktreeRuntimeOwnerState } from '@/lib/workspace/ownership/worktree-runtime-owner-state'
+} from "../../../../shared/remote-runtime/remote-runtime-pty-id"
+import type { SleepingAgentSessionRecord } from "../../../../shared/agent-session/lifecycle/agent-session-resume"
+import type { AppState } from "../types"
+import type { WorktreeRuntimeOwnerState } from "../../lib/workspace/ownership/worktree-runtime-owner-state"
 import {
   resolveTerminalHostOwnership,
   resolveTerminalPtyOwner
-} from '@/lib/workspace/ownership/terminal-worktree-route'
-import { FLOATING_TERMINAL_WORKTREE_ID } from '../../../../shared/constants'
-import { isEphemeralSetupTerminalWorktreeId } from '../../../../shared/ephemeral-setup-terminal-worktree-id'
-import { parseWorkspaceKey } from '../../../../shared/workspace-scope'
-import { locateTerminalTab } from './terminal-tab-location'
+} from "../../lib/workspace/ownership/terminal-worktree-route"
+import { FLOATING_TERMINAL_WORKTREE_ID } from "../../../../shared/workspace/identity/floating-workspace-id"
+import { isEphemeralSetupTerminalWorktreeId } from "../../../../shared/ephemeral-setup-terminal-worktree-id"
+import { parseWorkspaceKey } from "../../../../shared/workspace-scope"
+import { locateTerminalTab } from "./terminal-tab-location"
 
 export type TerminalTabCloseReason = 'user' | 'cleanup' | 'pty-exit'
 

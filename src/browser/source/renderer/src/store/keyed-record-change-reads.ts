@@ -1,4 +1,4 @@
-import { isIndexKey } from './keyed-record-index-keys'
+import { isIndexKey } from "./keyed-record-index-keys"
 import {
   linkOf,
   type AddressedKeyChanges,
@@ -8,7 +8,7 @@ import {
   type Link,
   type RecordChanges,
   type TabMapChanges
-} from './keyed-record-transitions'
+} from "./keyed-record-transitions"
 
 // Readers that skipped intermediate states still get an exact union; deeper gaps resync.
 const MAX_CHAIN = 64
@@ -82,6 +82,30 @@ export function readRecordChanges(next: Keyed, previous: Keyed): RecordChanges |
   return typeof result === 'string'
     ? { kind: 'full-resync', reason: result }
     : { kind: 'addressed', keys: result.keys, added: result.added, deleted: result.deleted }
+}
+
+/** Whether writes from `previous` to `next` may touch a key `reaches` accepts; unannotated ones may. */
+export function recordChangeReaches(
+  next: Keyed,
+  previous: Keyed | undefined,
+  reaches: (key: string) => boolean
+): boolean {
+  if (!previous) {
+    return true
+  }
+  const changes = readRecordChanges(next, previous)
+  if (!changes) {
+    return false
+  }
+  if (changes.kind !== 'addressed') {
+    return true
+  }
+  for (const key of changes.keys) {
+    if (reaches(key)) {
+      return true
+    }
+  }
+  return false
 }
 
 export function readTabMapChanges(

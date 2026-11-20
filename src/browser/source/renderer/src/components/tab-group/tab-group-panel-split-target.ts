@@ -1,21 +1,24 @@
 import type { DragEndEvent, DragMoveEvent, DragOverEvent } from '@dnd-kit/core'
-import type { TabGroup, TabGroupLayoutNode } from '../../../../shared/tab-types'
-import { isPaneColumnSplitDropNoOp } from '../../../../shared/workspace-layout/pane-column-split-drop-no-op'
+import type {
+  TabGroup,
+  TabGroupLayoutNode
+} from "../../../../shared/tab-types"
+import { isPaneColumnSplitDropNoOp } from "../../../../shared/workspace-layout/pane-column-split-drop-no-op"
 import {
   resolvePaneColumnEdgeZone,
   TAB_GROUP_TAB_STRIP_HEIGHT_PX,
   type PaneColumnSplitTarget
-} from './tab-drop-zone'
+} from "./tab-drop-zone"
 import {
   canDropTabIntoPaneBody,
   isPaneDropData,
   isTabDragData,
   type TabDragItemData
-} from './tab-drag-data'
+} from "./tab-drag-data"
 import {
   isDesktopCreatedTabInFrameDrawnServerWorkspace,
   serverTabCount
-} from '@/store/workspace-layout/frames/frame-drawn-desktop-created-tabs'
+} from "../../store/workspace-layout/frames/frame-drawn-desktop-created-tabs"
 
 export type TabGroupPanelGeometryEntry = {
   groupId: string

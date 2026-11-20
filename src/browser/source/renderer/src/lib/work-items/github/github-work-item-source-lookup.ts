@@ -1,30 +1,30 @@
 import {
   capturePRCheckContract,
   type PRCheckContract
-} from '../../source-control/checks/pr-check-observation-contract'
-import { acceptPRCheckObservation } from '../../../../../shared/github/complete-pr-check-owner'
-import type { GhAccountBinding } from '../../../../../shared/github/account-binding'
-import { getWorkItemRepo } from '../work-item-repo-row'
+} from "../../source-control/checks/pr-check-observation-contract"
+import { acceptPRCheckObservation } from "../../../../../shared/github/complete-pr-check-owner"
+import type { GhAccountBinding } from "../../../../../shared/github/account-binding"
+import { getWorkItemRepo } from "../work-item-repo-row"
 import type {
   GitHubWorkItem,
   GitHubWorkItemDetails
-} from '../../../../../shared/github/work-item-types'
-import type { RuntimeClientTarget } from '../../../../../shared/runtime-client-target'
-import type { TaskSourceContext } from '../../../../../shared/work-items/task-source-context'
-import type { GitHubOwnerRepo } from '../../../../../shared/github/pull-request-types'
-import { callRuntimeRpc } from '@/runtime/rpc/calls/runtime-rpc-call'
-import { callGitHubTargetOperation } from './github-work-item-target-request'
+} from "../../../../../shared/github/work-item-types"
+import type { RuntimeClientTarget } from "../../../../../shared/runtime-client-target"
+import type { TaskSourceContext } from "../../../../../shared/work-items/task-source-context"
+import type { GitHubRepositoryIdentity as GitHubOwnerRepo } from "../../../../../shared/github/repositories/repository-identity"
+import { callRuntimeRpc } from "../../../runtime/rpc/calls/runtime-rpc-call"
+import { callGitHubTargetOperation } from "./github-work-item-target-request"
 import {
   GITHUB_EXACT_OPERATION_UNSUPPORTED,
   matchesGitHubWorkItemTarget,
   GitHubWorkItemTargetError,
   requireGitHubWorkItemTargetDetails
-} from '../../../../../shared/github/work-item-target'
+} from "../../../../../shared/github/work-item-target"
 import {
   getGitHubRuntimeRepoId,
   getGitHubSourceRuntimeHost,
   getGitHubSourceRuntimeTarget
-} from './github-source-runtime-context'
+} from "./github-source-runtime-context"
 
 type GitHubWorkItemLookupArgs = {
   repoPath: string
@@ -69,7 +69,7 @@ async function captureTaskRecords(args: GitHubWorkItemLookupArgs) {
   if (args.type === 'pr') {
     return undefined
   }
-  const { useAppStore } = await import('@/store/index')
+  const { useAppStore } = await import("../../../store/index")
   const state = useAppStore.getState()
   const cache = state.githubTaskCache
   const repo = getWorkItemRepo(state.repos ?? [], {
@@ -88,7 +88,7 @@ export async function lookupGitHubWorkItemForSource(
     args.type === 'pr'
       ? (args.checkContract ??
         capturePRCheckContract(
-          (await import('@/store/index')).useAppStore.getState,
+          (await import("../../../store/index")).useAppStore.getState,
           target,
           args.sourceContext
         ))
@@ -136,11 +136,14 @@ export async function lookupGitHubWorkItemByOwnerRepoForSource(
     args.type === 'pr'
       ? (args.checkContract ??
         capturePRCheckContract(
-          (await import('@/store/index')).useAppStore.getState,
+          (await import("../../../store/index")).useAppStore.getState,
           target,
           args.sourceContext
         ))
       : null
+  if (args.accepts?.() === false) {
+    return null
+  }
   const item =
     target.kind === 'environment'
       ? await callRuntimeRpc<Omit<GitHubWorkItem, 'repoId'> | null>(
@@ -221,7 +224,7 @@ export async function lookupGitHubWorkItemDetailsForSource(
   const contract =
     args.type === 'pr'
       ? capturePRCheckContract(
-          (await import('@/store/index')).useAppStore.getState,
+          (await import("../../../store/index")).useAppStore.getState,
           args.target ?? getGitHubSourceRuntimeTarget(sourceContext),
           sourceContext
         )

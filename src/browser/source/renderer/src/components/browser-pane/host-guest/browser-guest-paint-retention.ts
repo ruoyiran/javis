@@ -1,21 +1,21 @@
-import { useMemo } from 'react'
-import { useShallow } from 'zustand/react/shallow'
-import { useAppStore } from '../../../store'
 import {
   isBrowserPageMobileDriven,
-  onBrowserDriverChange,
-  useBrowserMobileDriverForAny
-} from '../../../runtime/browser/ownership/browser-mobile-driver-state'
-import { useBrowserRemoteViewerForAny } from '../../../runtime/browser/ownership/browser-remote-viewer-state'
+  onBrowserDriverChange
+} from '../../../runtime/browser/ownership/browser-mobile-driver-store'
 import {
   isBrowserPageRemotelyViewed,
   onBrowserRemoteViewerChange
 } from '../../../runtime/browser/ownership/browser-remote-viewer-store'
 import {
   isBrowserAutomationVisible,
-  onBrowserAutomationVisibilityChange,
-  useBrowserAutomationVisibilityForAny
-} from './browser-automation-visibility'
+  onBrowserAutomationVisibilityChange
+} from './retention/browser-automation-visibility-store'
+import { useMemo } from 'react'
+import { useShallow } from 'zustand/react/shallow'
+import { useAppStore } from '../../../store/index'
+import { useBrowserMobileDriverForAny } from '../../../runtime/browser/ownership/browser-mobile-driver-state'
+import { useBrowserRemoteViewerForAny } from '../../../runtime/browser/ownership/browser-remote-viewer-state'
+import { useBrowserAutomationVisibilityForAny } from './browser-automation-visibility'
 
 // Every ancestor must avoid display:none for retained guests; a pane cannot override hidden parents to keep mobile/agent/paired screencasts producing frames.
 
@@ -54,7 +54,6 @@ export function useBrowserGuestPaintRetention(browserPageIds: readonly string[])
   return hasAutomationVisibleBrowser || hasMobileDrivenBrowser || hasRemotelyViewedBrowser
 }
 
-// Centralize all paint-retention terms so new signals cannot silently miss a container gate.
 export function browserPageNeedsPaintRetention(browserPageId: string): boolean {
   return (
     isBrowserAutomationVisible(browserPageId) ||
@@ -63,7 +62,6 @@ export function browserPageNeedsPaintRetention(browserPageId: string): boolean {
   )
 }
 
-/** Fires whenever any retention term flips, for callers that cache a retention decision. */
 export function onBrowserGuestPaintRetentionChange(listener: () => void): () => void {
   const removeListeners = [
     onBrowserAutomationVisibilityChange(listener),
@@ -71,9 +69,7 @@ export function onBrowserGuestPaintRetentionChange(listener: () => void): () => 
     onBrowserRemoteViewerChange(listener)
   ]
   return () => {
-    for (const removeListener of removeListeners) {
-      removeListener()
-    }
+    for (const removeListener of removeListeners) removeListener()
   }
 }
 

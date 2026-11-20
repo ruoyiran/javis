@@ -1,32 +1,33 @@
-import { buildHttpLinkActions } from '@/lib/browser/navigation/http-link-destinations'
-import { openDetectedFilePath } from './terminal-file-open-routing'
+import { buildHttpLinkActions } from "../../../../lib/browser/navigation/http-link-destinations"
+import { openDetectedFilePath } from "./terminal-file-open-routing"
 import {
   getTerminalFileContext,
   mapTerminalFilePath,
   shouldOpenTerminalFileWithSystemDefault,
   terminalLinkWslDistro
-} from '../../host-files/terminal-file-path-mapping'
-import { isHtmlFilePath, localHtmlFileDestinations } from './local-html-file-destinations'
-import { isTerminalLinkDirectActivation } from '../gestures/terminal-link-activation'
-import { requestTerminalLinkAction } from '../terminal-link-action-request'
-import type { TerminalLinkActionContext } from '../terminal-link-action-request'
-import { resolveKnownWorktreeRootPathLink } from './terminal-worktree-path-link'
-import { translate } from '@/i18n/i18n'
+} from "../../host-files/terminal-file-path-mapping"
+import { isHtmlFilePath, localHtmlFileDestinations } from "./local-html-file-destinations"
+import { isTerminalLinkDirectActivation } from "../gestures/terminal-link-activation"
+import { requestTerminalLinkAction } from "../terminal-link-action-request"
+import type { TerminalLinkActionContext } from "../terminal-link-action-request"
+import { resolveKnownWorktreeRootPathLink } from "./terminal-worktree-path-link"
+import { translate } from "../../../../i18n/i18n"
 import {
   getRevealInFileManagerLabel,
   revealInFileManager
-} from '@/lib/files/os-open/reveal-in-file-manager'
-import { useAppStore } from '@/store/index'
+} from "../../../../lib/files/os-open/reveal-in-file-manager"
+import { useAppStore } from "../../../../store/index"
 import {
   getLocalPathOpenOwnerForRoute,
   isLocalPathOpenBlocked
-} from '@/lib/files/os-open/local-path-open-guard'
-import '@/store/slices/editor/tabs/editor-open-target-group'
-import { canOpenLinkInSourceGroup } from '@/lib/links/placement/link-open-intent'
-import type { FileOpenFailure } from './terminal-file-open-failure'
-import type { LinkActionRequest } from '@/components/link-actions/link-action-request'
-import type { HttpLinkSourceOwner } from '@/lib/browser/navigation/http-link-routing'
-import type { Translate } from '@/i18n/use-translate'
+} from "../../../../lib/files/os-open/local-path-open-guard"
+import "../../../../store/slices/editor/tabs/editor-open-target-group"
+import { canOpenLinkInSourceGroup } from "../../../../lib/links/placement/link-open-intent"
+import { isPairedWebClientWindow } from "../../../../app-shell/chrome/desktop-window-chrome"
+import type { FileOpenFailure } from "./terminal-file-open-failure"
+import type { LinkActionRequest } from "../../../link-actions/link-action-request"
+import type { HttpLinkSourceOwner } from "../../../../lib/browser/navigation/http-link-routing"
+import type { Translate } from "../../../../i18n/use-translate"
 
 export type TerminalFileLinkActionDeps = {
   worktreeId: string
@@ -150,6 +151,14 @@ export function buildFileLinkActions(
                   openWithSystemDefault: true
                 })
             }
+  // Why: a paired web client has no local disk to save into.
+  const downloadRow =
+    systemDefaultRow && !canOpenWithSystemDefault && !isPairedWebClientWindow()
+      ? {
+          label: t('auto.components.terminal.pane.TerminalLinkActionPopover.download', 'Download…'),
+          run: () => openDetectedFilePath(filePath, line, column, { ...deps, downloadOnly: true })
+        }
+      : null
   // Omit remote reveal: rows have no disabled state and the file manager only shows local files.
   const revealOwner = getLocalPathOpenOwnerForRoute({
     runtimeEnvironmentId: deps.runtimeEnvironmentId
@@ -185,7 +194,7 @@ export function buildFileLinkActions(
             })
         }
       : null
-  const secondaryActions = [openInGroupRow, revealRow].filter((row) => row !== null)
+  const secondaryActions = [downloadRow, openInGroupRow, revealRow].filter((row) => row !== null)
   const rows =
     !worktreeRoot && canOpenWithSystemDefault && isHtmlFilePath(mappedPath)
       ? buildHttpLinkActions(

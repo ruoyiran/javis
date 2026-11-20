@@ -1,13 +1,13 @@
 import { useEffect, type MutableRefObject } from 'react'
-import { getShortcutPlatform } from '@/hooks/useShortcutLabel'
-import { useAppStore } from '@/store'
-import { keybindingMatchesAction } from '../../../../../shared/keybindings'
-import { browserChromeShortcutOwnsEvent } from '../describe-page/browser-overlay-shortcut-target'
-import type { BrowserChromeShortcutScope } from '../describe-page/browser-page-types'
-import type { GrabIntent } from '../../../../../shared/browser/element-grab/browser-grab-types'
-import { isEditableKeyboardTarget } from './browser-keyboard'
-import { useBrowserPageWebviewShortcuts } from './use-browser-page-webview-shortcuts'
-import { addAppKeyListener, removeAppKeyListener } from '@/lib/keyboard/app-keyboard-router'
+import { getShortcutPlatform } from "../../../lib/keyboard/shortcut-platform"
+import { useAppStore } from "../../../store/index"
+import { keybindingMatchesAction } from "../../../../../shared/keybindings/matching"
+import { browserChromeShortcutOwnsEvent } from "../describe-page/browser-overlay-shortcut-target"
+import type { BrowserChromeShortcutScope } from "../describe-page/browser-page-types"
+import type { GrabIntent } from "../../../../../shared/browser/element-grab/browser-grab-types"
+import { isEditableKeyboardTarget } from "./browser-keyboard"
+import { useBrowserPageWebviewShortcuts } from "./use-browser-page-webview-shortcuts"
+import { addAppKeyListener, removeAppKeyListener } from "../../../lib/keyboard/app-keyboard-router"
 
 export function useBrowserPageKeyboardShortcuts({
   browserTabId,

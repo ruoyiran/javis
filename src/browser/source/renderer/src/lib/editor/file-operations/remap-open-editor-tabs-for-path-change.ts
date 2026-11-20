@@ -1,26 +1,26 @@
-import { useAppStore } from '@/store/index'
-import { detectLanguage } from '../../../../../shared/editor-language/editor-language-detect'
-import { basename } from '@/lib/path'
+import { useAppStore } from "../../../store/index"
+import { detectLanguage } from "../../../../../shared/editor-language/editor-language-detect"
+import { basename } from "../../path"
 import {
   isOpenFileOnMoveOwner,
   type EditorMoveOwner
-} from '@/lib/editor/file-operations/open-editor-move-owner'
+} from "./open-editor-move-owner"
 import {
   buildDiffEditorFileId,
   buildOwnedEditorFileId,
   resolveEditorFileIdForOwner
-} from '@/store/slices/editor/file-ids/editor-file-ids'
+} from "../../../store/slices/editor/file-ids/editor-file-ids"
 import type {
   OpenFilePathRekey,
   RekeyOpenFilesResult
-} from '@/store/slices/editor/types/open-file-path-rekey'
+} from "../../../store/slices/editor/types/open-file-path-rekey"
 import {
   isPathInsideOrEqual,
   isWindowsAbsolutePathLike,
   normalizeRuntimePathSeparators,
   relativePathInsideRoot
-} from '../../../../../shared/cross-platform-path'
-import { FLOATING_TERMINAL_WORKTREE_ID } from '../../../../../shared/constants'
+} from "../../../../../shared/cross-platform-path"
+import { FLOATING_TERMINAL_WORKTREE_ID } from "../../../../../shared/workspace/identity/floating-workspace-id"
 
 // Share flavor-aware containment so Windows/UNC/WSL case/separator variants retarget instead of stranding tabs on renamed paths.
 

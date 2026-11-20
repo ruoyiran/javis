@@ -1,61 +1,50 @@
-import { GitHubBodyImageUrlsContext } from './comment-markdown-github-image-urls'
+import { GitHubBodyImageUrlsContext } from "./comment-markdown-github-image-urls"
 import React from 'react'
 import {
   CommentMarkdownMermaidContext,
   CommentMarkdownMermaidSourceContext
-} from './comment-markdown-mermaid-policy'
+} from "./comment-markdown-mermaid-policy"
+import type { Components, Options as MarkdownOptions } from 'react-markdown'
 import {
-  defaultUrlTransform,
-  type Components,
-  type Options as MarkdownOptions
-} from 'react-markdown'
-import remarkGfm from 'remark-gfm'
-import remarkBreaks from 'remark-breaks'
-import { remarkChatMath } from './chat-markdown-math'
-import { copyChatMathSelection } from './chat-markdown-math-selection'
-import remarkCjkFriendly from 'remark-cjk-friendly/parseOnly'
+  commentMarkdownSanitizeSchema,
+  commentMarkdownAllowedTagNames,
+  commentMarkdownUrlTransform
+} from "../comment-markdown/comment-markdown-sanitize"
+import {
+  commentMarkdownRemarkPlugins as remarkPlugins,
+  doubleTildeStrikethrough
+} from "../comment-markdown/comment-markdown-remark-plugins"
+import { remarkChatMath } from "./chat-markdown-math"
+import { copyChatMathSelection } from "./chat-markdown-math-selection"
 import rehypeRaw from 'rehype-raw'
-import rehypeSanitize, { defaultSchema, type Options as SanitizeSchema } from 'rehype-sanitize'
+import rehypeSanitize, { type Options as SanitizeSchema } from 'rehype-sanitize'
 import remend from 'remend'
-import { cn } from '@/lib/class-names'
+import { cn } from "../../lib/class-names"
 import {
   selectCommentMarkdownComponents,
-  isTrustedCompactImageSrc,
   type CommentMarkdownLinkClickHandler,
   type DocumentCodeBlockRenderer
-} from './comment-markdown-element-renderers'
+} from "./comment-markdown-element-renderers"
 import {
   linkNativeChatFilePaths,
   type FileLinkExists
-} from '../../../../shared/native-chat/native-chat-file-link-tree'
-import { CommentMarkdownBlockLineContext } from './comment-markdown-code-renderers'
-import { htmlRendersAsText, remarkUnknownHtmlAsText } from './comment-markdown-unknown-html-as-text'
-import { CommentMarkdownWords } from './CommentMarkdownWords'
+} from "../../../../shared/native-chat/native-chat-file-link-tree"
+import { CommentMarkdownBlockLineContext } from "./comment-markdown-code-renderers"
+import { htmlRendersAsText, remarkUnknownHtmlAsText } from "./comment-markdown-unknown-html-as-text"
+import { CommentMarkdownWords } from "./CommentMarkdownWords"
 import {
   MemoizedMarkdown,
   useMarkdownBlocks,
   markdownBlockContent
-} from './comment-markdown-block-pipeline'
-import { GITHUB_CALLOUT_SANITIZE_ATTRIBUTE } from '../../../../shared/github/github-callouts'
-import { remarkGitHubCallouts } from '@/lib/markdown/remark-github-callouts'
-import { remarkAutolinkLiteralProseBoundary } from '@/lib/markdown/remark-autolink-literal-prose-boundary'
+} from "./comment-markdown-block-pipeline"
 import {
   linkGitHubReferences,
   type GitHubRepoReference
-} from '../../../../shared/github/github-reference-links'
-
-export type { CommentMarkdownLinkClickHandler } from './comment-markdown-element-renderers'
+} from "../../../../shared/github/github-reference-links"
 
 type MarkdownPlugins = NonNullable<MarkdownOptions['rehypePlugins']>
 type RemarkPlugins = NonNullable<MarkdownOptions['remarkPlugins']>
 type UrlTransform = NonNullable<MarkdownOptions['urlTransform']>
-
-const commentMarkdownUrlTransform: UrlTransform = (value, key, node) => {
-  if (key === 'src' && node?.tagName === 'img' && isTrustedCompactImageSrc(value)) {
-    return value
-  }
-  return defaultUrlTransform(value)
-}
 
 const commentMarkdownFileUriUrlTransform: UrlTransform = (value, key, node) => {
   if (key === 'href' && node?.tagName === 'a' && value.trim().toLowerCase().startsWith('file:')) {
@@ -63,15 +52,6 @@ const commentMarkdownFileUriUrlTransform: UrlTransform = (value, key, node) => {
   }
   return commentMarkdownUrlTransform(value, key, node)
 }
-
-// remark-breaks preserves newlines expected by existing plain-text comments; CommonMark otherwise collapses them.
-const remarkPlugins = [
-  remarkGfm,
-  remarkCjkFriendly,
-  remarkAutolinkLiteralProseBoundary,
-  remarkGitHubCallouts,
-  remarkBreaks
-]
 
 function remarkNativeChatFileLinks(
   exists: FileLinkExists
@@ -85,48 +65,13 @@ export function remarkGitHubReferences(
   return () => (tree) => linkGitHubReferences(tree, defaultRepo)
 }
 
-const commentMarkdownSanitizeSchema: SanitizeSchema = {
-  ...defaultSchema,
-  tagNames: [...(defaultSchema.tagNames ?? []), 'details', 'summary', 'sub', 'sup', 'ins', 'kbd'],
-  attributes: {
-    ...defaultSchema.attributes,
-    a: [...(defaultSchema.attributes?.a ?? []), 'href', 'title'],
-    blockquote: [
-      ...(defaultSchema.attributes?.blockquote ?? []),
-      GITHUB_CALLOUT_SANITIZE_ATTRIBUTE
-    ],
-    details: [...(defaultSchema.attributes?.details ?? []), 'open'],
-    img: [...(defaultSchema.attributes?.img ?? []), 'src', 'alt', 'title', 'width', 'height'],
-    input: [...(defaultSchema.attributes?.input ?? []), 'type', 'checked', 'disabled'],
-    code: [
-      ...(defaultSchema.attributes?.code ?? []),
-      ['className', 'language-math', 'math-inline', 'math-display']
-    ],
-    span: [
-      ...(defaultSchema.attributes?.span ?? []),
-      ['className', 'language-math', 'math-inline', 'math-display', 'whitespace-pre-wrap']
-    ],
-    div: [
-      ...(defaultSchema.attributes?.div ?? []),
-      ['className', 'language-math', 'math-inline', 'math-display', 'whitespace-pre-wrap']
-    ],
-    td: [...(defaultSchema.attributes?.td ?? []), 'align'],
-    th: [...(defaultSchema.attributes?.th ?? []), 'align']
-  },
-  protocols: {
-    ...defaultSchema.protocols,
-    // Allow file links through sanitize for native chat; other surfaces still strip them in URL transformation.
-    href: [...(defaultSchema.protocols?.href ?? []), 'file'],
-    src: [...(defaultSchema.protocols?.src ?? []), 'data', 'blob', 'orca-jira-image']
-  }
-}
-
-const allowedTagNames: ReadonlySet<string> = new Set(
-  (commentMarkdownSanitizeSchema.tagNames ?? []).map((name) => name.toLowerCase())
-)
 // Escape HTML before remark-breaks so newlines inside it still break.
-const unknownHtmlAsTextRemarkPlugins = [remarkUnknownHtmlAsText(allowedTagNames), ...remarkPlugins]
-const unknownHtmlRendersAsText = (html: string): boolean => htmlRendersAsText(html, allowedTagNames)
+const unknownHtmlAsTextRemarkPlugins = [
+  remarkUnknownHtmlAsText(commentMarkdownAllowedTagNames),
+  ...remarkPlugins
+]
+const unknownHtmlRendersAsText = (html: string): boolean =>
+  htmlRendersAsText(html, commentMarkdownAllowedTagNames)
 
 // GitHub comments use raw HTML; parse it then sanitize before rendering.
 const rehypePlugins: MarkdownPlugins = [rehypeRaw, [rehypeSanitize, commentMarkdownSanitizeSchema]]
@@ -173,6 +118,8 @@ type CommentMarkdownProps = React.ComponentPropsWithoutRef<'div'> & {
   extension?: CommentMarkdownExtension
   /** Show raw HTML that sanitize would strip as literal text instead of dropping its tags. */
   unknownHtmlAsText?: boolean
+  /** GitHub strikes ~single~ tildes; agent text turns this off so ranges like 1~2 stay literal. */
+  singleTildeStrikethrough?: boolean
 }
 
 // Why forwardRef + rest props: Radix's HoverCardTrigger asChild merges a ref
@@ -199,6 +146,7 @@ const CommentMarkdown = React.memo(
       extension,
       onCopy,
       unknownHtmlAsText = false,
+      singleTildeStrikethrough = true,
       ...rest
     },
     ref
@@ -226,14 +174,17 @@ const CommentMarkdown = React.memo(
       [extension]
     )
     const activeRemarkPlugins = React.useMemo(() => {
-      const basePlugins = unknownHtmlAsText ? unknownHtmlAsTextRemarkPlugins : remarkPlugins
+      const htmlPlugins = unknownHtmlAsText ? unknownHtmlAsTextRemarkPlugins : remarkPlugins
+      const basePlugins = singleTildeStrikethrough
+        ? htmlPlugins
+        : [...htmlPlugins, doubleTildeStrikethrough]
       const plugins = fileLinkExists
         ? [...basePlugins, remarkNativeChatFileLinks(fileLinkExists)]
         : basePlugins
       const withMath: RemarkPlugins = math ? [...plugins, remarkChatMath] : plugins
       const withExtension = extension ? [...withMath, ...extension.remarkPlugins] : withMath
       return githubRepo ? [...withExtension, remarkGitHubReferences(githubRepo)] : withExtension
-    }, [extension, fileLinkExists, githubRepo, math, unknownHtmlAsText])
+    }, [extension, fileLinkExists, githubRepo, math, singleTildeStrikethrough, unknownHtmlAsText])
     const blocks = useMarkdownBlocks(
       content,
       growing,

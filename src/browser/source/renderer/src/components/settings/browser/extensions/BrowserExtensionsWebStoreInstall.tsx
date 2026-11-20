@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { CHROME_WEB_STORE_HOME_URL } from '../../../../../../shared/browser/extensions/browser-extension-webstore'
-import { useTranslate } from '@/i18n/use-translate'
-import { useAppStore } from '@/store/index'
-import { LoadingSpinner } from '../../../LoadingSpinner'
-import { Button } from '../../../ui/button'
-import { Input } from '../../../ui/input'
+import { trackBrowserExtensionsWebStoreOpened } from "../../../../diagnostics/telemetry/browser-extensions-telemetry"
+import { CHROME_WEB_STORE_HOME_URL } from "../../../../../../shared/browser/extensions/browser-extension-webstore"
+import { useTranslate } from "../../../../i18n/use-translate"
+import { useAppStore } from "../../../../store/index"
+import { LoadingSpinner } from "../../../LoadingSpinner"
+import { Button } from "../../../ui/button"
+import { Input } from "../../../ui/input"
 
 type BrowserExtensionsWebStoreInstallProps = {
   profileId: string
@@ -50,6 +51,7 @@ export function BrowserExtensionsWebStoreInstall({
 
   const openStore = async (): Promise<void> => {
     if (await openBrowserProfileTab(CHROME_WEB_STORE_HOME_URL, profileId)) {
+      trackBrowserExtensionsWebStoreOpened('settings')
       closeSettingsPage()
     } else {
       toast.error(

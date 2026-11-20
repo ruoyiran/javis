@@ -1,15 +1,17 @@
 import { useCallback, useEffect } from 'react'
-import { callRuntimeRpc } from '@/runtime/rpc/calls/runtime-rpc-call'
-import { isRemoteBrowserPageMissingError } from './remote-browser-stream-errors'
-import type { RemoteBrowserStreamLifecycle } from './remote-browser-stream-lifecycle'
-import type { RemoteBrowserOperationToken } from './remote-browser-stream-tokens'
+import { callRuntimeRpc } from "../../../runtime/rpc/calls/runtime-rpc-call"
+import { isRemoteBrowserPageMissingError } from "./remote-browser-stream-errors"
+import type { RemoteBrowserStreamLifecycle } from "./remote-browser-stream-lifecycle"
+import type { RemoteBrowserOperationToken } from "./remote-browser-stream-tokens"
 import {
   WHEEL_DELTA_LINE,
   WHEEL_DELTA_PAGE,
   type PendingRemoteBrowserWheel,
   type RemoteBrowserPaneNotice,
   type RemoteBrowserRuntimeTarget
-} from './remote-browser-page-input-model'
+} from "./remote-browser-page-input-model"
+import { remoteBrowserWheelZoomDirection } from "./use-remote-browser-page-zoom"
+import type { BrowserPageZoomDirection } from "../../../../../shared/browser-page-zoom"
 
 export function useRemoteBrowserPageWheel({
   busy,
@@ -28,7 +30,8 @@ export function useRemoteBrowserPageWheel({
   setPaneNotice,
   pendingRemoteWheelRef,
   remoteWheelFrameRef,
-  remoteWheelInFlightRef
+  remoteWheelInFlightRef,
+  requestZoom
 }: {
   busy: boolean
   imageRef: React.RefObject<HTMLImageElement | null>
@@ -50,6 +53,8 @@ export function useRemoteBrowserPageWheel({
   pendingRemoteWheelRef: React.MutableRefObject<PendingRemoteBrowserWheel | null>
   remoteWheelFrameRef: React.MutableRefObject<number | null>
   remoteWheelInFlightRef: React.MutableRefObject<boolean>
+  /** Null when the host can't zoom, so zoom gestures scroll as they always did there. */
+  requestZoom: ((direction: BrowserPageZoomDirection, gesture?: 'key' | 'wheel') => void) | null
 }): void {
   const schedulePendingRemoteWheel = useCallback((): void => {
     if (remoteWheelFrameRef.current !== null || remoteWheelInFlightRef.current) {
@@ -120,6 +125,12 @@ export function useRemoteBrowserPageWheel({
 
   const handleRemoteScreenshotWheel = useCallback(
     (event: WheelEvent): void => {
+      const zoomDirection = requestZoom ? remoteBrowserWheelZoomDirection(event) : null
+      if (requestZoom && zoomDirection) {
+        event.preventDefault()
+        requestZoom(zoomDirection, 'wheel')
+        return
+      }
       if (busy) {
         event.preventDefault()
         return
@@ -173,6 +184,7 @@ export function useRemoteBrowserPageWheel({
       lifecycle,
       pendingRemoteWheelRef,
       remoteViewportRef,
+      requestZoom,
       runtimeTarget,
       schedulePendingRemoteWheel,
       setPaneNotice

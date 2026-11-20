@@ -1,27 +1,28 @@
-import { usePaneScrollbackClear } from '../../snapshots/use-pane-scrollback-clear'
-import { usePersistedPaneTitleActions } from '../../titles/use-persisted-pane-title-actions'
-import { useSyntheticPaneTitlePruning } from '../../titles/use-synthetic-pane-title-pruning'
+import { usePaneScrollbackClear } from "../../snapshots/use-pane-scrollback-clear"
+import { usePersistedPaneTitleActions } from "../../titles/use-persisted-pane-title-actions"
+import { useSyntheticPaneTitlePruning } from "../../titles/use-synthetic-pane-title-pruning"
 import { useCallback, useEffect, useLayoutEffect, useRef } from 'react'
-import { useAppStore } from '../../../../store/index'
+import { useAppStore } from "../../../../store/index"
 
-import { serializeTerminalLayout } from '../terminal-layout-dom-serialization'
-import { mergeCapturedLeafState } from '../../snapshots/merge-captured-leaf-state'
-import { resolveTerminalLayoutActiveLeafId } from '../ownership/terminal-layout-active-leaf'
-import { isRemoteRuntimePtyId } from '../../../../../../shared/remote-runtime/remote-runtime-pty-id'
+import { serializeTerminalLayout } from "../terminal-layout-dom-serialization"
+import { mergeCapturedLeafState } from "../../snapshots/merge-captured-leaf-state"
+import { resolveTerminalLayoutActiveLeafId } from "../ownership/terminal-layout-active-leaf"
+import { isRemoteRuntimePtyId } from "../../../../../../shared/remote-runtime/remote-runtime-pty-id"
 
-import type { TerminalPaneStartupController } from '../../controller/use-terminal-pane-startup-actions'
+import type { TerminalPaneStartupController } from "../../controller/use-terminal-pane-startup-actions"
 
 import {
   mergeLayoutTitlesByLeafId,
   retainLayoutScrollback
-} from './terminal-pane-layout-snapshot-merge'
-import { retireLeavesFromTerminalLayout } from '../../../../../../shared/workspace-layout/terminal-layout-leaf-retirement'
+} from "./terminal-pane-layout-snapshot-merge"
+import { retireLeavesFromTerminalLayout } from "../../../../../../shared/workspace-layout/terminal-layout-leaf-retirement"
 
 export function useTerminalPaneLayoutPersistence(controller: TerminalPaneStartupController) {
   const {
     clearedScrollbackLeafIdsRef,
     chatLeafId,
     containerRef,
+    initialLayoutRef,
     isChatViewMode,
     expandedPaneIdRef,
     managerRef,
@@ -144,6 +145,7 @@ export function useTerminalPaneLayoutPersistence(controller: TerminalPaneStartup
   }, [chatLeafId, isChatViewMode, persistLayoutSnapshot])
 
   const { clearPaneScrollback } = usePaneScrollbackClear({
+    initialLayoutRef,
     clearedScrollbackLeafIdsRef,
     paneTransportsRef,
     persistLayoutSnapshot

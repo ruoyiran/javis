@@ -1,12 +1,12 @@
 import type { RefObject } from 'react'
-import { useAppStore } from '../../../store/index'
-import type { NativeChatComposerHandle } from '../composer/native-chat-composer-types'
+import { useAppStore } from "../../../store/index"
+import type { NativeChatComposerHandle } from "../composer/native-chat-composer-types"
 import {
   formatNativeChatQuote,
-  readNativeChatQuotableSelection,
-  readNativeChatTranscriptSelection
-} from './native-chat-quote-selection'
-import { SelectionAddToChatPopover } from './SelectionAddToChatPopover'
+  readNativeChatQuotableSelection
+} from "../../../../../shared/native-chat/input/quotes/native-chat-quote-selection"
+import { readNativeChatTranscriptSelection } from "./native-chat-transcript-selection"
+import { SelectionAddToChatPopover } from "./SelectionAddToChatPopover"
 
 function copyTranscriptSelectionOnSelect(root: HTMLElement): void {
   if (!useAppStore.getState().settings?.terminalClipboardOnSelect) {

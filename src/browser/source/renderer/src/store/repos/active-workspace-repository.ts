@@ -1,8 +1,11 @@
-import type { Repo } from '../../../../shared/repo-types'
-import type { AppState } from '../types'
-import { getRepoExecutionHostId, parseExecutionHostId } from '../../../../shared/execution-host'
-import type { ExecutionHostId } from '../../../../shared/execution-host'
-import { getIndexedRepoMap as getCachedRepoMap } from './repository-catalog-index'
+import type { Repo } from "../../../../shared/repo-types"
+import type { AppState } from "../types"
+import {
+  getRepoExecutionHostId,
+  parseExecutionHostId
+} from "../../../../shared/execution-host"
+import type { ExecutionHostId } from "../../../../shared/execution-host"
+import { getIndexedRepoMap as getCachedRepoMap } from "./repository-catalog-index"
 
 export type ActiveWorkspaceRepoState = Pick<
   AppState,

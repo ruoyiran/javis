@@ -1,27 +1,27 @@
+import { useAgentStatus } from "../../../../../runtime/agent-status/use-agent-status"
 import { useEffect, useMemo, useRef, useSyncExternalStore } from 'react'
-import type { AgentType } from '../../../../../../../shared/agent-status/contracts/agent-status-types'
-import { getAgentSessionOptionCatalog } from '../../../../../../../shared/agent-session/options/agent-session-option-catalog'
-import { matchNativeChatCatalogModelId } from '../../../../../../../shared/native-chat/input/native-chat-session-option-state'
-import type { SessionOptionDescriptor } from '../../../../../../../shared/native-chat/input/native-chat-session-options'
-import { useAppStore } from '../../../../../store/index'
-import { sayNativeChatSessionOptionTranslated } from '../controls/native-chat-session-option-labels-text'
+import type { AgentType } from "../../../../../../../shared/agent-status/contracts/agent-status-types"
+import { getAgentSessionOptionCatalog } from "../../../../../../../shared/agent-session/options/agent-session-option-catalog"
+import { matchNativeChatCatalogModelId } from "../../../../../../../shared/native-chat/input/native-chat-session-option-state"
+import type { SessionOptionDescriptor } from "../../../../../../../shared/native-chat/input/native-chat-session-options"
+import { sayNativeChatSessionOptionTranslated } from "../controls/native-chat-session-option-labels-text"
 import {
   createNativeChatPtySessionOptions,
   type NativeChatPtySessionOptionsSurface
-} from '../../../../../../../shared/native-chat/input/native-chat-pty-session-options'
-import type { NativeChatSessionOptionDispatchCommand } from '../../../../../../../shared/native-chat/input/native-chat-session-option-dispatch'
+} from "../../../../../../../shared/native-chat/input/native-chat-pty-session-options"
+import type { NativeChatSessionOptionDispatchCommand } from "../../../../../../../shared/native-chat/input/native-chat-session-option-dispatch"
 import {
   ensureNativeChatModelEnrichment,
   readNativeChatEnrichedModels,
   subscribeNativeChatEnrichedModels
-} from '../catalog/native-chat-session-option-enrichment'
+} from "../catalog/native-chat-session-option-enrichment"
 import {
   discoverNativeChatCatalogModels,
   resolveNativeChatModelDiscoveryContext
-} from '../catalog/native-chat-session-option-discovery'
-import { readClaudeSessionOptionsFromTerminalScreen } from './claude-terminal-session-options'
+} from "../catalog/native-chat-session-option-discovery"
+import { readClaudeSessionOptionsFromTerminalScreen } from "./claude-terminal-session-options"
 
-import { enqueueSessionOptionSettingsWrite } from '../native-chat-session-option-settings-write'
+import { enqueueSessionOptionSettingsWrite } from "../native-chat-session-option-settings-write"
 
 const EMPTY_SNAPSHOT: SessionOptionDescriptor[] = []
 const subscribeEmpty = (): (() => void) => () => {}
@@ -51,12 +51,9 @@ export function useNativeChatSessionOptions(args: {
     readTerminalScreen,
     paneKey
   } = args
-  const reportedModel = useAppStore((state) =>
-    paneKey ? (state.agentStatusByPaneKey[paneKey]?.model ?? null) : null
-  )
-  const canSwitchOmpModel = useAppStore((state) =>
-    paneKey ? state.agentStatusByPaneKey[paneKey]?.modelSwitchCommand === 'orca-model' : false
-  )
+  const status = useAgentStatus(paneKey)
+  const reportedModel = status?.model ?? null
+  const canSwitchOmpModel = status?.modelSwitchCommand === 'orca-model'
   // Only changed hook models are new evidence; repeated status pings must not undo newer user picks.
   const appliedReportedModelRef = useRef<string | null>(null)
   // Cache parsed screen text so late discovery can resolve real host model IDs.

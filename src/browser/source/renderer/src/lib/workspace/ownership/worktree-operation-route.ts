@@ -1,29 +1,29 @@
-import type { AppState } from '@/store/types'
+import type { AppState } from "../../../store/types"
 import {
   LOCAL_EXECUTION_HOST_ID,
   parseExecutionHostId,
   type ExecutionHostId
-} from '../../../../../shared/execution-host'
-import { parseWorkspaceKey } from '../../../../../shared/workspace-scope'
-import { FLOATING_TERMINAL_WORKTREE_ID } from '../../../../../shared/constants'
-import { getRepoIdFromWorktreeId } from '../../../../../shared/worktree/id'
-import { resolveExactWorktreeRoute } from './worktree-owner-route'
+} from "../../../../../shared/execution-host"
+import { parseWorkspaceKey } from "../../../../../shared/workspace-scope"
+import { FLOATING_TERMINAL_WORKTREE_ID } from "../../../../../shared/workspace/identity/floating-workspace-id"
+import { getRepoIdFromWorktreeId } from "../../../../../shared/worktree/id"
+import { resolveExactWorktreeRoute } from "./worktree-owner-route"
 import {
   findIndexedDetectedWorktrees,
   findIndexedWorktrees,
   findIndexedWorktrees as findIndexedWorktreeOwners,
   hasIndexedDetectedWorktree,
   resolveIndexedWorktreeOwner
-} from './worktree-runtime-owner-index'
-import { findIndexedRepoOwnerForHost, resolveIndexedRepoOwner } from './repo-owner-index'
-import { resolveExplicitWorktreeOperationRouteResult } from './worktree-operation-catalog-route'
-import { onPairedWebClientHost } from '../../../app-shell/platform/paired-web-client-host'
+} from "./worktree-runtime-owner-index"
+import { findIndexedRepoOwnerForHost, resolveIndexedRepoOwner } from "./repo-owner-index"
+import { resolveExplicitWorktreeOperationRouteResult } from "./worktree-operation-catalog-route"
+import { onPairedWebClientHost } from "../../../app-shell/platform/paired-web-client-host"
 import {
   findFolderWorkspaceOwner,
   getExecutionHostIdForFolderWorkspace,
   getRuntimeEnvironmentIdForFolderWorkspace,
   type FolderWorkspaceRuntimeOwnerState
-} from './folder-workspace-runtime-owner'
+} from "./folder-workspace-runtime-owner"
 
 export type WorktreeOperationRoute = {
   executionHostId: ExecutionHostId | null

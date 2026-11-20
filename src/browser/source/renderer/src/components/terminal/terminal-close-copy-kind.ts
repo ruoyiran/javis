@@ -1,6 +1,9 @@
-import { useAppStore } from '@/store'
-import type { CloseTerminalDialogCopyKind } from '../terminal-pane/layout/close/CloseTerminalDialog'
-import { isTerminalLeafId, makePaneKey } from '../../../../shared/workspace-layout/stable-pane-id'
+import { useAppStore } from "../../store/index"
+import type { CloseTerminalDialogCopyKind } from "../terminal-pane/layout/close/CloseTerminalDialog"
+import {
+  isTerminalLeafId,
+  makePaneKey
+} from "../../../../shared/workspace-layout/stable-pane-id"
 
 /** Share agent classification across pane- and PTY-scoped close prompts so identical closes use identical copy. */
 export function resolveLeafCloseCopyKind(
@@ -11,8 +14,8 @@ export function resolveLeafCloseCopyKind(
   if (!leafId || !isTerminalLeafId(leafId) || !tabId || tabId.includes(':')) {
     return 'command'
   }
-  const agentStatusByPaneKey = useAppStore.getState().agentStatusByPaneKey ?? {}
-  const agentType = agentStatusByPaneKey[makePaneKey(tabId, leafId)]?.agentType
+  const agentStatusByPaneKey = useAppStore.getState().agentStatusByPaneKey
+  const agentType = agentStatusByPaneKey.get(makePaneKey(tabId, leafId))?.agentType
   return agentType && agentType !== 'unknown' ? 'agent' : 'command'
 }
 

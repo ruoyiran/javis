@@ -2,9 +2,9 @@
 import {
   BROWSER_SITE_PERMISSION_LOCAL_FILES_ORIGIN,
   type BrowserSitePermission
-} from '../../../../shared/browser-site-permission'
-import { translate } from '@/i18n/i18n'
-import type { Translate } from '@/i18n/use-translate'
+} from "../../../../shared/browser-site-permission"
+import { translate } from "../../i18n/i18n"
+import type { Translate } from "../../i18n/use-translate"
 
 /** The setting's name, e.g. in Settings → Browser → Site permissions. */
 export function browserSitePermissionLabel(
@@ -34,6 +34,20 @@ export function browserSitePermissionLabel(
     case 'local-network':
       return t('auto.components.browserPane.sitePermission.label.localNetwork', 'Local network')
   }
+}
+
+/** A remembered external-app answer's name, e.g. in Settings → Browser → Site permissions. */
+export function browserExternalAppPermissionLabel(
+  scheme: string,
+  t: Translate = translate
+): string {
+  return t(
+    'auto.components.browserPane.sitePermission.label.externalApp',
+    'Open {{scheme}} links',
+    {
+      scheme
+    }
+  )
 }
 
 /** What the site asks to do, finishing "{site} wants to". */

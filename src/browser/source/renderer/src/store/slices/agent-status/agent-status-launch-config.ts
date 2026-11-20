@@ -1,19 +1,22 @@
-import type { AppState } from '../../types'
+import type { AppState } from "../../types"
 import type {
   AgentStatusEntry,
   AgentType
-} from '../../../../../shared/agent-status/contracts/agent-status-types'
-import {
-  agentProviderSessionsEqual,
-  type AgentProviderSessionMetadata,
-  type SleepingAgentLaunchConfig
-} from '../../../../../shared/agent-session/lifecycle/agent-session-resume'
+} from "../../../../../shared/agent-status/contracts/agent-status-types"
+import type {
+  AgentProviderSessionMetadata,
+  SleepingAgentLaunchConfig
+} from "../../../../../shared/agent-session/lifecycle/agent-session-resume"
+import { agentProviderSessionsEqual } from "../../../../../shared/agent-session/lifecycle/resume/agent-provider-session-equality"
 import type {
   AgentLaunchConfigRegistryEntry,
   AgentLaunchConfigRegistrationMetadata
-} from './agent-status-contract'
-import { getLeafIdFromPaneKey, getTabIdFromPaneKey } from './agent-status-pane-key-tab-binding'
-import { launchConfigsEqual } from '../../../../../shared/agent-session/lifecycle/agent-resume-record-equivalence'
+} from "./agent-status-contract"
+import {
+  getLeafIdFromPaneKey,
+  getTabIdFromPaneKey
+} from "./agent-status-pane-key-tab-binding"
+import { launchConfigsEqual } from "../../../../../shared/agent-session/lifecycle/agent-resume-record-equivalence"
 
 export function normalizeLaunchConfigRegistrationMetadata(
   paneKey: string,

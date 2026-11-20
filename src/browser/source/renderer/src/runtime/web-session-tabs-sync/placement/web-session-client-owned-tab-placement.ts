@@ -1,10 +1,13 @@
-import { structuredLaunchSlotIds } from '@/lib/agent-session/launch/structured-agent-session-launch-persistence'
-import type { TabGroup, TabGroupLayoutNode } from '../../../../../shared/tab-types'
+import { structuredLaunchSlotIds } from "../../../lib/agent-session/launch/structured-agent-session-launch-persistence"
+import type {
+  TabGroup,
+  TabGroupLayoutNode
+} from "../../../../../shared/tab-types"
 import {
   pickNextActiveTab,
   pushRecentTabId,
   sanitizeRecentTabIds
-} from '../../../store/slices/tabs/tab-selection-history'
+} from "../../../store/slices/tabs/tab-selection-history"
 
 /** A snapshot tab the client has not placed yet, plus the group it should join. */
 export type ClientOwnedAdoptedTab = {

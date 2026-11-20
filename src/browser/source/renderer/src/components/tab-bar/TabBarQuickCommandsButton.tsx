@@ -1,28 +1,19 @@
+import { FLOATING_TERMINAL_WORKTREE_ID } from '../../../../shared/workspace/identity/floating-workspace-id'
 import { useMemo, useState } from 'react'
 import { Play } from 'lucide-react'
 import { useAppStore } from '@/store/index'
 import { getTerminalQuickCommandHostPromptMaxLength } from '@/lib/terminal/quick-commands/terminal-quick-command-host-prompt-limit'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import {
-  createTerminalQuickCommandDraft,
-  TerminalQuickCommandDialog
-} from '@/components/terminal-quick-commands/TerminalQuickCommandDialog'
-import {
-  getTerminalQuickCommandScope,
-  isTerminalQuickCommandComplete
-} from '../../../../shared/terminal/quick-commands/terminal-quick-commands'
+import { createTerminalQuickCommandDraft, TerminalQuickCommandDialog } from '@/components/terminal-quick-commands/TerminalQuickCommandDialog'
+import { getTerminalQuickCommandScope, isTerminalQuickCommandComplete } from '../../../../shared/terminal/quick-commands/terminal-quick-commands'
 import { getRepoIdFromWorktreeId } from '../../../../shared/worktree/id'
-import { FLOATING_TERMINAL_WORKTREE_ID } from '../../../../shared/constants'
+
 import { runQuickCommandInNewTab } from '@/lib/terminal/quick-commands/run-quick-command-in-new-tab'
 import type { TerminalQuickCommand } from '../../../../shared/terminal/quick-commands/terminal-quick-command-types'
 import { useConfirmationDialog } from '@/components/confirmation-dialog-context'
 import { useTranslate } from '@/i18n/use-translate'
 import { TabBarQuickCommandsMenu } from './TabBarQuickCommandsMenu'
-import {
-  flattenTerminalQuickCommandHosts,
-  type HostedTerminalQuickCommand,
-  useTerminalQuickCommandHosts
-} from '@/hooks/use-terminal-quick-command-hosts'
+import { flattenTerminalQuickCommandHosts, type HostedTerminalQuickCommand, useTerminalQuickCommandHosts } from '@/hooks/use-terminal-quick-command-hosts'
 import { getRepoExecutionHostId, type ExecutionHostId } from '../../../../shared/execution-host'
 import { useProjectHostSetupProjection } from '@/store/projects/use-project-host-setup-projection'
 import { terminalQuickCommandMatchesWorkspaceProject } from '@/lib/terminal/quick-commands/terminal-quick-command-project-scope'

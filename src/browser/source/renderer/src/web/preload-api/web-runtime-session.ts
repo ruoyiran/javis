@@ -1,13 +1,13 @@
 import type {
   RuntimeHostStatusSnapshot,
   RuntimeHostStatusResponse
-} from '../../../../shared/remote-runtime/host-status/runtime-host-status'
-import type { ZcodePlanSite } from '../../../../shared/zcode-plan-sites'
-import type { WorktreeVisibilityDefaults } from '../../../../shared/global-settings-types'
-import { RuntimeRpcCallQueuePool } from '../../../../shared/runtime-rpc-call-queue'
-import type { RuntimeRpcResponse } from '../../../../shared/runtime-rpc-envelope'
-import type { Worktree } from '../../../../shared/worktree/types'
-import { WebRuntimeClient } from '../web-runtime-client'
+} from "../../../../shared/remote-runtime/host-status/runtime-host-status"
+import type { ZcodePlanSite } from "../../../../shared/zcode-plan-sites"
+import type { WorktreeVisibilityDefaults } from "../../../../shared/repo-types"
+import { RuntimeRpcCallQueuePool } from "../../../../shared/runtime-rpc-call-queue"
+import type { RuntimeRpcResponse } from "../../../../shared/runtime-rpc-envelope"
+import type { Worktree } from "../../../../shared/worktree/types"
+import { WebRuntimeClient } from "../web-runtime-client"
 import {
   clearStoredWebRuntimeEnvironment,
   getPreferredWebRuntimeConnection,
@@ -15,10 +15,10 @@ import {
   replaceStoredTokenWithDeviceKey,
   updateStoredEnvironmentRuntimeId,
   type StoredWebRuntimeEnvironment
-} from '../web-runtime-environment'
-import { webRuntimeCredentialFor } from './web-runtime-credentials'
+} from "../web-runtime-environment"
+import { webRuntimeCredentialFor } from "./web-runtime-credentials"
 
-import { translate } from '@/i18n/i18n'
+import { translate } from "../../i18n/i18n"
 
 export const webRuntimeState: {
   activeEnvironment: StoredWebRuntimeEnvironment | null
@@ -26,6 +26,7 @@ export const webRuntimeState: {
   zcodePlanSiteRuntimeValue: ZcodePlanSite | null
   worktreeVisibilityDefaultsRuntimeEnvironmentId: string | null
   worktreeVisibilityDefaultsRuntimeValue: WorktreeVisibilityDefaults | null
+  worktreeCardDetailsRowRuntimeEnvironmentId: string | null
   activeClient: WebRuntimeClient | null
   activeClientEnvironmentId: string | null
   cachedDetectedWorktrees: { loadedAt: number; worktrees: Worktree[] } | null
@@ -35,6 +36,7 @@ export const webRuntimeState: {
   zcodePlanSiteRuntimeValue: null,
   worktreeVisibilityDefaultsRuntimeEnvironmentId: null,
   worktreeVisibilityDefaultsRuntimeValue: null,
+  worktreeCardDetailsRowRuntimeEnvironmentId: null,
   activeClient: null,
   activeClientEnvironmentId: null,
   cachedDetectedWorktrees: null
@@ -55,7 +57,8 @@ export function readWebRuntimeStatusSnapshots(): RuntimeHostStatusSnapshot[] {
 }
 export async function observeWebRuntimeStatus(
   selector: string,
-  timeoutMs?: number
+  timeoutMs?: number,
+  force?: true
 ): Promise<RuntimeHostStatusResponse> {
   const environment = resolveEnvironment(selector)
   if (manuallyDisconnectedEnvironmentIds.has(environment.id)) {
@@ -63,7 +66,7 @@ export async function observeWebRuntimeStatus(
   }
   const existing = webRuntimeState.activeClient?.statusOwner
   if (existing) {
-    return existing.refresh({ timeoutMs, observeOnly: true })
+    return existing.refresh({ timeoutMs, observeOnly: true, ...(force ? { force } : {}) })
   }
   const transient = new WebRuntimeClient(getPreferredWebRuntimeConnection(environment), {
     reconnect: false,

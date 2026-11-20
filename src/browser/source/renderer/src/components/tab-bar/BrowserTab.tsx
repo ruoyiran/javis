@@ -7,68 +7,42 @@ import {
   ContextMenuItem,
   ContextMenuSeparator,
   ContextMenuTrigger
-} from '@/components/ui/context-menu'
-import { TabHoverCard } from './TabHoverCard'
-import '../../../../shared/constants'
-import { ORCA_BROWSER_BLANK_URL } from '../../../../shared/browser/browser-blank-page'
-import { redactKagiSessionToken } from '../../../../shared/browser-url'
-import type { BrowserWorkspace } from '../../../../shared/browser-workspace-types'
-import { CLOSE_ALL_CONTEXT_MENUS_EVENT } from '@/lib/overlay-interaction/close-all-context-menus'
-import { getLiveBrowserUrl } from '../browser-pane/describe-page/live-browser-url-registry'
-import type { TabDragItemData } from '../tab-group/useTabDragSplit'
+} from "../ui/context-menu"
+import { TabHoverCard } from "./TabHoverCard"
+import "../../../../shared/constants"
+import { redactKagiSessionToken } from "../../../../shared/browser-url"
+import type { BrowserWorkspace } from "../../../../shared/browser-workspace-types"
+import { CLOSE_ALL_CONTEXT_MENUS_EVENT } from "../../lib/overlay-interaction/close-all-context-menus"
+import { getLiveBrowserUrl } from "../browser-pane/describe-page/live-browser-url-registry"
+import type { TabDragItemData } from "../tab-group/tab-drag-data"
 import {
   ACTIVE_TAB_INDICATOR_CLASSES,
   getDropIndicatorClasses,
   getTabRootStateClasses,
   getTabStripBorderClasses,
   type DropIndicator
-} from './drop-indicator'
-import { preventMiddleButtonDefault } from './middle-button-default-guard'
-import { translate } from '@/i18n/i18n'
-import { useTranslate, type Translate } from '@/i18n/use-translate'
-import { TAB_LABEL_WIDTH_CLASSES } from './tab-width-rules'
-import { useTabStripSlotProps } from './use-tab-strip-slot-props'
-import { TabWorkspaceLayoutMenuSection } from './TabWorkspaceLayoutMenuSection'
-import { useTabStripPointerActivation } from './tab-strip-pointer-activation'
-import { useTabContextMenuOpening } from './tab-context-menu-opening'
-import { cn } from '@/lib/class-names'
-import { BrowserFavicon } from '@/components/browser-favicon'
-import { AgentCursorGlyph } from '../browser-pane/agent-cursor/agent-cursor-glyph'
+} from "./drop-indicator"
+import { preventMiddleButtonDefault } from "./middle-button-default-guard"
+import "../../i18n/i18n"
+import { useTranslate } from "../../i18n/use-translate"
+import { TAB_LABEL_WIDTH_CLASSES } from "./tab-width-rules"
+import { useTabStripSlotProps } from "./use-tab-strip-slot-props"
+import { TabWorkspaceLayoutMenuSection } from "./TabWorkspaceLayoutMenuSection"
+import { useTabStripPointerActivation } from "./tab-strip-pointer-activation"
+import { useTabContextMenuOpening } from "./tab-context-menu-opening"
+import { cn } from "../../lib/class-names"
+import { BrowserFavicon } from "../browser-favicon"
+import { AgentCursorGlyph } from "../browser-pane/agent-cursor/agent-cursor-glyph"
 import {
   useBrowserAgentControllerHost,
   useBrowserAgentDrivesAnyPage
-} from '../browser-pane/agent-cursor/browser-agent-activity-state'
-import { CopyTabIdMenuItem } from './CopyTabIdMenuItem'
-import { CloseSplitPaneMenuItem } from './CloseSplitPaneMenuItem'
-import { useAppStore } from '@/store/index'
+} from "../browser-pane/agent-cursor/browser-agent-activity-state"
+import { CopyTabIdMenuItem } from "./CopyTabIdMenuItem"
+import { CloseSplitPaneMenuItem } from "./CloseSplitPaneMenuItem"
+import { useAppStore } from "../../store/index"
 
-export function formatBrowserTabUrlLabel(url: string, t: Translate = translate): string {
-  if (url === ORCA_BROWSER_BLANK_URL || url === 'about:blank') {
-    return t('auto.components.browser.pane.BrowserPane.366bf5d62c', 'New Tab')
-  }
-  try {
-    const parsed = new URL(url)
-    return `${parsed.host}${parsed.pathname === '/' ? '' : parsed.pathname}${parsed.search}${parsed.hash}`
-  } catch {
-    return url
-  }
-}
-
-export function getBrowserTabLabel(tab: BrowserWorkspace, t?: Translate): string {
-  if (
-    !tab.title ||
-    tab.title === tab.url ||
-    tab.title === ORCA_BROWSER_BLANK_URL ||
-    tab.title === 'about:blank'
-  ) {
-    return formatBrowserTabUrlLabel(tab.url, t)
-  }
-  return tab.title || tab.url
-}
-
-function isBlankBrowserTab(tab: BrowserWorkspace): boolean {
-  return tab.url === ORCA_BROWSER_BLANK_URL || tab.url === 'about:blank'
-}
+import { formatBrowserTabUrlLabel, getBrowserTabLabel } from "./browser-tabs/browser-tab-label"
+import { isBlankBrowserUrl } from "../../lib/browser/palette/browser-palette-search"
 
 export default function BrowserTab({
   tab,
@@ -209,7 +183,7 @@ export default function BrowserTab({
       ) : (
         <BrowserFavicon
           faviconUrl={tab.faviconUrl}
-          loading={tab.loading && !tab.loadError && !isBlankBrowserTab(tab)}
+          loading={tab.loading && !tab.loadError && !isBlankBrowserUrl(tab.url)}
           className="size-3 mr-1"
           fallbackClassName="text-blue-500"
         />
@@ -270,7 +244,7 @@ export default function BrowserTab({
               programName={
                 agentDriving
                   ? agentDrivingLabel
-                  : isBlankBrowserTab(tab)
+                  : isBlankBrowserUrl(tab.url)
                     ? t('tabHoverCard.browser', 'Browser')
                     : formatBrowserTabUrlLabel(redactKagiSessionToken(tab.url), t)
               }

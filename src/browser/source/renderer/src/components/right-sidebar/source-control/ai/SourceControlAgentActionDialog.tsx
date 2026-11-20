@@ -1,24 +1,24 @@
-import type { CurrentActionSelection } from '../../../../../../shared/source-control/ai/recipes/source-control-action-selection'
+import type { CurrentActionSelection } from "../../../../../../shared/source-control/ai/recipes/source-control-action-selection"
 import React from 'react'
-import type { RuntimeGitContext } from '@/runtime/source-control/git/runtime-git-client-context'
+import type { RuntimeGitContext } from "../../../../runtime/source-control/git/runtime-git-client-context"
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle
-} from '@/components/ui/dialog'
+} from "../../../ui/dialog"
 import type {
   SourceControlActionRecipe,
   SourceControlLaunchActionId
-} from '../../../../../../shared/source-control/ai/recipes/source-control-ai-actions'
-import type { TuiAgent } from '../../../../../../shared/agent-launch/catalog/tui-agent'
-import type { RunSourceControlAgentActionStartArgs } from './runSourceControlAgentActionStart'
-import type { LaunchSource } from '../../../../../../shared/telemetry-events'
-import type { SourceControlAiWriteTarget } from '../../../../../../shared/source-control/ai/settings/source-control-ai-recipe-save'
-import { SourceControlAgentActionDialogForm } from './SourceControlAgentActionDialogForm'
-import { useSourceControlAgentActionDialog } from './useSourceControlAgentActionDialog'
-import { useTranslate } from '@/i18n/use-translate'
+} from "../../../../../../shared/source-control/ai/recipes/source-control-ai-actions"
+import type { TuiAgent } from "../../../../../../shared/agent-launch/catalog/tui-agent"
+import type { RunSourceControlAgentActionStartArgs } from "./runSourceControlAgentActionStart"
+import type { LaunchSource } from "../../../../../../shared/telemetry-property-schemas"
+import type { SourceControlAiWriteTarget } from "../../../../../../shared/source-control/ai/settings/source-control-ai-recipe-save"
+import { SourceControlAgentActionDialogForm } from "./SourceControlAgentActionDialogForm"
+import { useSourceControlAgentActionDialog } from "./useSourceControlAgentActionDialog"
+import { useTranslate } from "../../../../i18n/use-translate"
 
 export type SourceControlAgentActionDialogProps = {
   open: boolean

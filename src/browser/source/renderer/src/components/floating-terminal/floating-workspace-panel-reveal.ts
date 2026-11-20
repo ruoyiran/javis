@@ -1,8 +1,8 @@
-import type { AppState } from '@/store/types'
-import { selectFloatingWorkspacePanelVisible } from '@/store/workspaces/floating/floating-workspace-panel-selector'
+import type { AppState } from "../../store/types"
+import { selectFloatingWorkspacePanelVisible } from "../../store/workspaces/floating/floating-workspace-panel-selector"
 import { toast } from 'sonner'
-import { TOGGLE_FLOATING_TERMINAL_EVENT } from './floating-terminal'
-import { floatingWorkspaceUnavailableReason } from './floating-workspace-availability'
+import { TOGGLE_FLOATING_TERMINAL_EVENT } from "./workspace/floating-workspace-open-intent"
+import { floatingWorkspaceUnavailableReason } from "./floating-workspace-availability"
 
 function toggleFloatingWorkspacePanel(): void {
   window.dispatchEvent(new Event(TOGGLE_FLOATING_TERMINAL_EVENT))

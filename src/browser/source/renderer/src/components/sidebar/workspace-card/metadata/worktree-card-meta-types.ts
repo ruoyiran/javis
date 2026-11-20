@@ -1,13 +1,14 @@
-import type { IssueInfo } from '../../../../../../shared/github/pull-request-types'
+import type { IssueInfo } from "../../../../../../shared/github/pull-request-types"
 import type {
   Worktree,
   WorkspaceAttachment,
   AutomationWorkspaceProvenance,
   CliWorkspaceProvenance
-} from '../../../../../../shared/worktree/types'
-import type { WorktreeCardPrDisplay } from '../review/worktree-card-pr-display'
-import type { WorktreeCardDetailsHoverControl } from '../details/worktree-card-details-hover-state'
-import type { WorkspaceReferenceDetailsMap } from '../review/workspace-reference-details'
+} from "../../../../../../shared/worktree/types"
+import type { WorktreeCardPrDisplay } from "../review/worktree-card-pr-display"
+import type { WorktreeCardDetailsHoverControl } from "../details/worktree-card-details-hover-state"
+import type { WorkspaceReferenceDetailsMap } from "../review/workspace-reference-details"
+import type { Bot } from "../../../../../../shared/bot-types"
 
 export type WorktreeCardIssueDisplay =
   | IssueInfo
@@ -45,6 +46,8 @@ export type WorktreeCardMetaBadgesProps = {
   comment: string | null
   automationProvenance?: AutomationWorkspaceProvenance | null
   cliProvenance?: CliWorkspaceProvenance | null
+  /** The bot whose worker made the workspace. */
+  bot?: Pick<Bot, 'id' | 'name' | 'avatar' | 'hostId'> | null
 }
 
 export type WorktreeCardMetaBadgesRootProps = WorktreeCardMetaBadgesProps &

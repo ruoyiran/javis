@@ -1,44 +1,44 @@
-import type { RuntimeRpcResponse } from '../../../../../shared/runtime-rpc-envelope'
+import type { RuntimeRpcResponse } from "../../../../../shared/runtime-rpc-envelope"
 import type {
   RuntimeMobileSessionTabCloseResult,
   RuntimeSessionTabCloseReason
-} from '../../../../../shared/runtime-session-contracts'
-import { useAppStore } from '../../../store/index'
-import { hasRuntimeRpcErrorCode } from '../../../../../shared/runtime-rpc-error-code'
-import { unwrapRuntimeRpcResult } from '../../rpc/calls/runtime-rpc-result'
-import { toRuntimeWorktreeSelector } from '../../rpc/targets/runtime-worktree-selector'
+} from "../../../../../shared/runtime-session-contracts"
+import { useAppStore } from "../../../store/index"
+import { hasRuntimeRpcErrorCode } from "../../../../../shared/runtime-rpc-error-code"
+import { unwrapRuntimeRpcResult } from "../../rpc/calls/runtime-rpc-result"
+import { toRuntimeWorktreeSelector } from "../../rpc/targets/runtime-worktree-selector"
 import {
   clearWebSessionCloseIntent,
   makeWebSessionCloseIntentDurable,
   recordWebSessionCloseIntent
-} from '../closing/web-session-close-intent'
+} from "../closing/web-session-close-intent"
 import {
   settleWebSessionCloseReplay,
   type WebSessionCloseReplay
-} from '../closing/web-session-close-replay'
-import { appPairedTerminalTabCloseIntentStore } from '../closing/paired-terminal-tab-close-intent-store'
+} from "../closing/web-session-close-replay"
+import { appPairedTerminalTabCloseIntentStore } from "../closing/paired-terminal-tab-close-intent-store"
 import {
   holdUndeliveredUserClose,
   isUndeliveredCloseFailure,
   scheduleWebSessionCloseReplayRelist
-} from '../closing/web-session-undelivered-close'
+} from "../closing/web-session-undelivered-close"
 import {
   clearWebSessionFocusIntent,
   clearWebSessionFocusIntentIfMatches,
   recordWebSessionFocusIntent
-} from '../navigation/web-session-focus-intent'
-import { WEB_SESSION_TAB_RPC_TIMEOUT_MS } from './web-session-tab-rpc-timeout'
-import { toHostSessionTabId } from '../../../../../shared/workspace-layout/terminal-surface-id'
+} from "../navigation/web-session-focus-intent"
+import { WEB_SESSION_TAB_RPC_TIMEOUT_MS } from "./web-session-tab-rpc-timeout"
+import { toHostSessionTabId } from "../../../../../shared/workspace-layout/terminal-surface-id"
 import {
   captureRuntimeEnvironmentCall,
   captureWebSessionIntentOwner,
   isWebRuntimeSessionActive,
   matchesWebSessionIntentOwner
-} from '../identity/web-runtime-session-environment'
-import { refreshWebRuntimeSessionTabsSnapshot } from '../inventory/web-runtime-session-snapshot'
-import { isServerFrameDrawnWorkspace } from '../frame-drawn-server-workspace-set'
-import { redrawServerLayoutWorkspace } from '../../workspace-layout/server/server-layout-apply-routes'
-import { userTabCloseParams } from '../closing/web-session-user-tab-close-params'
+} from "../identity/web-runtime-session-environment"
+import { refreshWebRuntimeSessionTabsSnapshot } from "../inventory/web-runtime-session-snapshot"
+import { isServerFrameDrawnWorkspace } from "../frame-drawn-server-workspace-set"
+import { redrawServerLayoutWorkspace } from "../../workspace-layout/server/server-layout-apply-routes"
+import { userTabCloseParams } from "../closing/web-session-user-tab-close-params"
 
 export async function activateWebRuntimeSessionTab(args: {
   worktreeId: string
@@ -55,7 +55,7 @@ export async function activateWebRuntimeSessionTab(args: {
   // A click names no leaf, so the pane on screen does; the server would otherwise pick the first.
   // Loaded lazily: the module subscribes to main's pane list on import, and terminal panes load it.
   const { hasLegacyRelayBridgedPane, isLegacyRelayBridgedTab } =
-    await import('../../../components/terminal-pane/pty-transport/legacy-relay/legacy-relay-bridge-panes')
+    await import("../../../components/terminal-pane/pty-transport/legacy-relay/legacy-relay-bridge-panes")
   const leafId =
     args.leafId ??
     (hasLegacyRelayBridgedPane(args.tabId)
@@ -185,7 +185,7 @@ async function callWebRuntimeSessionTabMethod(
   const isLifecycleClose = isClose && args.reason !== 'user'
   if (isLifecycleClose && (!args.publicationEpoch || !args.terminalHandle)) {
     // Keep without host-generation/terminal-incarnation evidence; tab IDs can be stale or reused after reconnect.
-    const { acceptReplayedWebSessionTabsSnapshot } = await import('../state')
+    const { acceptReplayedWebSessionTabsSnapshot } = await import("../state")
     acceptReplayedWebSessionTabsSnapshot(environmentId, args.worktreeId)
     await refreshWebRuntimeSessionTabsSnapshot(environmentId, args.worktreeId)
     console.warn('[web-runtime-session] suppressed lifecycle close without incarnation evidence', {
@@ -206,7 +206,8 @@ async function callWebRuntimeSessionTabMethod(
   }
 
   try {
-    const { resolveHostSessionTabIdForWebSessionTab } = await import('../tracking-mappings')
+    const { resolveHostSessionTabIdForWebSessionTab } =
+      await import("../tracking-mappings")
     const state = useAppStore.getState()
     const hostTabId =
       resolveHostSessionTabIdForWebSessionTab(state, {
@@ -270,7 +271,7 @@ async function callWebRuntimeSessionTabMethod(
         // Restore authoritative live PTYs only on republication; keep dead-leaf refusals hidden.
         clearWebSessionCloseIntent(intentOwner, args.worktreeId, immediateHostTabId)
         clearWebSessionCloseIntent(intentOwner, args.worktreeId, hostTabId)
-        const { acceptReplayedWebSessionTabsSnapshot } = await import('../state')
+        const { acceptReplayedWebSessionTabsSnapshot } = await import("../state")
         acceptReplayedWebSessionTabsSnapshot(environmentId, args.worktreeId)
       }
       await refreshWebRuntimeSessionTabsSnapshot(environmentId, args.worktreeId, {
@@ -311,7 +312,7 @@ async function callWebRuntimeSessionTabMethod(
       }
     }
     if (isLifecycleClose) {
-      const { acceptReplayedWebSessionTabsSnapshot } = await import('../state')
+      const { acceptReplayedWebSessionTabsSnapshot } = await import("../state")
       acceptReplayedWebSessionTabsSnapshot(environmentId, args.worktreeId)
       await refreshWebRuntimeSessionTabsSnapshot(environmentId, args.worktreeId, {
         expectedEnvironmentPairingRevision: intentOwner.pairingRevision

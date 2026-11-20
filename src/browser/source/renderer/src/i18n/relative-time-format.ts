@@ -1,4 +1,4 @@
-import { getIntlLocale } from './i18n'
+import { getIntlLocale } from "./i18n"
 
 // Relative-time words follow the UI language; resolve plugin tags through getIntlLocale and cache per locale for live switches.
 let cached: { locale: string; formatter: Intl.RelativeTimeFormat } | null = null
@@ -24,6 +24,19 @@ export function formatUiRelativeTime(diffMs: number, intlLocale?: string): strin
     return formatter.format(diffHours, 'hour')
   }
   return formatter.format(Math.round(diffHours / 24), 'day')
+}
+
+// Like formatUiRelativeTime, but rolls days up into months and years ("3 months ago").
+export function formatUiCoarseRelativeTime(diffMs: number, intlLocale?: string): string {
+  const diffDays = diffMs / 86_400_000
+  if (Math.abs(diffDays) < 30) {
+    return formatUiRelativeTime(diffMs, intlLocale)
+  }
+  const formatter = getUiRelativeTimeFormatter(intlLocale)
+  if (Math.abs(diffDays) < 365) {
+    return formatter.format(Math.round(diffDays / 30), 'month')
+  }
+  return formatter.format(Math.round(diffDays / 365), 'year')
 }
 
 export function formatUiRelativeTimeFromDate(

@@ -1,25 +1,25 @@
 import type { Dispatch, MutableRefObject, SetStateAction } from 'react'
 import type { editor } from 'monaco-editor'
 import { toast } from 'sonner'
-import { useAppStore } from '@/store'
-import { translate } from '@/i18n/i18n'
-import { getMonacoCodebaseSearchQuery } from './monaco-codebase-search'
-import { formatSelectionReference } from './selection-copy'
-import { openAddToChatMenuAt } from '../native-chat/selection-quotes/add-to-chat-point-menu'
-import { formatNativeChatQuote } from '../native-chat/selection-quotes/native-chat-quote-selection'
-import { getDiffCommentPopoverLeft } from '../diff-comments/diff-comment-popover-position'
+import { useAppStore } from "../../store/index"
+import { translate } from "../../i18n/i18n"
+import { getMonacoCodebaseSearchQuery } from "./monaco-codebase-search"
+import { formatSelectionReference } from "./selection-copy"
+import { openAddToChatMenuAt } from "../native-chat/selection-quotes/add-to-chat-point-menu"
+import { formatNativeChatQuote } from "../../../../shared/native-chat/input/quotes/native-chat-quote-selection"
+import { getDiffCommentPopoverLeft } from "../diff-comments/diff-comment-popover-position"
 import {
   installEditorAddReviewNoteShortcut,
   installEditorSaveShortcut,
   installMonacoEditorFindShortcut
-} from './editor-shortcuts'
+} from "./editor-shortcuts"
 import {
   getMonacoMarkdownSelectionAnnotationTarget,
   type MonacoMarkdownSelectionAnnotationTarget
-} from './markdown-source-tools/monaco/monaco-markdown-selection-annotation'
-import { handleMonacoLargeTextPaste, MONACO_PASTE_MAX_BYTES } from './monaco-large-text-paste'
-import type { MarkdownCommentPopoverState } from './markdown-source-tools/monaco/use-monaco-markdown-annotations'
-import type { MonacoEditorPropsRef } from './monaco-editor-mount-params'
+} from "./markdown-source-tools/monaco/monaco-markdown-selection-annotation"
+import { handleMonacoLargeTextPaste, MONACO_PASTE_MAX_BYTES } from "./monaco-large-text-paste"
+import type { MarkdownCommentPopoverState } from "./markdown-source-tools/monaco/use-monaco-markdown-annotations"
+import type { MonacoEditorPropsRef } from "./monaco-editor-mount-params"
 
 type MonacoEditorInputBindingsParams = {
   editorInstance: editor.IStandaloneCodeEditor

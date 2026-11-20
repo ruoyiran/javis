@@ -1,14 +1,14 @@
 import type { StateCreator } from 'zustand'
-import type { AppState } from '../../types'
-import type { GitHubSlice } from '../github-slice-contract'
-import type { GitHubProjectRow } from '../../../../../shared/github/project-types'
-import type { GitHubProjectMutationResult } from '../../../../../shared/github/project-result-types'
-import type { ProjectRowContentPatch } from './project-row-content'
-import { translate } from '@/i18n/i18n'
-import { gitHubSlugApiForTarget } from '../../../runtime/repository-github/github-slug-owner-api'
-import { runtimeTargetForProjectRowOwner } from './github-project-row-owner'
-import { projectViewCacheKeyTarget } from '../cache/cache-identity'
-import { applyRowPatch, parseSlugAndNumber, rollbackRowIfPresent } from './project-cache'
+import type { AppState } from "../../types"
+import type { GitHubSlice } from "../github-slice-contract"
+import type { GitHubProjectRow } from "../../../../../shared/github/projects/project-types"
+import type { GitHubProjectMutationResult } from "../../../../../shared/github/project-result-types"
+import type { ProjectRowContentPatch } from "./project-row-content"
+import { translate } from "../../../i18n/i18n"
+import { gitHubSlugApiForTarget } from "../../../runtime/repository-github/github-slug-owner-api"
+import { runtimeTargetForProjectRowOwner } from "./github-project-row-owner"
+import { projectViewCacheKeyTarget } from "../cache/cache-identity"
+import { applyRowPatch, parseSlugAndNumber, rollbackRowIfPresent } from "./project-cache"
 
 export const createProjectRowActions = (
   set: Parameters<StateCreator<AppState>>[0],

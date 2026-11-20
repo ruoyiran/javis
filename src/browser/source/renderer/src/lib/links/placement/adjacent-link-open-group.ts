@@ -1,5 +1,8 @@
-import type { TabGroup, TabGroupLayoutNode } from '../../../../../shared/tab-types'
-import type { TabSplitTarget } from '@/store/slices/tabs/tabs-slice-contract'
+import type {
+  TabGroup,
+  TabGroupLayoutNode
+} from "../../../../../shared/tab-types"
+import type { TabSplitTarget } from "../../../store/slices/tabs/tabs-slice-contract"
 
 type LayoutRect = { left: number; top: number; right: number; bottom: number }
 type LayoutLeaf = { groupId: string; rect: LayoutRect; layoutOrder: number }

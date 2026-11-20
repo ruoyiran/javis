@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
-import { ORCA_CLI_SKILL_NAME } from '@/lib/skills/installation/agent-feature-skill-names'
 import { BROWSER_USE_ENABLED_STORAGE_KEY } from '@/lib/browser/browser-use-setup-state'
 import { useJavisAgentSkillStatus } from './use-javis-agent-skill-status'
 import { cn } from '@/lib/class-names'
 import { useAppStore } from '../../../../store/index'
-import '../../../../../../shared/constants'
+import {
+  LOCAL_EXECUTION_HOST_ID,
+  type ExecutionHostId
+} from '../../../../../../shared/execution-host'
 import { BROWSER_FAMILY_LABELS } from '../../../../../../shared/browser/browser-family-labels'
 import { SearchableSetting } from '../../section-layout/SearchableSetting'
 import { matchesSettingsSearch } from '../../search/settings-search'
@@ -17,20 +19,21 @@ import { BrowserUseCookieImportStep } from './BrowserUseCookieImportStep'
 import { useTranslate } from '@/i18n/use-translate'
 
 type BrowserUseSetupProps = {
+  hostId: ExecutionHostId
   onConfigureMoreBrowsers?: () => void
   onOpenComputerUse?: () => void
 }
 
 export function BrowserUseSetup({
+  hostId,
   onConfigureMoreBrowsers,
   onOpenComputerUse
-}: BrowserUseSetupProps = {}): React.JSX.Element {
+}: BrowserUseSetupProps): React.JSX.Element {
   const t = useTranslate()
   const searchQuery = useAppStore((s) => s.settingsSearchQuery)
   const browserSessionProfiles = useAppStore((s) => s.browserSessionProfiles)
   const fetchBrowserSessionProfiles = useAppStore((s) => s.fetchBrowserSessionProfiles)
   const browserSessionImportState = useAppStore((s) => s.browserSessionImportState)
-
 
   const [browserUseEnabled, setBrowserUseEnabled] = useState<boolean>(() => {
     return localStorage.getItem(BROWSER_USE_ENABLED_STORAGE_KEY) === '1'
@@ -55,11 +58,20 @@ export function BrowserUseSetup({
   const cookiesImported = !!defaultProfile?.source
 
   const {
-    installed: skillDetected,
-    loading: skillLoading,
-    error: skillError,
+    installed,
+    loading,
+    error,
     refresh: refreshSkill
-  } = useJavisAgentSkillStatus(browserUseEnabled)
+  } = useJavisAgentSkillStatus(browserUseEnabled && hostId === LOCAL_EXECUTION_HOST_ID)
+  const skillDisabled = hostId !== LOCAL_EXECUTION_HOST_ID
+  const skillDetected = !skillDisabled && installed
+  const skillLoading = !skillDisabled && loading
+  const skillError = skillDisabled
+    ? t(
+        'browser.agentSetup.localOnly',
+        'Agent setup is available on this computer. Select the local host to configure agents.'
+      )
+    : error
 
   const isImportingDefault =
     browserSessionImportState?.profileId === 'default' &&
@@ -71,7 +83,6 @@ export function BrowserUseSetup({
   ])
   const steps = [skillDetected, cookiesImported]
   const completedCount = steps.filter(Boolean).length
-  const skillDisabled = false
 
   const sourceLabel = defaultProfile?.source
     ? `${BROWSER_FAMILY_LABELS[defaultProfile.source.browserFamily] ?? defaultProfile.source.browserFamily}${defaultProfile.source.profileName ? ` (${defaultProfile.source.profileName})` : ''}`
@@ -151,6 +162,7 @@ export function BrowserUseSetup({
           )}
         >
           <BrowserUseSkillStep
+            target={skillDisabled ? null : { kind: 'local' }}
             skillDetected={skillDetected}
             skillLoading={skillLoading}
             skillError={skillError}

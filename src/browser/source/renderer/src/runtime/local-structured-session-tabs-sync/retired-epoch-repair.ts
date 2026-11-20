@@ -1,9 +1,9 @@
-import { createSessionTabsAuthorityRepairLane } from '../web-session-tabs-sync/session-tabs-authority-repair'
+import { createSessionTabsAuthorityRepairLane } from "../web-session-tabs-sync/session-tabs-authority-repair"
 import {
   isCurrentLocalStructuredSessionGeneration,
   localStructuredSessionEpochHistoryByWorktree,
   localStructuredSessionGeneration
-} from './inventory-generation-fence'
+} from "./inventory-generation-fence"
 
 /** The local structured-session mirror's lane, keyed by worktree. */
 const localRepairLane = createSessionTabsAuthorityRepairLane({
@@ -17,7 +17,7 @@ const localRepairLane = createSessionTabsAuthorityRepairLane({
 })
 
 export const scheduleRetiredEpochRepair = localRepairLane.schedule
-export function forgetRetiredEpochRepairsOutside(knownWorktreeIds: ReadonlySet<string>): void {
-  localRepairLane.forget((worktreeId) => !knownWorktreeIds.has(worktreeId))
+export function forgetRetiredEpochRepairsOutside(isKnown: (worktreeId: string) => boolean): void {
+  localRepairLane.forget((worktreeId) => !isKnown(worktreeId))
 }
 export const resetRetiredEpochRepairsForTests = localRepairLane.resetForTests

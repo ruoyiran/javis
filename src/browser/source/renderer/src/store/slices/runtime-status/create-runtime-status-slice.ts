@@ -1,43 +1,43 @@
-import { createRuntimeEnvironmentStatusRetention } from './runtime-environment-status-retention'
+import { createRuntimeEnvironmentStatusRetention } from "./runtime-environment-status-retention"
 import type {
   RuntimeStatusSlice,
   RuntimeStatusStoreSetState,
   RuntimeStatusStoreState
-} from './runtime-status-types'
-import { replaceMapEntries } from '@/store/keyed-record-transitions'
+} from "./runtime-status-types"
+import { replaceMapEntries } from "../../keyed-record-transitions"
 
-import { lastVerifiedRuntimeStatus } from '../../../../../shared/remote-runtime/host-status/runtime-host-status'
-import { runtimeEnvironmentStatusesEqual } from './runtime-environment-status-equality'
+import { lastVerifiedRuntimeStatus } from "../../../../../shared/remote-runtime/host-status/runtime-host-status"
+import { runtimeEnvironmentStatusesEqual } from "./runtime-environment-status-equality"
 import {
   clearRecentRuntimeCompatibilityFailure,
   clearRuntimeCompatibilityCache
-} from '@/runtime/rpc/compatibility/runtime-compatibility-cache'
-import { replaceRuntimeEnvironmentRevisions } from '@/runtime/rpc/environment-revisions/runtime-environment-revision'
-import { bumpProviderRuntimeSessionGeneration } from '@/runtime/hosts/observations/provider-runtime-context'
-import { evictInstalledAgentSkillDiscoveryForRuntimeEnvironments } from '@/hooks/skills/discovery/installed-agent-skill-discovery'
+} from "../../../runtime/rpc/compatibility/runtime-compatibility-cache"
+import { replaceRuntimeEnvironmentRevisions } from "../../../runtime/rpc/environment-revisions/runtime-environment-revision"
+import { bumpProviderRuntimeSessionGeneration } from "../../../runtime/hosts/observations/provider-runtime-context"
+import { evictInstalledAgentSkillDiscoveryForRuntimeEnvironments } from "../../../hooks/skills/discovery/installed-agent-skill-discovery"
 import {
   dismissRuntimeDisconnectedToast,
   showRuntimeDisconnectedToast
-} from './runtime-environment-disconnect-toast'
-import { reconcileCatalogRows } from '../../../../../shared/catalog-row-reconcile'
-import { createRuntimeStatusHydration } from './runtime-status-hydration'
-import { refreshRuntimeEnvironmentStatus } from './runtime-status-refresh'
-import * as runtimeStatusConnectionGeneration from './runtime-status-connection-generation'
-import { replayClientHostedBrowserCloseIntents } from '@/runtime/browser/closing/client-hosted-browser-close-intent-replay'
+} from "./runtime-environment-disconnect-toast"
+import { reconcileCatalogRows } from "../../../../../shared/catalog-row-reconcile"
+import { createRuntimeStatusHydration } from "./runtime-status-hydration"
+import { refreshRuntimeEnvironmentStatus } from "./runtime-status-refresh"
+import * as runtimeStatusConnectionGeneration from "./runtime-status-connection-generation"
+import { replayClientHostedBrowserCloseIntents } from "../../../runtime/browser/closing/client-hosted-browser-close-intent-replay"
 import {
   pairedTerminalTabCloseIntentStoreOf,
   reconcileWebSessionCloseReplaysWithCatalog
-} from '@/runtime/web-session-tabs-sync/closing/web-session-close-replay'
+} from "../../../runtime/web-session-tabs-sync/closing/web-session-close-replay"
 import {
   ensureBrowserClientHostOnRuntimeContact,
   ensureBrowserClientHostsForRestoredPages
-} from '@/runtime/browser/client-hosting/restored-client-hosted-browser-host-attach'
-import { applyRuntimeHostStatusSnapshot, snapshotOutrunsCatalog } from './runtime-status-snapshot'
-import { refreshRuntimeEnvironmentCatalog } from '@/runtime/rpc/environment-revisions/runtime-environment-pairing-refresh'
+} from "../../../runtime/browser/client-hosting/restored-client-hosted-browser-host-attach"
+import { applyRuntimeHostStatusSnapshot, snapshotOutrunsCatalog } from "./runtime-status-snapshot"
+import { refreshRuntimeEnvironmentCatalog } from "../../../runtime/rpc/environment-revisions/runtime-environment-pairing-refresh"
 import {
   classifyPeerReplacements,
   replacedRuntimeEnvironmentIds
-} from './runtime-environment-peer-replacement'
+} from "./runtime-environment-peer-replacement"
 
 export const createRuntimeStatusSlice: (
   set: RuntimeStatusStoreSetState,
@@ -264,10 +264,11 @@ export const createRuntimeStatusSlice: (
 
   ...createRuntimeEnvironmentStatusRetention(set, get),
 
-  refreshRuntimeEnvironmentStatus: (environmentId, timeoutMs = 10_000) =>
+  refreshRuntimeEnvironmentStatus: (environmentId, timeoutMs = 10_000, options) =>
     refreshRuntimeEnvironmentStatus(
       environmentId,
       timeoutMs,
+      options?.force === true,
       (entry) => {
         get().setRuntimeEnvironmentStatus(environmentId, entry)
         if (entry.status) {

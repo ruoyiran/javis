@@ -1,5 +1,5 @@
 import type { AppState } from '../../types'
-import type { FeatureInteractionId } from '../../../../../shared/feature-interactions'
+import type { FeatureInteractionId } from '../../../../../shared/feature-interaction-catalog'
 import { getContextualTour } from '../../../../../shared/contextual-tours'
 import { isPausedActionTour } from './ui-slice-tour-actions'
 import {
