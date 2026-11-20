@@ -22,24 +22,53 @@ export async function readSubtreeSnapshot(
     params
   }: { app: string; rootElementIndex: number; params: Record<string, unknown> }
 ): Promise<ComputerSnapshotResult> {
-  const base = store.current(app, optionalNumberParam(params, 'windowId'), params)
+  const base = store.currentForObservedApp(app, optionalNumberParam(params, 'windowId'), params)
   if (!base) {
     throw new RuntimeClientError(
       'element_not_found',
       '--element-index needs a get-app-state snapshot of this app/window first'
     )
   }
+  const root = elementParam(base, rootElementIndex)
+  if (!root || runtimeIdKey(root) === null) throw new RuntimeClientError('element_not_found', 'The observed subtree root has no resolvable handle')
+  if (!Number.isSafeInteger(base.app.pid) || base.app.pid <= 0) throw new RuntimeClientError('provider_incompatible', 'The cached observation has no valid app process identity')
+  const current = await callBridge({ tool: 'list_windows', app })
+  const requestedWindowIndex = optionalNumberParam(params, 'windowIndex')
+  const selectedWindow = base.windowId != null
+    ? current.windows?.find(window => window.id === base.windowId)
+    : current.windows?.find(window => window.index === (optionalNumberParam(params, 'windowIndex') ?? base.windowIndex))
+  if (
+    current.app?.pid !== base.app.pid ||
+    !selectedWindow ||
+    selectedWindow.app?.pid !== base.app.pid ||
+    (base.windowIndex != null && selectedWindow.index !== base.windowIndex) ||
+    (requestedWindowIndex !== undefined && selectedWindow.index !== requestedWindowIndex)
+  ) {
+    throw new RuntimeClientError('window_stale', 'The requested app process or window no longer matches its observation')
+  }
   const response = await callBridge({
     tool: 'get_app_state',
-    app,
-    root: elementParam(base, rootElementIndex),
+    app: `pid:${base.app.pid}`,
+    root,
     windowId: base.windowId ?? undefined,
-    windowIndex: base.windowIndex ?? undefined,
+    ...(base.windowId == null ? { windowIndex: selectedWindow.index } : {}),
     ...screenshotRequestParams(params),
     restoreWindow: params.restoreWindow === true
   })
   if (!response.snapshot) {
     throw new RuntimeClientError('accessibility_error', 'desktop provider returned no snapshot')
+  }
+  const subtree = response.snapshot
+  if (
+    subtree.app?.pid !== base.app.pid ||
+    (base.windowId != null ? subtree.windowId !== base.windowId : subtree.windowIndex !== selectedWindow.index) ||
+    (subtree.windowIndex != null && subtree.windowIndex !== selectedWindow.index)
+  ) {
+    throw new RuntimeClientError('window_stale', 'The subtree reply belongs to a different app process or window')
+  }
+  const returnedRoot = subtree.subtreeRoot ?? subtree.elements?.[0]
+  if (!returnedRoot || runtimeIdKey(returnedRoot) !== runtimeIdKey(root) || (root.controlType && returnedRoot.controlType !== root.controlType)) {
+    throw new RuntimeClientError('unsupported_capability', 'The provider did not establish the requested subtree root')
   }
   const { shown, cached } = indexSubtreeSnapshot(base, response.snapshot, rootElementIndex)
   store.remember(app, cached, params)

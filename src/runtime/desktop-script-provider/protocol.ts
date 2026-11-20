@@ -81,6 +81,7 @@ export type BridgeSnapshot = {
   focusedSummary?: string | null
   focusedElementId?: number | null
   rootElementIndex?: number
+  subtreeRoot?: BridgeElement
   subtreeReadRoots?: ReadonlyMap<number, number>
   nextElementIndex?: number
   selectedText?: string | null

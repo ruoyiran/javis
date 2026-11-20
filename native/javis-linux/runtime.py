@@ -1482,10 +1482,12 @@ def make_snapshot(query, screenshot_request, window_id=None, window_index=None, 
     bounds = placement.bounds()
     tree_root, root_path = window, [window_index]
     if root is not None:
+        root_path = list(root.get("runtimeId") or [])
+        if not root_path or int(root_path[0]) != window_index:
+            raise RuntimeError("windowStale: the subtree root belongs to another window; run get-app-state again")
         tree_root = find_element(app, root)
         if tree_root is None:
             raise RuntimeError(f"stale element: element {root.get('index')} is gone; run get-app-state again and use a fresh element index")
-        root_path = list(root.get("runtimeId") or [])
     geometry_nodes = {}
     records, lines, truncation = render_accessibility_tree(
         tree_root,
@@ -1525,6 +1527,7 @@ def make_snapshot(query, screenshot_request, window_id=None, window_index=None, 
         "focusedSummary": focused,
         "selectedText": selection,
         "elements": records,
+        "subtreeRoot": {"index": 0, "runtimeId": root_path, "controlType": role_of(tree_root)} if root is not None else None,
     }
 
 

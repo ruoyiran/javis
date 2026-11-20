@@ -206,6 +206,22 @@ class SnapshotFixture(ExitStack):
 
 
 class RuntimeRenderTest(unittest.TestCase):
+    def test_elided_subtree_root_reports_the_resolved_scope(self):
+        field = FakeAccessible("text", "Message")
+        panel = FakeAccessible("panel", value="previous", children=[field])
+        with SnapshotFixture(FakeAccessible("frame", "Editor", children=[panel])):
+            full = runtime.make_snapshot("Fixture", None)
+            root = full["elements"][1]
+            panel.value = ""
+            scoped = runtime.make_snapshot("Fixture", None, window_index=0, root=root)
+        self.assertEqual(scoped["subtreeRoot"], {"index": 0, "runtimeId": [0, 0], "controlType": "panel"})
+        self.assertEqual([item["runtimeId"] for item in scoped["elements"]], [[0, 0, 0]])
+
+    def test_subtree_root_cannot_select_another_window(self):
+        with SnapshotFixture(FakeAccessible("frame", "Editor")):
+            with self.assertRaisesRegex(RuntimeError, "windowStale"):
+                runtime.make_snapshot("Fixture", None, window_index=0, root={"runtimeId": [1, 0]})
+
     def test_delivered_value_action_keeps_observation_error(self):
         operation = {"tool": "set_value", "app": "Demo", "element": {"index": 3}, "value": "new"}
         with ExitStack() as patches:

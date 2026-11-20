@@ -1703,6 +1703,7 @@ function New-OrcaSnapshot([string]$Query, $ScreenshotRequest, $WindowId = $null,
         focusedElementId = $null
         selectedText = $null
         elements = @($tree.elements)
+        subtreeRoot = if ($null -ne $TreeRoot) { [pscustomobject]@{ index = 0; runtimeId = @(Get-OrcaRuntimeId $walkRoot); controlType = [string]$walkRoot.Current.ControlType.ProgrammaticName } } else { $null }
     }
 }
 
