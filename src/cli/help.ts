@@ -1,21 +1,23 @@
 import type { CliArguments } from './arguments.js'
 
-const observeFlags = '[--host SSH_ALIAS] [--session ID|--worktree ID] [--window-id N|--window-index N] [--restore-window] [--no-screenshot]'
+const observeFlags = '[--host SSH_ALIAS] [--session ID|--worktree ID] [--window-id N|--window-index N] [--restore-window] [--no-screenshot] [--screenshot-format png|jpeg] [--screenshot-scale N] [--screenshot-max-edge PX]'
 const actionFlags = `${observeFlags} [--full-tree] [--json]`
 
 const commands: Record<string, { summary: string; flags: string }> = {
   capabilities: { summary: 'Show provider capabilities', flags: '[--host SSH_ALIAS] [--json]' },
   'list-apps': { summary: 'List running apps', flags: '[--host SSH_ALIAS] [--json]' },
+  'launch-app': { summary: 'Start an installed app in the background', flags: '<name|bundle|path> [--activate] [--host SSH_ALIAS] [--json]' },
+  wait: { summary: 'Wait for text, enabled controls or a window title', flags: '--app <app> (--text TEXT|--enabled TEXT|--window-title TEXT) [--timeout MS] [--host SSH_ALIAS] [--session ID|--worktree ID] [--window-id N|--window-index N] [--json]' },
   permissions: { summary: 'Open macOS permission setup', flags: '[--id accessibility|screenshots] [--json]' },
   'list-windows': { summary: 'List app windows', flags: '--app <name|bundle|pid:N> [--host SSH_ALIAS] [--json]' },
-  'get-app-state': { summary: 'Observe an app without activating it', flags: `--app <app> ${observeFlags} [--query TEXT] [--max-elements N] [--json]` },
+  'get-app-state': { summary: 'Observe an app without activating it', flags: `--app <app> ${observeFlags} [--element-index N] [--query TEXT] [--max-elements N] [--json]` },
   click: { summary: 'Click an element or window coordinate', flags: `--app <app> (--element-index N|--x X --y Y) [--click-count N] [--mouse-button left|right|middle] [--modifiers CHORD] ${actionFlags}` },
   'perform-secondary-action': { summary: 'Perform an advertised accessibility action', flags: `--app <app> --element-index N --action NAME ${actionFlags}` },
   scroll: { summary: 'Scroll an element or window coordinate', flags: `--app <app> (--element-index N|--x X --y Y) --direction up|down|left|right [--pages N] ${actionFlags}` },
   drag: { summary: 'Drag between elements or window coordinates', flags: `--app <app> (--from-element-index N --to-element-index N|--from-x X --from-y Y --to-x X --to-y Y) ${actionFlags}` },
-  'type-text': { summary: 'Type literal text', flags: `--app <app> (--text TEXT|--text-stdin) ${actionFlags}` },
-  'press-key': { summary: 'Press one key, such as Return or Escape', flags: `--app <app> --key KEY ${actionFlags}` },
-  hotkey: { summary: 'Press a modifier chord, such as CmdOrCtrl+A', flags: `--app <app> --key CHORD ${actionFlags}` },
+  'type-text': { summary: 'Type literal text', flags: `--app <app> (--text TEXT|--text-stdin) [--element-index N] ${actionFlags}` },
+  'press-key': { summary: 'Press one key, such as Return or Escape', flags: `--app <app> --key KEY [--allow-system-shortcut] ${actionFlags}` },
+  hotkey: { summary: 'Press a modifier chord, such as CmdOrCtrl+A', flags: `--app <app> --key CHORD [--allow-system-shortcut] ${actionFlags}` },
   'paste-text': { summary: 'Paste exact text', flags: `--app <app> (--text TEXT|--text-stdin) ${actionFlags}` },
   'set-value': { summary: 'Set or clear an element value', flags: `--app <app> --element-index N (--value TEXT|--value-stdin) ${actionFlags}` }
 }

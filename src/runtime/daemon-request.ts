@@ -4,7 +4,7 @@ import type { JavisDaemonMethod } from './daemon-dispatch.js'
 import { isBrowserDaemonMethod } from './daemon-dispatch.js'
 
 const methods = new Set<string>([
-  'capabilities', 'listApps', 'listWindows', 'getAppState', 'click',
+  'capabilities', 'listApps', 'launchApp', 'listWindows', 'getAppState', 'click',
   'performSecondaryAction', 'scroll', 'drag', 'typeText', 'pressKey',
   'hotkey', 'pasteText', 'setValue', 'permissionsStatus', 'permissionsOpen', 'permissionsReset', '__shutdown', '__browserStream'
 ])

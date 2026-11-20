@@ -1,5 +1,9 @@
 import { expect, test } from 'vitest'
 import { toMcpError, toMcpResult } from '../../src/mcp/result.js'
+test('labels a JPEG capture with the returned image format', () => {
+  const result = toMcpResult({ screenshot: { data: 'aGVsbG8=', format: 'jpeg', width: 10 } })
+  expect(result.content[1]).toEqual({ type: 'image', data: 'aGVsbG8=', mimeType: 'image/jpeg' })
+})
 
 test('separates image bytes while preserving snapshot diff and screenshot metadata', () => {
   const value = { snapshot: { treeText: '+ button', treeDiff: { baseSnapshotId: 'old' } }, screenshot: { data: 'aGVsbG8=', format: 'png', width: 10 }, screenshotStatus: { state: 'captured' } }

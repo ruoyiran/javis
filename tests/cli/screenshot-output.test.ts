@@ -6,6 +6,11 @@ import { prepareCliResult } from '../../src/cli/screenshot-output.js'
 
 const root = mkdtempSync(join(tmpdir(), 'javis-screenshot-test-'))
 afterEach(() => rmSync(root, { recursive: true, force: true }))
+it('materializes a JPEG capture with a matching filename', () => {
+  const result = prepareCliResult({ screenshot: { data: Buffer.from('fake-jpeg').toString('base64'), format: 'jpeg' } }, { requestId: 'jpeg-state', directory: root })
+  expect(result.screenshot.path).toBe(join(root, 'jpeg-state-screenshot.jpg'))
+  expect(readFileSync(result.screenshot.path!)).toEqual(Buffer.from('fake-jpeg'))
+})
 
 it('saves a screenshot privately and removes inline image data from JSON', () => {
   const png = Buffer.from('fake-png')

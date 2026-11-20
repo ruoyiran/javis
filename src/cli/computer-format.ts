@@ -109,6 +109,10 @@ const actionVerbs: Record<string, string> = {
 
 export function formatComputerResult(method: JavisMethod, input: unknown, target: FollowUpTarget = {}): string {
   const result = object(input)
+  if (method === 'launchApp') {
+    const app = object(result.app)
+    return `${result.launched ? 'Started' : 'Already running'}: ${app.name} (pid ${app.pid}, ${result.delivery})`
+  }
   if (method === 'capabilities') {
     const supports = object(result.supports)
     const apps = object(supports.apps)

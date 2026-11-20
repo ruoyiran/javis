@@ -64,7 +64,7 @@ async function waitConnect(address: string, milliseconds: number): Promise<net.S
   }
 }
 
-function request(socket: net.Socket, method: string, params: Record<string, unknown>, token?: string): Promise<unknown> {
+function request(socket: net.Socket, method: string, params: Record<string, unknown>, token?: string, timeoutMs = 60_000): Promise<unknown> {
   return new Promise((resolve, reject) => {
     const decoder = new JsonLineDecoder()
     let settled = false
@@ -92,7 +92,7 @@ function request(socket: net.Socket, method: string, params: Record<string, unkn
     const timer = setTimeout(() => {
       finish(new JavisError('action_timeout', 'Request timed out; action delivery may be uncertain'))
       socket.destroy()
-    }, isBrowserDaemonMethod(method) ? Math.max(90_000, typeof params.timeout === 'number' ? params.timeout + 30_000 : 0) : 60_000)
+    }, isBrowserDaemonMethod(method) ? Math.max(90_000, typeof params.timeout === 'number' ? params.timeout + 30_000 : 0) : timeoutMs)
     socket.on('data', data); socket.once('close', closed); socket.once('error', failed)
     socket.write(JSON.stringify({ id: 1, method, params, token }) + '\n', error => { if (error) failed(error) })
   })
@@ -106,7 +106,8 @@ async function readDaemonToken(target: DaemonEndpoint): Promise<string | undefin
   }
 }
 
-export async function callJavis(method: JavisDaemonMethod, params: Record<string, unknown>): Promise<unknown> {
+export async function callJavis(method: JavisDaemonMethod, params: Record<string, unknown>, options: { timeoutMs?: number } = {}): Promise<unknown> {
+  if (options.timeoutMs !== undefined && (!Number.isSafeInteger(options.timeoutMs) || options.timeoutMs <= 0)) throw new JavisError('invalid_argument', 'timeoutMs must be a positive integer')
   if (isBrowserDaemonMethod(method)) params = browserDaemonParams(method, params)
   else if (!permissionMethods.has(method)) validateComputerRequestParams(method as JavisMethod, params)
   if (actions.has(method)) await validateComputerProviderActionParams(method as Parameters<typeof validateComputerProviderActionParams>[0], params)
@@ -123,7 +124,7 @@ export async function callJavis(method: JavisDaemonMethod, params: Record<string
     try { socket = await waitConnect(target.address, 10_000) }
     catch (error) { await assertDaemonRecoveryAvailable(target.lockPath); throw error }
   }
-  try { return await request(socket, method, params, await readDaemonToken(target)) }
+  try { return await request(socket, method, params, await readDaemonToken(target), options.timeoutMs) }
   finally { socket.destroy() }
 }
 
@@ -259,8 +260,12 @@ export async function runJavisDaemon(): Promise<void> {
       const operation = queue.enqueue(() => !disconnected && !socket.destroyed, deadline, async () => {
         deliveryAllowed = () => !disconnected && !socket.destroyed && Date.now() < deadline
         let reply
-        try { reply = { id: input.id, ok: true, result: await dispatch(input.method as JavisDaemonMethod, input.params) } }
+        try { reply = { id: input.id, ok: true, result: await dispatch(input.method as JavisDaemonMethod, input.params, deliveryAllowed) } }
         catch (error) { reply = { id: input.id, ok: false, error: runtimeErrorDetails(error) } }
+        if (!deliveryAllowed() && (input.method === 'getAppState' || actions.has(input.method))) {
+          const result = 'result' in reply && reply.result && typeof reply.result === 'object' ? reply.result as Record<string, unknown> : {}
+          runtime.invalidateObservation({ ...input.params, ...(input.params.sessionId === undefined && input.params.worktree === undefined && typeof result.sessionId === 'string' ? { sessionId: result.sessionId } : {}) })
+        }
         if (!socket.destroyed) socket.end(JSON.stringify(reply) + '\n')
       })
       inFlight.add(operation)

@@ -8,7 +8,7 @@ export function toMcpResult(value: unknown): CallToolResult {
   const data = screenshot?.data
   const textValue = screenshot ? { ...object, screenshot: Object.fromEntries(Object.entries(screenshot).filter(([key]) => key !== 'data')) } : value
   const content: CallToolResult['content'] = [{ type: 'text', text: JSON.stringify(textValue) ?? 'null' }]
-  if (typeof data === 'string' && data.length) content.push({ type: 'image', data, mimeType: 'image/png' })
+  if (typeof data === 'string' && data.length) content.push({ type: 'image', data, mimeType: screenshot?.format === 'jpeg' ? 'image/jpeg' : 'image/png' })
   return { content }
 }
 

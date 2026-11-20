@@ -128,8 +128,8 @@ function render(value) {
   } else {
     tree.textContent = '';
   }
-  if (value.screenshot && value.screenshot.format === 'png' && value.screenshot.data) {
-    screenshot.src = 'data:image/png;base64,' + value.screenshot.data;
+  if (value.screenshot && (value.screenshot.format === 'png' || value.screenshot.format === 'jpeg') && value.screenshot.data) {
+    screenshot.src = 'data:image/' + value.screenshot.format + ';base64,' + value.screenshot.data;
     screenshot.hidden = false;
     imageNote.hidden = true;
   } else {

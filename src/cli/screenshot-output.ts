@@ -32,12 +32,12 @@ export function prepareCliResult(input: object, options: { directory?: string; r
     chmodSync(directory, 0o700)
     const cutoff = Date.now() - ttlMs
     for (const name of readdirSync(directory)) {
-      if (!/-screenshot\.png$/.test(name)) continue
+      if (!/-screenshot\.(?:png|jpg)$/.test(name)) continue
       const path = join(directory, name)
       try { if (statSync(path).mtimeMs < cutoff) rmSync(path) } catch { /* raced file */ }
     }
     const stem = options.requestId.replaceAll(/[^a-zA-Z0-9._-]/g, '_')
-    const path = join(directory, `${stem}-screenshot.png`)
+    const path = join(directory, `${stem}-screenshot.${screenshot.format === 'jpeg' ? 'jpg' : 'png'}`)
     writeFileSync(path, Buffer.from(screenshot.data, 'base64'), { flag: 'wx', mode: 0o600 })
     return {
       ...input,
