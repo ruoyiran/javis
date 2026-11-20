@@ -34,7 +34,7 @@ After a branding or release-version change, check that `build/Javis.app/Contents
 On Windows CI or a Windows desktop test machine, run the TypeScript checks and PowerShell provider test with Windows PowerShell 5.1, then exercise the actual UI Automation provider in an isolated interactive graphical login. `npm run build` and `npm run install:local` create the user-local Windows launcher, which references the install-time Node executable by absolute path. For example:
 
 ```powershell
-powershell.exe -NoProfile -NonInteractive -File native/javis-windows/runtime-pointer.test.ps1
+powershell.exe -NoProfile -NonInteractive -File native/javis-windows/runtime-protocol.test.ps1
 ```
 
 The PowerShell test and a real Windows GUI smoke check cannot be replaced by a macOS run. Verify the persistent `-Serve` host, one-shot fallback, timeout reaping, and capability gating on Windows itself.

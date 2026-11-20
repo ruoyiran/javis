@@ -66,3 +66,14 @@ Use `--text-stdin` and `--value-stdin` for sensitive text so it is absent from s
 If `permission_denied` or `screenshot_failed` names macOS permissions, run `javis permissions status --json` (add `--host <SSH-alias>` for a remote target); have the user complete `javis permissions open` on the host where a grant is missing. On Linux, verify Python 3 with PyGObject/AT-SPI in the active graphical login. On Windows, verify Windows PowerShell UI Automation in the user's interactive desktop. Normal observations do not open System Settings.
 
 Javis Mobile is an explicitly paired HTTPS browser remote for the desktop host; it does not operate phone apps. Orca Mobile has no CUA route. Do not place screenshot bytes, accessibility trees, or input text in diagnostic logs, and never resend an ambiguous mobile action without refreshing the page's observation.
+
+## Latest desktop and browser controls
+
+- Launch closed apps with `javis computer launch-app <app> --json`; already-running apps are unchanged. Request `--activate` only for an explicitly requested foreground launch.
+- Wait passively with `javis computer wait --app <app> --text <text>` or `--enabled <text>` or `--window-title <text>`; choose exactly one condition. Use `--timeout <ms>` (default10000,max120000). After a timeout get fresh state; no automatic input replay.
+- State can read `--element-index <n>` as a subtree of the prior observed app/window/context. Typing can target `--element-index`; capability refusal must not be bypassed by dropping the target.
+- Smaller captures use `--screenshot-format jpeg --screenshot-scale 1 --screenshot-max-edge <px>` on observations/actions. Use returned actual scale for coordinates; MCP/CLI/phone honor PNG/JPEG.
+- System shortcuts require explicit `--allow-system-shortcut` on press-key/hotkey.
+- Browser fill accepts `--value-stdin`; it rejects an empty pipe and removes one final reader newline. Browser `tab create --headless` selects server placement.
+
+Detailed latest99-command scope: `docs/browser-parity/latest-command-parity.md` in the Javis repository.

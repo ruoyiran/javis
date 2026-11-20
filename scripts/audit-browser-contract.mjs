@@ -6,7 +6,7 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)))
-const baseline = JSON.parse(await readFile(join(root, 'docs/browser-parity/orca-729f757-baseline.json'), 'utf8'))
+const baseline = JSON.parse(await readFile(join(root, 'docs/browser-parity/orca-d3a843d-baseline.json'), 'utf8'))
 const directory = await mkdtemp(join(tmpdir(), 'javis-browser-contract-'))
 try {
   const entry = join(directory, 'contract.cjs')

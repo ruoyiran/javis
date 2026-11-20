@@ -10,6 +10,7 @@ export type BrowserDaemonMethod =
   | BrowserMethod
   | "browser.open"
   | "browser.status"
+  | "browser.workspaceSnapshot"
   | "browser.catalog.context"
   | "browser.catalog.list"
   | "browser.catalog.register"
@@ -25,6 +26,7 @@ const browserMethodNames = new Set<string>([
   ...browserMethods,
   "browser.open",
   "browser.status",
+  "browser.workspaceSnapshot",
   "browser.catalog.context",
   "browser.catalog.list",
   "browser.catalog.register",
@@ -59,6 +61,10 @@ export function browserDaemonParams(
         "Browser status does not accept parameters",
       );
     return params;
+  }
+  if (method === "browser.workspaceSnapshot") {
+    if (Object.keys(params).some(key => key !== 'worktree') || (params.worktree !== undefined && (typeof params.worktree !== 'string' || !params.worktree))) throw new JavisError('invalid_argument', 'Browser workspace snapshot accepts only a non-empty worktree')
+    return params
   }
   if (method.startsWith("browser.catalog.")) return params;
   return validateBrowserParams(method, params);

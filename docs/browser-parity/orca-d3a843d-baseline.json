@@ -1,0 +1,1931 @@
+{
+  "reference": {
+    "repository": "stablyai/orca",
+    "commit": "d3a843d032f602cf09e392613683a94089efce07",
+    "capturedDate": "2026-11-20"
+  },
+  "originalMigrationReference": {
+    "repository": "orca",
+    "commit": "729f757b592244176420a86114c1ea23911eeeba",
+    "version": "1.4.214",
+    "capturedDate": "2026-11-19"
+  },
+  "counts": {
+    "browserCommands": 83,
+    "computerCommands": 16,
+    "browserMethods": 101
+  },
+  "cliMappings": [
+    {
+      "orca": "orca extension list",
+      "javis": "javis browser extension list",
+      "usage": "orca extension list [--profile <id>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "profile"
+      ]
+    },
+    {
+      "orca": "orca extension reload",
+      "javis": "javis browser extension reload",
+      "usage": "orca extension reload <extension-id> [--json] | orca extension reload --path <folder> [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "extension-id",
+        "path"
+      ],
+      "positionalArgs": [
+        "extension-id"
+      ]
+    },
+    {
+      "orca": "orca browser identity get",
+      "javis": "javis browser identity get",
+      "usage": "orca browser identity get [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment"
+      ],
+      "aliases": [
+        [
+          "browser",
+          "identity",
+          "show"
+        ]
+      ]
+    },
+    {
+      "orca": "orca browser identity set",
+      "javis": "javis browser identity set",
+      "usage": "orca browser identity set --mode <clean|native> [--reset] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "mode",
+        "reset"
+      ]
+    },
+    {
+      "orca": "orca snapshot",
+      "javis": "javis browser snapshot",
+      "usage": "orca snapshot [--interactive] [--compact] [--depth <n>] [--selector <css>] [--urls] [--delta | --full] [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "interactive",
+        "compact",
+        "depth",
+        "selector",
+        "urls",
+        "delta",
+        "full",
+        "worktree"
+      ]
+    },
+    {
+      "orca": "orca screenshot",
+      "javis": "javis browser screenshot",
+      "usage": "orca screenshot [--format <png|jpeg>] [--if-changed] [--annotate] [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "format",
+        "if-changed",
+        "annotate",
+        "worktree"
+      ]
+    },
+    {
+      "orca": "orca goto",
+      "javis": "javis browser goto",
+      "usage": "orca goto --url <url> [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "url",
+        "worktree",
+        "expect-url"
+      ]
+    },
+    {
+      "orca": "orca back",
+      "javis": "javis browser back",
+      "usage": "orca back [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "worktree",
+        "expect-url"
+      ]
+    },
+    {
+      "orca": "orca reload",
+      "javis": "javis browser reload",
+      "usage": "orca reload [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "worktree",
+        "expect-url"
+      ]
+    },
+    {
+      "orca": "orca forward",
+      "javis": "javis browser forward",
+      "usage": "orca forward [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "worktree",
+        "expect-url"
+      ]
+    },
+    {
+      "orca": "orca eval",
+      "javis": "javis browser eval",
+      "usage": "orca eval --expression <js> [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "expression",
+        "worktree",
+        "expect-url"
+      ]
+    },
+    {
+      "orca": "orca scroll",
+      "javis": "javis browser scroll",
+      "usage": "orca scroll --direction <up|down> [--amount <pixels>] [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "direction",
+        "amount",
+        "worktree",
+        "expect-url"
+      ]
+    },
+    {
+      "orca": "orca wait",
+      "javis": "javis browser wait",
+      "usage": "orca wait [--selector <sel>] [--timeout <ms>] [--text <text>] [--url <pattern>] [--load <state>] [--fn <js>] [--state <hidden|visible>] [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "selector",
+        "timeout",
+        "text",
+        "url",
+        "load",
+        "fn",
+        "state",
+        "worktree"
+      ]
+    },
+    {
+      "orca": "orca pdf",
+      "javis": "javis browser pdf",
+      "usage": "orca pdf [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "worktree"
+      ]
+    },
+    {
+      "orca": "orca full-screenshot",
+      "javis": "javis browser full-screenshot",
+      "usage": "orca full-screenshot [--format <png|jpeg>] [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "format",
+        "worktree"
+      ]
+    },
+    {
+      "orca": "orca click",
+      "javis": "javis browser click",
+      "usage": "orca click --element <ref> [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "element",
+        "worktree",
+        "expect-url"
+      ]
+    },
+    {
+      "orca": "orca dblclick",
+      "javis": "javis browser dblclick",
+      "usage": "orca dblclick --element <ref> [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "element",
+        "worktree",
+        "expect-url"
+      ]
+    },
+    {
+      "orca": "orca fill",
+      "javis": "javis browser fill",
+      "usage": "orca fill --element <ref> (--value <text> | --value-stdin) [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "element",
+        "value",
+        "value-stdin",
+        "worktree",
+        "expect-url"
+      ]
+    },
+    {
+      "orca": "orca type",
+      "javis": "javis browser type",
+      "usage": "orca type --input <text> [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "input",
+        "worktree",
+        "expect-url"
+      ]
+    },
+    {
+      "orca": "orca select",
+      "javis": "javis browser select",
+      "usage": "orca select --element <ref> --value <value> [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "element",
+        "value",
+        "worktree",
+        "expect-url"
+      ]
+    },
+    {
+      "orca": "orca check",
+      "javis": "javis browser check",
+      "usage": "orca check --element <ref> [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "element",
+        "worktree",
+        "expect-url"
+      ]
+    },
+    {
+      "orca": "orca uncheck",
+      "javis": "javis browser uncheck",
+      "usage": "orca uncheck --element <ref> [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "element",
+        "worktree",
+        "expect-url"
+      ]
+    },
+    {
+      "orca": "orca focus",
+      "javis": "javis browser focus",
+      "usage": "orca focus --element <ref> [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "element",
+        "worktree",
+        "expect-url"
+      ]
+    },
+    {
+      "orca": "orca clear",
+      "javis": "javis browser clear",
+      "usage": "orca clear --element <ref> [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "element",
+        "worktree",
+        "expect-url"
+      ]
+    },
+    {
+      "orca": "orca select-all",
+      "javis": "javis browser select-all",
+      "usage": "orca select-all --element <ref> [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "element",
+        "worktree",
+        "expect-url"
+      ]
+    },
+    {
+      "orca": "orca keypress",
+      "javis": "javis browser keypress",
+      "usage": "orca keypress --key <name> [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "key",
+        "worktree",
+        "expect-url"
+      ]
+    },
+    {
+      "orca": "orca hover",
+      "javis": "javis browser hover",
+      "usage": "orca hover --element <ref> [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "element",
+        "worktree",
+        "expect-url"
+      ]
+    },
+    {
+      "orca": "orca drag",
+      "javis": "javis browser drag",
+      "usage": "orca drag --from <ref> --to <ref> [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "from",
+        "to",
+        "worktree",
+        "expect-url"
+      ]
+    },
+    {
+      "orca": "orca upload",
+      "javis": "javis browser upload",
+      "usage": "orca upload --element <ref> --files <path,...> [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "element",
+        "files",
+        "worktree",
+        "expect-url"
+      ]
+    },
+    {
+      "orca": "orca scrollintoview",
+      "javis": "javis browser scrollintoview",
+      "usage": "orca scrollintoview --element <ref> [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "element",
+        "worktree",
+        "expect-url"
+      ]
+    },
+    {
+      "orca": "orca get",
+      "javis": "javis browser get",
+      "usage": "orca get --what <property> [--element <ref>] [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "what",
+        "element",
+        "worktree"
+      ]
+    },
+    {
+      "orca": "orca is",
+      "javis": "javis browser is",
+      "usage": "orca is --what <state> --element <ref> [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "what",
+        "element",
+        "worktree"
+      ]
+    },
+    {
+      "orca": "orca inserttext",
+      "javis": "javis browser inserttext",
+      "usage": "orca inserttext --text <text> [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "text",
+        "worktree",
+        "expect-url"
+      ]
+    },
+    {
+      "orca": "orca mouse move",
+      "javis": "javis browser mouse move",
+      "usage": "orca mouse move --x <n> --y <n> [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "x",
+        "y",
+        "worktree",
+        "expect-url"
+      ]
+    },
+    {
+      "orca": "orca mouse down",
+      "javis": "javis browser mouse down",
+      "usage": "orca mouse down [--button <left|right|middle>] [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "button",
+        "worktree",
+        "expect-url"
+      ]
+    },
+    {
+      "orca": "orca mouse up",
+      "javis": "javis browser mouse up",
+      "usage": "orca mouse up [--button <left|right|middle>] [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "button",
+        "worktree",
+        "expect-url"
+      ]
+    },
+    {
+      "orca": "orca mouse wheel",
+      "javis": "javis browser mouse wheel",
+      "usage": "orca mouse wheel --dy <n> [--dx <n>] [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "dy",
+        "dx",
+        "worktree",
+        "expect-url"
+      ]
+    },
+    {
+      "orca": "orca find",
+      "javis": "javis browser find",
+      "usage": "orca find --locator <type> --value <text> --action <action> [--text <text>] [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "locator",
+        "value",
+        "action",
+        "text",
+        "worktree",
+        "expect-url"
+      ]
+    },
+    {
+      "orca": "orca download",
+      "javis": "javis browser download",
+      "usage": "orca download --selector <ref> --path <path> [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "selector",
+        "path",
+        "worktree",
+        "expect-url"
+      ]
+    },
+    {
+      "orca": "orca highlight",
+      "javis": "javis browser highlight",
+      "usage": "orca highlight --selector <ref> [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "selector",
+        "worktree"
+      ]
+    },
+    {
+      "orca": "orca open-url",
+      "javis": "javis browser open-url",
+      "usage": "orca open-url --url <url> [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "url",
+        "worktree"
+      ]
+    },
+    {
+      "orca": "orca tab list",
+      "javis": "javis browser tab list",
+      "usage": "orca tab list [--worktree <selector|all>] [--show-profile] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "worktree",
+        "show-profile"
+      ]
+    },
+    {
+      "orca": "orca tab show",
+      "javis": "javis browser tab show",
+      "usage": "orca tab show --page <id> [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "page",
+        "worktree"
+      ]
+    },
+    {
+      "orca": "orca tab annotations",
+      "javis": "javis browser tab annotations",
+      "usage": "orca tab annotations [--page <id>] [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "page",
+        "worktree"
+      ]
+    },
+    {
+      "orca": "orca tab current",
+      "javis": "javis browser tab current",
+      "usage": "orca tab current [--worktree <selector|all>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "worktree"
+      ]
+    },
+    {
+      "orca": "orca tab switch",
+      "javis": "javis browser tab switch",
+      "usage": "orca tab switch (--index <n> | --page <id>) [--worktree <selector>] [--focus] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "index",
+        "page",
+        "worktree",
+        "focus"
+      ]
+    },
+    {
+      "orca": "orca tab create",
+      "javis": "javis browser tab create",
+      "usage": "orca tab create [--url <url>] [--worktree <selector>] [--profile <id>] [--split <right|left|down|up>] [--headless] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "url",
+        "worktree",
+        "profile",
+        "split",
+        "headless"
+      ]
+    },
+    {
+      "orca": "orca tab close",
+      "javis": "javis browser tab close",
+      "usage": "orca tab close [--index <n>] [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "index",
+        "worktree"
+      ]
+    },
+    {
+      "orca": "orca exec",
+      "javis": "javis browser exec",
+      "usage": "orca exec --command \"<agent-browser command>\" [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "command",
+        "worktree"
+      ]
+    },
+    {
+      "orca": "orca tab profile list",
+      "javis": "javis browser tab profile list",
+      "usage": "orca tab profile list [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment"
+      ]
+    },
+    {
+      "orca": "orca tab profile create",
+      "javis": "javis browser tab profile create",
+      "usage": "orca tab profile create --label <name> [--scope <isolated|imported>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "label",
+        "scope"
+      ]
+    },
+    {
+      "orca": "orca tab profile delete",
+      "javis": "javis browser tab profile delete",
+      "usage": "orca tab profile delete --profile <id> [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "profile"
+      ]
+    },
+    {
+      "orca": "orca tab profile set",
+      "javis": "javis browser tab profile set",
+      "usage": "orca tab profile set (--page <id> | --worktree <selector>) --profile <id> [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "profile",
+        "page",
+        "worktree"
+      ]
+    },
+    {
+      "orca": "orca tab profile show",
+      "javis": "javis browser tab profile show",
+      "usage": "orca tab profile show --page <id> [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "page",
+        "worktree"
+      ]
+    },
+    {
+      "orca": "orca tab profile use-default",
+      "javis": "javis browser tab profile use-default",
+      "usage": "orca tab profile use-default --page <id> [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "page",
+        "worktree"
+      ]
+    },
+    {
+      "orca": "orca tab profile clone",
+      "javis": "javis browser tab profile clone",
+      "usage": "orca tab profile clone --profile <id> [--page <id>] [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "profile",
+        "page",
+        "worktree"
+      ]
+    },
+    {
+      "orca": "orca cookie get",
+      "javis": "javis browser cookie get",
+      "usage": "orca cookie get [--url <url>] [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "url",
+        "worktree"
+      ]
+    },
+    {
+      "orca": "orca cookie set",
+      "javis": "javis browser cookie set",
+      "usage": "orca cookie set --name <n> --value <v> [--domain <d>] [--path <p>] [--secure] [--httpOnly] [--sameSite <s>] [--expires <epoch>] [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "name",
+        "value",
+        "domain",
+        "path",
+        "secure",
+        "httpOnly",
+        "sameSite",
+        "expires",
+        "worktree"
+      ]
+    },
+    {
+      "orca": "orca cookie delete",
+      "javis": "javis browser cookie delete",
+      "usage": "orca cookie delete --name <n> [--domain <d>] [--url <u>] [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "name",
+        "domain",
+        "url",
+        "worktree"
+      ]
+    },
+    {
+      "orca": "orca intercept enable",
+      "javis": "javis browser intercept enable",
+      "usage": "orca intercept enable [--patterns <glob,...>] [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "patterns",
+        "worktree"
+      ]
+    },
+    {
+      "orca": "orca intercept disable",
+      "javis": "javis browser intercept disable",
+      "usage": "orca intercept disable [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "worktree"
+      ]
+    },
+    {
+      "orca": "orca intercept list",
+      "javis": "javis browser intercept list",
+      "usage": "orca intercept list [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "worktree"
+      ]
+    },
+    {
+      "orca": "orca capture start",
+      "javis": "javis browser capture start",
+      "usage": "orca capture start [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "worktree"
+      ]
+    },
+    {
+      "orca": "orca capture stop",
+      "javis": "javis browser capture stop",
+      "usage": "orca capture stop [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "worktree"
+      ]
+    },
+    {
+      "orca": "orca console",
+      "javis": "javis browser console",
+      "usage": "orca console [--limit <n>] [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "limit",
+        "worktree"
+      ]
+    },
+    {
+      "orca": "orca network",
+      "javis": "javis browser network",
+      "usage": "orca network [--limit <n>] [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "limit",
+        "worktree"
+      ]
+    },
+    {
+      "orca": "orca viewport",
+      "javis": "javis browser viewport",
+      "usage": "orca viewport --width <w> --height <h> [--scale <n>] [--mobile] [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "width",
+        "height",
+        "scale",
+        "mobile",
+        "worktree"
+      ]
+    },
+    {
+      "orca": "orca geolocation",
+      "javis": "javis browser geolocation",
+      "usage": "orca geolocation --latitude <lat> --longitude <lon> [--accuracy <n>] [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "latitude",
+        "longitude",
+        "accuracy",
+        "worktree"
+      ]
+    },
+    {
+      "orca": "orca set device",
+      "javis": "javis browser set device",
+      "usage": "orca set device --name <device> [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "name",
+        "worktree"
+      ]
+    },
+    {
+      "orca": "orca set offline",
+      "javis": "javis browser set offline",
+      "usage": "orca set offline [--state <on|off>] [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "state",
+        "worktree"
+      ]
+    },
+    {
+      "orca": "orca set headers",
+      "javis": "javis browser set headers",
+      "usage": "orca set headers --headers <json> [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "headers",
+        "worktree"
+      ]
+    },
+    {
+      "orca": "orca set credentials",
+      "javis": "javis browser set credentials",
+      "usage": "orca set credentials --user <user> --pass <pass> [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "user",
+        "pass",
+        "worktree"
+      ]
+    },
+    {
+      "orca": "orca set media",
+      "javis": "javis browser set media",
+      "usage": "orca set media [--color-scheme <dark|light>] [--reduced-motion <reduce|no-preference>] [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "color-scheme",
+        "reduced-motion",
+        "worktree"
+      ]
+    },
+    {
+      "orca": "orca clipboard read",
+      "javis": "javis browser clipboard read",
+      "usage": "orca clipboard read [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "worktree"
+      ]
+    },
+    {
+      "orca": "orca clipboard write",
+      "javis": "javis browser clipboard write",
+      "usage": "orca clipboard write --text <text> [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "text",
+        "worktree"
+      ]
+    },
+    {
+      "orca": "orca dialog accept",
+      "javis": "javis browser dialog accept",
+      "usage": "orca dialog accept [--text <text>] [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "text",
+        "worktree",
+        "expect-url"
+      ]
+    },
+    {
+      "orca": "orca dialog dismiss",
+      "javis": "javis browser dialog dismiss",
+      "usage": "orca dialog dismiss [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "worktree",
+        "expect-url"
+      ]
+    },
+    {
+      "orca": "orca storage local get",
+      "javis": "javis browser storage local get",
+      "usage": "orca storage local get --key <key> [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "key",
+        "worktree"
+      ]
+    },
+    {
+      "orca": "orca storage local set",
+      "javis": "javis browser storage local set",
+      "usage": "orca storage local set --key <key> --value <value> [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "key",
+        "value",
+        "worktree",
+        "expect-url"
+      ]
+    },
+    {
+      "orca": "orca storage local clear",
+      "javis": "javis browser storage local clear",
+      "usage": "orca storage local clear [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "worktree",
+        "expect-url"
+      ]
+    },
+    {
+      "orca": "orca storage session get",
+      "javis": "javis browser storage session get",
+      "usage": "orca storage session get --key <key> [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "key",
+        "worktree"
+      ]
+    },
+    {
+      "orca": "orca storage session set",
+      "javis": "javis browser storage session set",
+      "usage": "orca storage session set --key <key> --value <value> [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "key",
+        "value",
+        "worktree",
+        "expect-url"
+      ]
+    },
+    {
+      "orca": "orca storage session clear",
+      "javis": "javis browser storage session clear",
+      "usage": "orca storage session clear [--worktree <selector>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "worktree",
+        "expect-url"
+      ]
+    }
+  ],
+  "computerCliMappings": [
+    {
+      "orca": "orca computer capabilities",
+      "javis": "javis computer capabilities",
+      "usage": "orca computer capabilities [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment"
+      ]
+    },
+    {
+      "orca": "orca computer list-apps",
+      "javis": "javis computer list-apps",
+      "usage": "orca computer list-apps [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment"
+      ]
+    },
+    {
+      "orca": "orca computer permissions",
+      "javis": "javis computer permissions",
+      "usage": "orca computer permissions [--id <accessibility|screenshots>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "id"
+      ]
+    },
+    {
+      "orca": "orca computer launch-app",
+      "javis": "javis computer launch-app",
+      "usage": "orca computer launch-app <name|bundle|path> [--activate] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "app",
+        "activate"
+      ],
+      "notes": [
+        "Leaves an app that is already running as it is. Use this instead of `open -a` or Start-Process, which bring the app to the front.",
+        "Use --activate only when the user asked for the app to come forward: it takes the keyboard from whatever they are doing. It applies only when launch-app starts the app.",
+        "macOS and Windows only."
+      ],
+      "positionalArgs": [
+        "app"
+      ]
+    },
+    {
+      "orca": "orca computer list-windows",
+      "javis": "javis computer list-windows",
+      "usage": "orca computer list-windows --app <name|bundle|pid:N> [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "app"
+      ]
+    },
+    {
+      "orca": "orca computer get-app-state",
+      "javis": "javis computer get-app-state",
+      "usage": "orca computer get-app-state --app <name|bundle|pid:N> [--window-id <id> | --window-index <n>] [--worktree <selector> | --session <id>] [--element-index <n>] [--query <text>] [--max-elements <n>] [--restore-window] [--no-screenshot] [--screenshot-format <png|jpeg>] [--screenshot-scale <n>] [--screenshot-max-edge <px>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "worktree",
+        "session",
+        "app",
+        "window-id",
+        "window-index",
+        "restore-window",
+        "no-screenshot",
+        "screenshot-format",
+        "screenshot-scale",
+        "screenshot-max-edge",
+        "element-index",
+        "query",
+        "max-elements"
+      ]
+    },
+    {
+      "orca": "orca computer wait",
+      "javis": "javis computer wait",
+      "usage": "orca computer wait --app <name|bundle|pid:N> (--text <text> | --enabled <text> | --window-title <text>) [--timeout <ms>] [--window-id <id> | --window-index <n>] [--worktree <selector> | --session <id>] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "worktree",
+        "session",
+        "app",
+        "window-id",
+        "window-index",
+        "text",
+        "enabled",
+        "window-title",
+        "timeout"
+      ],
+      "notes": [
+        "Polls the accessibility tree (or, for --window-title, the window list) until the condition holds, then prints the matching elements or windows. Matching is a case-insensitive substring, like get-app-state --query.",
+        "--enabled holds once an element contains the text and no element containing it is disabled.",
+        "--timeout defaults to 10000 ms (at most 120000); on timeout the command fails with wait_timeout."
+      ]
+    },
+    {
+      "orca": "orca computer click",
+      "javis": "javis computer click",
+      "usage": "orca computer click --app <app> (--element-index <n> | --x <x> --y <y>) [--window-id <id> | --window-index <n>] [--click-count <n>] [--mouse-button <left|right|middle>] [--modifiers <modifier-chord>] [--restore-window] [--no-screenshot] [--full-tree] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "worktree",
+        "session",
+        "app",
+        "window-id",
+        "window-index",
+        "restore-window",
+        "no-screenshot",
+        "screenshot-format",
+        "screenshot-scale",
+        "screenshot-max-edge",
+        "full-tree",
+        "element-index",
+        "x",
+        "y",
+        "click-count",
+        "mouse-button",
+        "modifiers"
+      ]
+    },
+    {
+      "orca": "orca computer perform-secondary-action",
+      "javis": "javis computer perform-secondary-action",
+      "usage": "orca computer perform-secondary-action --app <app> --element-index <n> --action <name> [--window-id <id> | --window-index <n>] [--restore-window] [--no-screenshot] [--full-tree] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "worktree",
+        "session",
+        "app",
+        "window-id",
+        "window-index",
+        "restore-window",
+        "no-screenshot",
+        "screenshot-format",
+        "screenshot-scale",
+        "screenshot-max-edge",
+        "full-tree",
+        "element-index",
+        "action"
+      ]
+    },
+    {
+      "orca": "orca computer scroll",
+      "javis": "javis computer scroll",
+      "usage": "orca computer scroll --app <app> (--element-index <n> | --x <x> --y <y>) --direction <up|down|left|right> [--window-id <id> | --window-index <n>] [--pages <n>] [--restore-window] [--no-screenshot] [--full-tree] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "worktree",
+        "session",
+        "app",
+        "window-id",
+        "window-index",
+        "restore-window",
+        "no-screenshot",
+        "screenshot-format",
+        "screenshot-scale",
+        "screenshot-max-edge",
+        "full-tree",
+        "element-index",
+        "x",
+        "y",
+        "direction",
+        "pages"
+      ]
+    },
+    {
+      "orca": "orca computer drag",
+      "javis": "javis computer drag",
+      "usage": "orca computer drag --app <app> (--from-element-index <n> --to-element-index <n> | --from-x <x> --from-y <y> --to-x <x> --to-y <y>) [--window-id <id> | --window-index <n>] [--restore-window] [--no-screenshot] [--full-tree] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "worktree",
+        "session",
+        "app",
+        "window-id",
+        "window-index",
+        "restore-window",
+        "no-screenshot",
+        "screenshot-format",
+        "screenshot-scale",
+        "screenshot-max-edge",
+        "full-tree",
+        "from-element-index",
+        "to-element-index",
+        "from-x",
+        "from-y",
+        "to-x",
+        "to-y"
+      ]
+    },
+    {
+      "orca": "orca computer type-text",
+      "javis": "javis computer type-text",
+      "usage": "orca computer type-text --app <app> (--text <text> | --text-stdin) [--element-index <n>] [--window-id <id> | --window-index <n>] [--restore-window] [--no-screenshot] [--full-tree] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "worktree",
+        "session",
+        "app",
+        "window-id",
+        "window-index",
+        "restore-window",
+        "no-screenshot",
+        "screenshot-format",
+        "screenshot-scale",
+        "screenshot-max-edge",
+        "full-tree",
+        "element-index",
+        "text",
+        "text-stdin"
+      ]
+    },
+    {
+      "orca": "orca computer press-key",
+      "javis": "javis computer press-key",
+      "usage": "orca computer press-key --app <app> --key <key> [--window-id <id> | --window-index <n>] [--allow-system-shortcut] [--restore-window] [--no-screenshot] [--full-tree] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "worktree",
+        "session",
+        "app",
+        "window-id",
+        "window-index",
+        "restore-window",
+        "no-screenshot",
+        "screenshot-format",
+        "screenshot-scale",
+        "screenshot-max-edge",
+        "full-tree",
+        "key",
+        "allow-system-shortcut"
+      ]
+    },
+    {
+      "orca": "orca computer hotkey",
+      "javis": "javis computer hotkey",
+      "usage": "orca computer hotkey --app <app> --key <key-combo> [--window-id <id> | --window-index <n>] [--allow-system-shortcut] [--restore-window] [--no-screenshot] [--full-tree] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "worktree",
+        "session",
+        "app",
+        "window-id",
+        "window-index",
+        "restore-window",
+        "no-screenshot",
+        "screenshot-format",
+        "screenshot-scale",
+        "screenshot-max-edge",
+        "full-tree",
+        "key",
+        "allow-system-shortcut"
+      ]
+    },
+    {
+      "orca": "orca computer paste-text",
+      "javis": "javis computer paste-text",
+      "usage": "orca computer paste-text --app <app> (--text <text> | --text-stdin) [--window-id <id> | --window-index <n>] [--restore-window] [--no-screenshot] [--full-tree] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "worktree",
+        "session",
+        "app",
+        "window-id",
+        "window-index",
+        "restore-window",
+        "no-screenshot",
+        "screenshot-format",
+        "screenshot-scale",
+        "screenshot-max-edge",
+        "full-tree",
+        "text",
+        "text-stdin"
+      ]
+    },
+    {
+      "orca": "orca computer set-value",
+      "javis": "javis computer set-value",
+      "usage": "orca computer set-value --app <app> --element-index <n> (--value <text> | --value-stdin) [--window-id <id> | --window-index <n>] [--restore-window] [--no-screenshot] [--full-tree] [--json]",
+      "flags": [
+        "help",
+        "json",
+        "pairing-code",
+        "environment",
+        "worktree",
+        "session",
+        "app",
+        "window-id",
+        "window-index",
+        "restore-window",
+        "no-screenshot",
+        "screenshot-format",
+        "screenshot-scale",
+        "screenshot-max-edge",
+        "full-tree",
+        "element-index",
+        "value",
+        "value-stdin"
+      ]
+    }
+  ],
+  "rpcMethods": [
+    {
+      "method": "browser.back",
+      "parameterSchema": "ExpectUrlBrowserTarget"
+    },
+    {
+      "method": "browser.capture.start",
+      "parameterSchema": "BrowserTarget"
+    },
+    {
+      "method": "browser.capture.stop",
+      "parameterSchema": "BrowserTarget"
+    },
+    {
+      "method": "browser.certificate.proceed",
+      "parameterSchema": "CertificateProceed"
+    },
+    {
+      "method": "browser.check",
+      "parameterSchema": "Check"
+    },
+    {
+      "method": "browser.clear",
+      "parameterSchema": "Element"
+    },
+    {
+      "method": "browser.click",
+      "parameterSchema": "Element"
+    },
+    {
+      "method": "browser.clientHost.attach",
+      "parameterSchema": "BrowserClientHostAttachParams"
+    },
+    {
+      "method": "browser.clientHost.commandResult",
+      "parameterSchema": "BrowserClientHostCommandResultParams"
+    },
+    {
+      "method": "browser.clientHost.commandResultChunk",
+      "parameterSchema": "BrowserClientHostCommandResultChunkParams"
+    },
+    {
+      "method": "browser.clientHost.fileChannel.abort",
+      "parameterSchema": "BrowserClientFileChannelAbortParams"
+    },
+    {
+      "method": "browser.clientHost.fileChannel.read",
+      "parameterSchema": "BrowserClientFileChannelReadParams"
+    },
+    {
+      "method": "browser.clientHost.fileChannel.write",
+      "parameterSchema": "BrowserClientFileChannelWriteParams"
+    },
+    {
+      "method": "browser.clientHost.pageMetadata",
+      "parameterSchema": "BrowserClientPageMetadataParams"
+    },
+    {
+      "method": "browser.clientHost.requestResult",
+      "parameterSchema": "BrowserClientHostRequestResultParams"
+    },
+    {
+      "method": "browser.clientPage.initializationAction",
+      "parameterSchema": "BrowserPageInitializationActionParams"
+    },
+    {
+      "method": "browser.clipboardRead",
+      "parameterSchema": "BrowserTarget"
+    },
+    {
+      "method": "browser.clipboardWrite",
+      "parameterSchema": "ClipboardWrite"
+    },
+    {
+      "method": "browser.console",
+      "parameterSchema": "LimitParam"
+    },
+    {
+      "method": "browser.cookie.delete",
+      "parameterSchema": "CookieDelete"
+    },
+    {
+      "method": "browser.cookie.get",
+      "parameterSchema": "CookieGet"
+    },
+    {
+      "method": "browser.cookie.set",
+      "parameterSchema": "CookieSet"
+    },
+    {
+      "method": "browser.dblclick",
+      "parameterSchema": "Element"
+    },
+    {
+      "method": "browser.dialogAccept",
+      "parameterSchema": "DialogAccept"
+    },
+    {
+      "method": "browser.dialogDismiss",
+      "parameterSchema": "ExpectUrlBrowserTarget"
+    },
+    {
+      "method": "browser.download",
+      "parameterSchema": "SelectorPath"
+    },
+    {
+      "method": "browser.drag",
+      "parameterSchema": "Drag"
+    },
+    {
+      "method": "browser.eval",
+      "parameterSchema": "Eval"
+    },
+    {
+      "method": "browser.exec",
+      "parameterSchema": "Exec"
+    },
+    {
+      "method": "browser.extensionList",
+      "parameterSchema": "ExtensionList"
+    },
+    {
+      "method": "browser.extensionReload",
+      "parameterSchema": "ExtensionReload"
+    },
+    {
+      "method": "browser.fill",
+      "parameterSchema": "Fill"
+    },
+    {
+      "method": "browser.find",
+      "parameterSchema": "Find"
+    },
+    {
+      "method": "browser.focus",
+      "parameterSchema": "Element"
+    },
+    {
+      "method": "browser.forward",
+      "parameterSchema": "ExpectUrlBrowserTarget"
+    },
+    {
+      "method": "browser.fullScreenshot",
+      "parameterSchema": "FullScreenshot"
+    },
+    {
+      "method": "browser.geolocation",
+      "parameterSchema": "Geolocation"
+    },
+    {
+      "method": "browser.get",
+      "parameterSchema": "Get"
+    },
+    {
+      "method": "browser.goto",
+      "parameterSchema": "Goto"
+    },
+    {
+      "method": "browser.highlight",
+      "parameterSchema": "Highlight"
+    },
+    {
+      "method": "browser.hover",
+      "parameterSchema": "Element"
+    },
+    {
+      "method": "browser.identity.get",
+      "parameterSchema": "null"
+    },
+    {
+      "method": "browser.identity.set",
+      "parameterSchema": "BrowserIdentitySet"
+    },
+    {
+      "method": "browser.intercept.disable",
+      "parameterSchema": "BrowserTarget"
+    },
+    {
+      "method": "browser.intercept.enable",
+      "parameterSchema": "InterceptEnable"
+    },
+    {
+      "method": "browser.intercept.list",
+      "parameterSchema": "BrowserTarget"
+    },
+    {
+      "method": "browser.is",
+      "parameterSchema": "Is"
+    },
+    {
+      "method": "browser.keyboardInsertText",
+      "parameterSchema": "KeyboardInsert"
+    },
+    {
+      "method": "browser.keypress",
+      "parameterSchema": "Keypress"
+    },
+    {
+      "method": "browser.mouseClick",
+      "parameterSchema": "MouseClick"
+    },
+    {
+      "method": "browser.mouseDown",
+      "parameterSchema": "MouseButton"
+    },
+    {
+      "method": "browser.mouseMove",
+      "parameterSchema": "MouseXY"
+    },
+    {
+      "method": "browser.mouseUp",
+      "parameterSchema": "MouseButton"
+    },
+    {
+      "method": "browser.mouseWheel",
+      "parameterSchema": "MouseWheel"
+    },
+    {
+      "method": "browser.network",
+      "parameterSchema": "LimitParam"
+    },
+    {
+      "method": "browser.openUrl",
+      "parameterSchema": "BrowserOpenUrlParams"
+    },
+    {
+      "method": "browser.pdf",
+      "parameterSchema": "BrowserTarget"
+    },
+    {
+      "method": "browser.profileClearDefaultCookies",
+      "parameterSchema": "null"
+    },
+    {
+      "method": "browser.profileClearGoogleCookies",
+      "parameterSchema": "ProfileClearGoogleCookies"
+    },
+    {
+      "method": "browser.profileCreate",
+      "parameterSchema": "ProfileCreate"
+    },
+    {
+      "method": "browser.profileDelete",
+      "parameterSchema": "ProfileDelete"
+    },
+    {
+      "method": "browser.profileDetectBrowsers",
+      "parameterSchema": "null"
+    },
+    {
+      "method": "browser.profileImportFromBrowser",
+      "parameterSchema": "ProfileImportFromBrowser"
+    },
+    {
+      "method": "browser.profileList",
+      "parameterSchema": "null"
+    },
+    {
+      "method": "browser.reload",
+      "parameterSchema": "Reload"
+    },
+    {
+      "method": "browser.screencast",
+      "parameterSchema": "Screencast"
+    },
+    {
+      "method": "browser.screencast.ack",
+      "parameterSchema": "ScreencastAck"
+    },
+    {
+      "method": "browser.screencast.unsubscribe",
+      "parameterSchema": "ScreencastUnsubscribe"
+    },
+    {
+      "method": "browser.screenshot",
+      "parameterSchema": "Screenshot"
+    },
+    {
+      "method": "browser.scroll",
+      "parameterSchema": "Scroll"
+    },
+    {
+      "method": "browser.scrollIntoView",
+      "parameterSchema": "Element"
+    },
+    {
+      "method": "browser.select",
+      "parameterSchema": "Select"
+    },
+    {
+      "method": "browser.selectAll",
+      "parameterSchema": "Element"
+    },
+    {
+      "method": "browser.setCredentials",
+      "parameterSchema": "SetCredentials"
+    },
+    {
+      "method": "browser.setDevice",
+      "parameterSchema": "SetDevice"
+    },
+    {
+      "method": "browser.setHeaders",
+      "parameterSchema": "SetHeaders"
+    },
+    {
+      "method": "browser.setMedia",
+      "parameterSchema": "SetMedia"
+    },
+    {
+      "method": "browser.setOffline",
+      "parameterSchema": "SetOffline"
+    },
+    {
+      "method": "browser.snapshot",
+      "parameterSchema": "Snapshot"
+    },
+    {
+      "method": "browser.stop",
+      "parameterSchema": "BrowserTarget"
+    },
+    {
+      "method": "browser.storage.local.clear",
+      "parameterSchema": "ExpectUrlBrowserTarget"
+    },
+    {
+      "method": "browser.storage.local.get",
+      "parameterSchema": "StorageKey"
+    },
+    {
+      "method": "browser.storage.local.set",
+      "parameterSchema": "StorageKeyValue"
+    },
+    {
+      "method": "browser.storage.session.clear",
+      "parameterSchema": "ExpectUrlBrowserTarget"
+    },
+    {
+      "method": "browser.storage.session.get",
+      "parameterSchema": "StorageKey"
+    },
+    {
+      "method": "browser.storage.session.set",
+      "parameterSchema": "StorageKeyValue"
+    },
+    {
+      "method": "browser.tabAnnotations",
+      "parameterSchema": "BrowserTarget"
+    },
+    {
+      "method": "browser.tabClose",
+      "parameterSchema": "TabClose"
+    },
+    {
+      "method": "browser.tabCreate",
+      "parameterSchema": "BrowserTabCreateParams"
+    },
+    {
+      "method": "browser.tabCurrent",
+      "parameterSchema": "TabCurrent"
+    },
+    {
+      "method": "browser.tabList",
+      "parameterSchema": "TabList"
+    },
+    {
+      "method": "browser.tabProfileClone",
+      "parameterSchema": "TabProfileClone"
+    },
+    {
+      "method": "browser.tabProfileShow",
+      "parameterSchema": "TabShow"
+    },
+    {
+      "method": "browser.tabSetProfile",
+      "parameterSchema": "TabSetProfile"
+    },
+    {
+      "method": "browser.tabShow",
+      "parameterSchema": "TabShow"
+    },
+    {
+      "method": "browser.tabSwitch",
+      "parameterSchema": "TabSwitch"
+    },
+    {
+      "method": "browser.type",
+      "parameterSchema": "Type"
+    },
+    {
+      "method": "browser.upload",
+      "parameterSchema": "Upload"
+    },
+    {
+      "method": "browser.viewport",
+      "parameterSchema": "Viewport"
+    },
+    {
+      "method": "browser.wait",
+      "parameterSchema": "Wait"
+    },
+    {
+      "method": "browser.zoom",
+      "parameterSchema": "PageZoom"
+    }
+  ],
+  "scopeNote": "Fixed primary-source interface inventory; real behavior and platform evidence recorded separately."
+}

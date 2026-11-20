@@ -58,7 +58,7 @@ jobs:
         run: python3 -m unittest discover -s native/javis-linux -p '*test.py'
       - name: Windows provider tests
         if: runner.os == 'Windows'
-        run: powershell.exe -NoProfile -NonInteractive -File native/javis-windows/runtime-pointer.test.ps1
+        run: powershell.exe -NoProfile -NonInteractive -File native/javis-windows/runtime-protocol.test.ps1
       - name: Build standalone distribution
         run: npm run build
       - name: Linux hidden browser acceptance
