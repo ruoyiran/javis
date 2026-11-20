@@ -23,9 +23,9 @@ def load_runtime():
     gi = types.ModuleType("gi")
     repository = types.ModuleType("gi.repository")
     gi.require_version = lambda *_: None
-    repository.Atspi = types.SimpleNamespace(KeySynthType=FakeKeySynthType, generate_keyboard_event=None,
+    repository.Atspi = types.SimpleNamespace(init=lambda: 0, KeySynthType=FakeKeySynthType, generate_keyboard_event=None,
                                             set_timeout=lambda *_: None)
-    repository.Gdk = types.SimpleNamespace(keyval_from_name=KEYSYMS.__getitem__)
+    repository.Gdk = types.SimpleNamespace(init=lambda *_: None, keyval_from_name=KEYSYMS.__getitem__)
     repository.GdkPixbuf = types.SimpleNamespace()
     gi.repository = repository
     sys.modules["gi"] = gi

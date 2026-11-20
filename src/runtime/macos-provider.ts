@@ -76,6 +76,7 @@ function request(socket: net.Socket, id: number, method: string, params: Record<
 function requiredCapability(method:string, capabilities:ComputerProviderCapabilities): boolean {
   const supports=capabilities.supports
   if(method==='listApps')return supports.apps?.list===true
+  if(method==='launchApp')return supports.apps?.launch===true
   if(method==='listWindows')return supports.windows?.list===true
   const actionKey:Record<string,keyof ComputerProviderCapabilities['supports']['actions']>={
     click:'click',performSecondaryAction:'performAction',scroll:'scroll',drag:'drag',typeText:'typeText',pressKey:'pressKey',hotkey:'hotkey',pasteText:'pasteText',setValue:'setValue'
@@ -165,6 +166,7 @@ export function createMacOSProvider(options:Options={}):JavisProvider {
     const current=generation??await startGeneration()
     checkDelivery()
     if(method==='handshake')return current.capabilities
+    if(method==='typeText' && params.elementIndex !== undefined && current.capabilities.supports.actions.typeTextElement !== true)throw new JavisError('unsupported_capability','The Javis macOS helper cannot type into a specific element')
     if(!requiredCapability(method,current.capabilities))throw new JavisError('unsupported_capability',`The Javis macOS helper does not support ${method}`)
     try{return await request(current.socket,nextId++,method,params,current.token,timeoutMs)}
     catch(error){await closeGeneration(current).catch(()=>{});throw error}

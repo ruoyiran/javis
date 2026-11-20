@@ -7,6 +7,7 @@ import type {
 export type NativeMethod =
   | 'handshake'
   | 'listApps'
+  | 'launchApp'
   | 'listWindows'
   | 'getAppState'
   | 'click'
@@ -21,7 +22,7 @@ export type NativeMethod =
 
 export type NativeActionMethod = Exclude<
   NativeMethod,
-  'handshake' | 'listApps' | 'listWindows' | 'getAppState'
+  'handshake' | 'listApps' | 'launchApp' | 'listWindows' | 'getAppState'
 >
 
 export type BridgeFrame = {
@@ -41,6 +42,7 @@ export type BridgeElement = {
   className?: string
   value?: string
   isSelected?: boolean
+  isDisabled?: boolean
   nativeWindowHandle?: number
   frame?: BridgeFrame | null
   actions?: string[]
@@ -59,6 +61,8 @@ export type BridgeSnapshot = {
   windowIndex?: number | null
   windowBounds?: BridgeFrame | null
   screenshotPngBase64?: string | null
+  screenshotBase64?: string | null
+  screenshotFormat?: 'png' | 'jpeg' | null
   screenshotWidth?: number | null
   screenshotHeight?: number | null
   screenshotScale?: number | null
@@ -76,6 +80,9 @@ export type BridgeSnapshot = {
   treeLines?: string[]
   focusedSummary?: string | null
   focusedElementId?: number | null
+  rootElementIndex?: number
+  subtreeReadRoots?: ReadonlyMap<number, number>
+  nextElementIndex?: number
   selectedText?: string | null
   elements?: BridgeElement[]
 }
@@ -102,6 +109,8 @@ export type BridgeWindow = {
 
 export type BridgeResponse = {
   ok: boolean
+  launched?: boolean
+  delivery?: 'background' | 'foreground'
   /** Echo of BridgeRequest.requestId; set only on the persistent serve path. */
   requestId?: number
   error?: string
@@ -151,5 +160,10 @@ export type BridgeRequest = {
   windowId?: number
   windowIndex?: number
   noScreenshot?: boolean
+  screenshotFormat?: 'png' | 'jpeg'
+  screenshotScale?: number
+  screenshotMaxEdge?: number
+  activate?: boolean
+  root?: BridgeElement | null
   restoreWindow?: boolean
 }

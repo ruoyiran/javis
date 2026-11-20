@@ -3,6 +3,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import type {
   ComputerActionResult,
+  ComputerLaunchAppResult,
   ComputerListAppsResult,
   ComputerListWindowsResult,
   ComputerProviderCapabilities,
@@ -21,6 +22,7 @@ import {
 import { validateComputerProviderActionParams } from '../computer-provider-action-validation.js'
 import { execBridge, mapBridgeError } from './bridge.js'
 import {
+  screenshotRequestParams,
   optionalNumberParam,
   optionalStringParam,
   stringParam
@@ -39,6 +41,8 @@ import { DesktopScriptSnapshotStore } from './snapshot-store.js'
 import { normalizeBridgeApp, renderSnapshot } from './snapshot-rendering.js'
 import { normalizeComputerActionResult } from '../computer-action-verification-normalization.js'
 import { JavisError } from '../error.js'
+import { launchBridgeApp } from './apps.js'
+import { readSubtreeSnapshot } from './subtree-snapshot.js'
 import type { JavisProvider } from '../provider.js'
 
 export function shouldUseDesktopScriptProvider(): boolean {
@@ -87,6 +91,7 @@ export class DesktopScriptProviderClient implements JavisProvider {
       case 'handshake':
       case 'capabilities': return this.capabilities()
       case 'listApps': return this.listApps()
+      case 'launchApp': return this.launchApp(params)
       case 'listWindows': return this.listWindows(params)
       case 'getAppState': return this.snapshot(params)
       case 'click':
@@ -124,6 +129,10 @@ export class DesktopScriptProviderClient implements JavisProvider {
     return await this.readCapabilities()
   }
 
+  async launchApp(params: Record<string, unknown>): Promise<ComputerLaunchAppResult> {
+    return launchBridgeApp(await this.readCapabilities(), request => this.callBridge(request), params)
+  }
+
   async listWindows(params: Record<string, unknown>): Promise<ComputerListWindowsResult> {
     const capabilities = await this.readCapabilities()
     if (!capabilities.supports.windows.list) {
@@ -158,12 +167,14 @@ export class DesktopScriptProviderClient implements JavisProvider {
   async snapshot(params: Record<string, unknown>): Promise<ComputerSnapshotResult> {
     const app = stringParam(params, 'app')
     await this.ensureWindowTargetSupported(params)
+    const rootElementIndex = optionalNumberParam(params, 'rootElementIndex')
+    if (rootElementIndex !== undefined) return readSubtreeSnapshot(this.snapshotStore, request => this.callBridge(request), { app, rootElementIndex, params })
     const response = await this.callBridge({
       tool: 'get_app_state',
       app,
       windowId: optionalNumberParam(params, 'windowId'),
       windowIndex: optionalNumberParam(params, 'windowIndex'),
-      noScreenshot: params.noScreenshot === true,
+      ...screenshotRequestParams(params),
       restoreWindow: params.restoreWindow === true
     })
     return this.rememberAndRender(app, response, params.noScreenshot === true, params)
@@ -176,6 +187,7 @@ export class DesktopScriptProviderClient implements JavisProvider {
     const app = await validateComputerProviderActionParams(method, params)
     await this.ensureWindowTargetSupported(params)
     await this.ensureActionSupported(method)
+    if (method === 'typeText' && params.elementIndex !== undefined && (await this.readCapabilities()).supports.actions.typeTextElement !== true) throw new JavisError('unsupported_capability', 'The provider cannot type into a specific element')
     const explicitWindowId = optionalNumberParam(params, 'windowId')
     const explicitWindowIndex = optionalNumberParam(params, 'windowIndex')
     const current = this.snapshotStore.current(app, explicitWindowId, params)
@@ -210,7 +222,7 @@ export class DesktopScriptProviderClient implements JavisProvider {
       value: optionalStringParam(params, 'value'),
       windowBounds: null,
       ...actionWindowTarget,
-      noScreenshot: params.noScreenshot === true,
+      ...screenshotRequestParams(params),
       restoreWindow: params.restoreWindow === true
     })
     const action = verifyDesktopAction(

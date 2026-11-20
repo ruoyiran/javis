@@ -6,16 +6,22 @@ import { ComputerTreeBaselines } from './computer-snapshot-tree-diff.js'
 import { normalizeComputerActionResult, rejectContradictedComputerAction } from './computer-action-verification-normalization.js'
 import type { JavisProvider } from './provider.js'
 import type { ComputerActionResult, ComputerSnapshotResult, ComputerProviderCapabilities } from '../contract/computer-use-runtime-types.js'
-export type JavisMethod = 'capabilities' | 'listApps' | 'listWindows' | 'getAppState' | 'click' | 'performSecondaryAction' | 'scroll' | 'drag' | 'typeText' | 'pressKey' | 'hotkey' | 'pasteText' | 'setValue'
+export type JavisMethod = 'capabilities' | 'listApps' | 'launchApp' | 'listWindows' | 'getAppState' | 'click' | 'performSecondaryAction' | 'scroll' | 'drag' | 'typeText' | 'pressKey' | 'hotkey' | 'pasteText' | 'setValue'
 type SessionTarget = { observedAt: number; app: string; windowId?: number | null; windowIndex?: number | null }
 export class SessionRuntime {
   private sessions = new Map<string, SessionTarget>()
   private baselines = new ComputerTreeBaselines()
   constructor(private native: JavisProvider | ((method: string, params: Record<string, unknown>) => Promise<unknown>)) {}
+  invalidateObservation(params: Record<string, unknown>): void {
+    const sessionId = typeof params.worktree === 'string' ? `worktree:${params.worktree}` : params.sessionId
+    if (typeof sessionId !== 'string' || !sessionId) return
+    this.sessions.delete(sessionId)
+    this.baselines.forget({ ...params, session: sessionId })
+  }
   async call(method: JavisMethod, params: Record<string, unknown>): Promise<unknown> {
-    if (!['capabilities','listApps','listWindows','getAppState','click','performSecondaryAction','scroll','drag','typeText','pressKey','hotkey','pasteText','setValue'].includes(method)) throw new JavisError('invalid_argument','Unknown method')
+    if (!['capabilities','listApps','launchApp','listWindows','getAppState','click','performSecondaryAction','scroll','drag','typeText','pressKey','hotkey','pasteText','setValue'].includes(method)) throw new JavisError('invalid_argument','Unknown method')
     validateComputerRequestParams(method, params)
-    const action = !['capabilities','listApps','listWindows','getAppState'].includes(method)
+    const action = !['capabilities','listApps','launchApp','listWindows','getAppState'].includes(method)
     let sessionId = params.sessionId
     const worktree=params.worktree
     if (worktree !== undefined) {
@@ -40,6 +46,10 @@ export class SessionRuntime {
     delete nativeParams.sessionId
     const nativeCall=typeof this.native==='function' ? this.native : this.native.call.bind(this.native)
     try {
+    if (method === 'typeText' && params.elementIndex !== undefined) {
+      const capabilities = await nativeCall('handshake', {}) as ComputerProviderCapabilities
+      if (capabilities?.supports?.actions?.typeTextElement !== true) throw new JavisError('unsupported_capability', 'The provider cannot type into a specific element; observe and choose a supported action')
+    }
     const result = await nativeCall(method === 'capabilities' ? 'handshake' : method, nativeParams)
     if (sessionId && (!result || typeof result !== 'object' || Array.isArray(result))) {
       throw new JavisError('provider_incompatible','Computer provider returned an invalid observation result')
@@ -50,6 +60,7 @@ export class SessionRuntime {
     }
     if (sessionId && result && typeof result === 'object') {
       let normalized = result as ComputerSnapshotResult | ComputerActionResult
+      if (method === 'getAppState' && params.rootElementIndex !== undefined && normalized.snapshot?.rootElementIndex !== params.rootElementIndex) throw new JavisError('unsupported_capability', 'The provider did not return the requested element subtree')
       if (action) {
         const actionResult=normalizeComputerActionResult(result as ComputerActionResult)
         normalized=actionResult.observationError ? actionResult : rejectContradictedComputerAction(actionResult)
