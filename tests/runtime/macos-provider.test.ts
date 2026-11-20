@@ -21,6 +21,7 @@ const peers=new Set<net.Socket>()
 const launches:{socketPath:string;token:string;methods:string[]}[]=[]
 let replyMode:'normal'|'close'|'hang'='normal'
 let handshake=capabilities
+let onRead: ((socket: net.Socket, id: number) => void) | undefined
 
 beforeEach(async()=>{
  stateDirectory=await mkdtemp(join(tmpdir(),'javis-mac-provider-test-'))
@@ -33,6 +34,7 @@ beforeEach(async()=>{
  launches.length=0
  replyMode='normal'
  handshake=capabilities
+ onRead=undefined
  mocks.launch.mockImplementation((_:string,socketPath:string,tokenPath:string)=>{
   const child=new EventEmitter() as EventEmitter & {kill:(signal?:string)=>boolean;exitCode:number|null;signalCode:string|null}
   child.exitCode=null;child.signalCode=null
@@ -48,6 +50,7 @@ beforeEach(async()=>{
      pending=pending.slice(boundary+1)
      const launched=launches.find(item=>item.socketPath===socketPath)!
      launched.methods.push(request.method)
+     if(request.method!=='handshake')onRead?.(socket,request.id)
      if(request.token!==launched.token){socket.end(JSON.stringify({id:request.id,ok:false,error:{code:'access_denied',message:'Bad token'}})+'\n');return}
      if(request.method==='handshake')socket.write(JSON.stringify({id:request.id,ok:true,result:handshake})+'\n')
      else if(replyMode==='close'){socket.end(JSON.stringify({id:request.id,ok:true,result:{apps:[]}})+'\n')}
@@ -65,11 +68,29 @@ beforeEach(async()=>{
 })
 
 afterEach(async()=>{
+ vi.useRealTimers()
  for(const peer of peers)peer.destroy()
  await Promise.all(servers.splice(0).map(server=>new Promise<void>(resolve=>server.close(()=>resolve()))))
  await rm(stateDirectory,{recursive:true,force:true})
  vi.unstubAllEnvs()
  mocks.launch.mockReset()
+})
+
+it('allows a passive helper read to finish after the default deadline', async () => {
+ const provider=createMacOSProvider({stateDirectory})
+ try {
+  await provider.call('handshake',{})
+  vi.useFakeTimers()
+  replyMode='hang'
+  let answer!: () => void
+  const received=new Promise<void>(resolve=>{onRead=(socket,id)=>{answer=()=>{if(!socket.destroyed)socket.write(JSON.stringify({id,ok:true,result:{apps:[]}})+'\n')};resolve()}})
+  const reading=provider.call('listApps',{}, {deadline:Date.now()+120_000})
+  const completed=reading.then(result=>({result}),error=>({error}))
+  await received
+  await vi.advanceTimersByTimeAsync(70_000)
+  answer()
+  expect(await completed).toEqual({result:{apps:[]}})
+ } finally {vi.useRealTimers();await provider.shutdown()}
 })
 
 it('rotates the socket and token after a helper disconnect and removes the old generation',async()=>{

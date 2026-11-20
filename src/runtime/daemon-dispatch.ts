@@ -1,5 +1,6 @@
 import { JavisError } from "./error.js";
 import type { JavisMethod } from "./session.js";
+import type { ComputerReadOptions, ProviderReadOptions } from './computer-read-options.js'
 import {
   browserMethods,
   validateBrowserParams,
@@ -81,6 +82,7 @@ export function createDaemonDispatch(
   computer: (
     method: JavisMethod,
     params: Record<string, unknown>,
+    options?: ComputerReadOptions & ProviderReadOptions,
   ) => Promise<unknown>,
   permissions: PermissionOperations,
   browser?: (
@@ -92,8 +94,9 @@ export function createDaemonDispatch(
   method: JavisDaemonMethod,
   params: Record<string, unknown>,
   canDeliver?: () => boolean,
+  options?: ComputerReadOptions & ProviderReadOptions,
 ) => Promise<unknown> {
-  return async (method, params, canDeliver = () => true) => {
+  return async (method, params, canDeliver = () => true, options = {}) => {
     if (!canDeliver())
       throw new JavisError(
         "action_timeout",
@@ -141,6 +144,6 @@ export function createDaemonDispatch(
         ...(result && typeof result === "object" ? result : {}),
       };
     }
-    return computer(method, params);
+    return computer(method, params, options);
   };
 }

@@ -5,6 +5,7 @@ import { reportComputerDiagnostic } from './diagnostics.js'
 import { JavisError } from '../error.js'
 import type { DesktopScriptPlatform } from './paths.js'
 import type { BridgeRequest } from './protocol.js'
+import { providerReadTimeout, type ProviderReadOptions } from '../computer-read-options.js'
 import {
   FALLBACK_WINDOWS_EXECUTION_POLICY,
   PREFERRED_WINDOWS_EXECUTION_POLICY,
@@ -15,7 +16,7 @@ import {
 const REQUEST_TIMEOUT_MS = 30_000
 const FORCE_KILL_GRACE_MS = 1_000
 
-type BridgeExecutionOptions = {
+type BridgeExecutionOptions = ProviderReadOptions & {
   request?: BridgeRequest
   signal?: AbortSignal
   canDeliver?: () => boolean
@@ -116,6 +117,7 @@ function runBridgeProcess(
 
     try {
       checkDelivery(options)
+      const operationTimeoutMs = providerReadTimeout('getAppState', {}, isReadOnlyRequest(options.request) ? options : {}, requestTimeoutMs)
       child = (options.execFile ?? execFile)(
         command,
         [...args],
@@ -148,8 +150,8 @@ function runBridgeProcess(
       if (options.signal?.aborted) abort()
       // Keep the request pending until the child closes, so the next request cannot race it.
       timeout = setTimeout(() => {
-        stop(new JavisError('action_timeout', `desktop provider timed out after ${requestTimeoutMs}ms`))
-      }, requestTimeoutMs)
+        stop(new JavisError('action_timeout', `desktop provider timed out after ${operationTimeoutMs}ms`))
+      }, operationTimeoutMs)
     } catch (error) {
       if (timeout) clearTimeout(timeout)
       options.signal?.removeEventListener('abort', abort)

@@ -11,6 +11,7 @@ import {
   START_FAILURE_COOLDOWN_MS
 } from './host-availability.js'
 import { JavisError } from '../error.js'
+import { providerReadTimeout, type ProviderReadOptions } from '../computer-read-options.js'
 import {
   isExecutionPolicyBlocked,
   windowsPowerShellRuntimeArgs
@@ -86,8 +87,9 @@ export class DesktopScriptRuntimeHost {
     )
   }
 
-  request(request: BridgeRequest): Promise<BridgeResponse> {
-    return this.queue.enqueue(() => this.send(request))
+  request(request: BridgeRequest, options: ProviderReadOptions = {}): Promise<BridgeResponse> {
+    const readOptions = isReplayableTool(request.tool) && request.restoreWindow !== true ? options : {}
+    return this.queue.enqueue(() => this.send(request, readOptions), providerReadTimeout('getAppState', {}, readOptions, this.requestTimeoutMs))
   }
 
   async dispose(): Promise<void> {
@@ -100,7 +102,7 @@ export class DesktopScriptRuntimeHost {
     )
   }
 
-  private async send(request: BridgeRequest): Promise<BridgeResponse> {
+  private async send(request: BridgeRequest, options: ProviderReadOptions): Promise<BridgeResponse> {
     this.clearIdleTimer()
     // Disposal can occur while a request queues; never respawn a helper after teardown.
     if (this.disposed) {
@@ -113,7 +115,7 @@ export class DesktopScriptRuntimeHost {
     let lastError: unknown
     for (let attempt = 1; attempt <= MAX_START_ATTEMPTS; attempt++) {
       try {
-        const response = await this.sendOnce(request)
+        const response = await this.sendOnce(request, options)
         this.availability.recordSuccess()
         return response
       } catch (error) {
@@ -142,10 +144,11 @@ export class DesktopScriptRuntimeHost {
     throw lastError
   }
 
-  private async sendOnce(request: BridgeRequest): Promise<BridgeResponse> {
+  private async sendOnce(request: BridgeRequest, options: ProviderReadOptions): Promise<BridgeResponse> {
     await this.stopping
     if (this.disposed) throw this.unavailableError('runtime host was disposed')
     this.checkDelivery()
+    const timeoutMs = providerReadTimeout('getAppState', {}, options, this.requestTimeoutMs)
     let channel: DesktopScriptServeChannel
     try {
       channel = this.ensureChannel()
@@ -159,10 +162,10 @@ export class DesktopScriptRuntimeHost {
       const timer = setTimeout(() => {
         this.abortChannel(
           this.pending?.sent
-            ? new JavisError('action_timeout', `desktop provider timed out after ${this.requestTimeoutMs}ms`)
+            ? new JavisError('action_timeout', `desktop provider timed out after ${timeoutMs}ms`)
             : this.unavailableError('readiness timed out before request delivery')
         )
-      }, this.requestTimeoutMs)
+      }, timeoutMs)
       timer.unref?.()
       this.pending = { id, request, channel, sent: false, resolve, reject, timer }
       this.writePending()

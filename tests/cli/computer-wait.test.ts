@@ -13,10 +13,10 @@ afterEach(() => vi.useRealTimers())
 
 test('waits until every matching control is enabled and returns the successful observation', async () => {
   const states = [snapshot('disabled', [1]), snapshot('ready', [])]
-  const result = await waitForComputer({ app: 'Fixture', condition: { kind: 'enabled', value: 'continue' }, timeoutMs: 1000 }, { context: 'context-one' }, async (method, params) => {
-    if (method === 'capabilities') return { supports: { observation: { disabledState: true } } }
+  const result = await waitForComputer({ app: 'Fixture', condition: { kind: 'enabled', value: 'continue' }, timeoutMs: 1000 }, { context: 'context-one' }, async (method, params, _target, options) => {
+    if (method === 'capabilities') return { observationStaging: true, supports: { observation: { disabledState: true } } }
     if (method !== 'getAppState' || params.noScreenshot !== true || params.app !== 'Fixture') throw new Error('Wrong observation mode')
-    return states.shift() ?? snapshot('ready', [])
+    return { ...(states.shift() ?? snapshot('ready', [])), ...(options.observation?.mode === 'stage' ? { provisionalToken: options.observation.token } : {}) }
   })
   expect((result.snapshot as { id: string }).id).toBe('ready')
   expect(result.wait).toMatchObject({ kind: 'enabled', value: 'continue' })
@@ -35,8 +35,15 @@ test('returns only matching window titles and rejects a window selector for that
 
 test('fails with wait_timeout when no observation meets the condition', async () => {
   vi.useFakeTimers()
-  const result = waitForComputer({ app: 'Fixture', condition: { kind: 'text', value: 'Absent' }, timeoutMs: 500 }, {}, async () => snapshot('unchanged', []))
+  const result = waitForComputer({ app: 'Fixture', condition: { kind: 'text', value: 'Absent' }, timeoutMs: 500 }, {}, async (method, _params, _target, options) => method === 'capabilities' ? { observationStaging: true } : ({ ...snapshot('unchanged', []), provisionalToken: options.observation?.token }))
   const failed = expect(result).rejects.toMatchObject({ code: 'wait_timeout' })
   await vi.runAllTimersAsync()
   await failed
+})
+
+test('rejects a host without staging support before it can publish any poll', async () => {
+  await expect(waitForComputer({ app: 'Fixture', condition: { kind: 'text', value: 'Continue' } }, {}, async method => {
+    if (method !== 'capabilities') throw new Error('Unsupported host must not observe')
+    return { supports: { observation: {} } }
+  })).rejects.toMatchObject({ code: 'provider_incompatible' })
 })

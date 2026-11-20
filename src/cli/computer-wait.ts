@@ -1,4 +1,5 @@
 import { JavisError } from '../runtime/error.js'
+import { randomUUID } from 'node:crypto'
 import { callTarget, type JavisTarget, type JavisCallOptions } from '../runtime/target-router.js'
 import { validateComputerRequestParams } from '../runtime/computer-request-validation.js'
 import { parseComputerTreeText } from '../contract/computer-use-tree-text.js'
@@ -23,17 +24,22 @@ export async function waitForComputer(request: ComputerWaitRequest, target: Javi
   if (condition.kind === 'window-title' && (window.windowId !== undefined || window.windowIndex !== undefined)) throw new JavisError('invalid_argument', 'window-title waits across all windows; drop window-id and window-index')
   const hostOnly = target.host ? { host: target.host } : {}
   const started = Date.now()
-  if (condition.kind === 'enabled') {
+  if (condition.kind !== 'window-title') {
     const capabilities = record(await call('capabilities', {}, hostOnly, { timeoutMs: Math.max(timeoutMs, 2000) }))
-    if (record(record(capabilities.supports).observation).disabledState !== true) throw new JavisError('unsupported_capability', 'This provider does not report disabled controls; use a text wait or update that host')
+    if (condition.kind === 'enabled' && record(record(capabilities.supports).observation).disabledState !== true) throw new JavisError('unsupported_capability', 'This provider does not report disabled controls; use a text wait or update that host')
+    if (capabilities.observationStaging !== true) throw new JavisError('provider_incompatible', 'The selected host cannot isolate passive wait observations; update Javis on that host')
   }
   let lastSeen = 'No matching observation'
+  const observationParams = { app, ...window, noScreenshot: true, treeDiff: false }
   for (;;) {
     try {
       const options = { timeoutMs: Math.max(timeoutMs - (Date.now() - started), 2000) }
+      const token = randomUUID()
       const result = record(condition.kind === 'window-title'
         ? await call('listWindows', { app }, hostOnly, options)
-        : await call('getAppState', { app, ...window, noScreenshot: true, treeDiff: false }, target, options))
+        : await call('getAppState', observationParams, target, { ...options, observation: { mode: 'stage', token } }))
+      if (condition.kind !== 'window-title' && result.provisionalToken !== token) throw new JavisError('provider_incompatible', 'The selected host cannot isolate passive wait observations; update Javis on that host')
+      if (condition.kind !== 'window-title' && target.context === undefined && observationParams.sessionId === undefined && typeof result.sessionId === 'string') observationParams.sessionId = result.sessionId
       const wait = { ...condition, elapsedMs: Date.now() - started }
       if (condition.kind === 'window-title') {
         if (!Array.isArray(result.windows)) throw new JavisError('provider_incompatible', 'Provider returned no window list')
@@ -45,7 +51,11 @@ export async function waitForComputer(request: ComputerWaitRequest, target: Javi
         if (typeof snapshot.treeText !== 'string') throw new JavisError('provider_incompatible', 'Provider returned no fresh accessibility tree')
         const matches = computerTreeElementsMatching(parseComputerTreeText(snapshot.treeText).elements, condition.value)
         const disabled = Array.isArray(snapshot.disabledElementIndexes) ? new Set(snapshot.disabledElementIndexes as number[]) : undefined
-        if (matches.length && (condition.kind === 'text' || matches.every(element => !isComputerTreeElementDisabled(element, disabled)))) return { ...result, snapshot: { ...snapshot, treeText: queryComputerTreeText(snapshot.treeText, { query: condition.value }) }, wait }
+        if (matches.length && (condition.kind === 'text' || matches.every(element => !isComputerTreeElementDisabled(element, disabled)))) {
+          const published = record(await call('getAppState', observationParams, target, { timeoutMs: Math.max(timeoutMs - (Date.now() - started), 2000), observation: { mode: 'publish', token } }))
+          const publishedSnapshot = record(published.snapshot)
+          return { ...published, snapshot: { ...publishedSnapshot, treeText: queryComputerTreeText(String(publishedSnapshot.treeText), { query: condition.value }) }, wait: { ...wait, elapsedMs: Date.now() - started } }
+        }
         lastSeen = matches.length ? 'Matching controls are still disabled' : 'No matching element'
       }
     } catch (error) {
