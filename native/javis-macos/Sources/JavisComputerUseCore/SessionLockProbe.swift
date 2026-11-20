@@ -5,7 +5,7 @@ import Foundation
 // reports Accessibility as untrusted and hides app windows; without this check that reads as a missing permission.
 public enum SessionLockProbe {
     public static let screenIsLockedKey = "CGSSessionScreenIsLocked"
-    public static let lockedMessage = "The Mac's screen is locked or asleep, so Orca can't see or control windows. Wake and unlock the Mac, then retry."
+    public static let lockedMessage = "The Mac's screen is locked or asleep, so Javis can't see or control windows. Wake and unlock the Mac, then retry."
 
     /// Read fresh on every call: the lock can start or end at any moment.
     public static func isLocked() -> Bool {

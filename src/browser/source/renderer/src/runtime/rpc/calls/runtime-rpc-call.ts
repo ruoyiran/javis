@@ -48,6 +48,13 @@ export async function callRuntimeRpcResponse<TResult>(
   if (options.signal?.aborted) {
     throw createRuntimeRpcAbortError()
   }
+  const expectedEnvironmentPairingRevision =
+    target.kind === 'environment'
+      ? captureRuntimeEnvironmentRequestRevision(
+          target.environmentId,
+          options.expectedEnvironmentPairingRevision
+        )
+      : undefined
   if (isJavisBrowserTransport()) {
     if (!method.startsWith('browser.')) {
       throw new Error('This Javis transport owns browser methods only')
@@ -59,7 +66,7 @@ export async function callRuntimeRpcResponse<TResult>(
       !options.skipCompatibilityCheck
     ) {
       await waitForPromiseWithSignal(
-        verifyJavisBrowserHost(selector, options.timeoutMs),
+        verifyJavisBrowserHost(selector, options.timeoutMs, expectedEnvironmentPairingRevision),
         options.signal
       )
     }
@@ -70,7 +77,13 @@ export async function callRuntimeRpcResponse<TResult>(
       : selected
     options.beforeSend?.()
     const response = await waitForPromiseWithSignal(
-      invokeJavisBrowser(selector, method, nextParams, options.timeoutMs),
+      invokeJavisBrowser(
+        selector,
+        method,
+        nextParams,
+        options.timeoutMs,
+        expectedEnvironmentPairingRevision
+      ),
       options.signal
     )
     const result = unwrapJavisBrowserResponse(response) as TResult
@@ -78,13 +91,6 @@ export async function callRuntimeRpcResponse<TResult>(
       ? { ...response, ok: true, result }
       : { ok: true, result }
   }
-  const expectedEnvironmentPairingRevision =
-    target.kind === 'environment'
-      ? captureRuntimeEnvironmentRequestRevision(
-          target.environmentId,
-          options.expectedEnvironmentPairingRevision
-        )
-      : undefined
   const compatibilityStatus =
     target.kind === 'environment' &&
     method !== 'status.get' &&

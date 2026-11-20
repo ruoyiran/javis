@@ -85,7 +85,7 @@ Replace the example IP before running the commands. The phone browser or OS must
 
 ## Browser build and recovery
 
-The browser runtime is pinned to Electron 43.8.6. Its npm package uses an explicit binary installer; the browser build installs that pinned runtime when absent and copies it into `dist/browser/electron`. Native automation binaries are packaged for the target platform. The macOS packager signs nested browser libraries/helpers and its own bundle before verifying the original Javis outer bundle; it preserves framework symlinks and the existing CUA identity.
+The browser runtime is pinned to Electron 43.8.10. Its npm package uses an explicit binary installer; the browser build installs that pinned runtime when absent and copies it into `dist/browser/electron`. Native automation binaries are packaged for the target platform. The macOS packager signs nested browser libraries/helpers and its own bundle before verifying the original Javis outer bundle; it preserves framework symlinks and the existing CUA identity.
 
 Windows additionally builds the migrated security/registry modules and the pinned, patched node-pty strict-job export against Electron headers. Install Visual Studio C++ build tools and the Node/native build prerequisites before a Windows release build. No Windows native execution is established by a Mac build.
 

@@ -19,7 +19,14 @@ export async function ensureRuntimeEnvironmentCompatible(
     expectedEnvironmentPairingRevision?: number
   } = {}
 ): Promise<RuntimeStatus | null> {
-  if (isJavisBrowserTransport()) { await verifyJavisBrowserHost(environmentId,options.timeoutMs); return null }
+  if (isJavisBrowserTransport()) {
+    await verifyJavisBrowserHost(
+      environmentId,
+      options.timeoutMs,
+      options.expectedEnvironmentPairingRevision
+    )
+    return null
+  }
   const cached = getCachedRuntimeCompatibilityCheck(environmentId, options)
   if (cached) {
     await cached.check

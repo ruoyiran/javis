@@ -27,7 +27,7 @@ export type ComputerErrorCode = keyof typeof COMPUTER_ERROR_CODES
 
 // Keep in sync with SessionLockProbe.lockedMessage in the macOS helper.
 export const COMPUTER_SCREEN_LOCKED_MESSAGE =
-  "The Mac's screen is locked or asleep, so Orca can't see or control windows. Wake and unlock the Mac, then retry."
+  "The Mac's screen is locked or asleep, so Javis can't see or control windows. Wake and unlock the Mac, then retry."
 
 export type ComputerAppQuery = string
 

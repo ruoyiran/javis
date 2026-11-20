@@ -17,7 +17,16 @@ async function callRuntimeEnvironmentOnce(args: {
   expectedEnvironmentPairingRevision?: number
   expectedEnvironmentRuntimeId?: string
 }): Promise<unknown> {
-  if (isJavisBrowserTransport()) { if(args.signal?.aborted) throw new Error('Browser request canceled before delivery'); return invokeJavisBrowser(args.environmentId,args.method,args.params,args.timeoutMs) }
+  if (isJavisBrowserTransport()) {
+    if (args.signal?.aborted) throw new Error('Browser request canceled before delivery')
+    return invokeJavisBrowser(
+      args.environmentId,
+      args.method,
+      args.params,
+      args.timeoutMs,
+      args.expectedEnvironmentPairingRevision
+    )
+  }
   if (args.signal) {
     return callAbortableRuntimeEnvironment(
       args.environmentId,
