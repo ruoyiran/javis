@@ -1,4 +1,4 @@
-import type { AgentSessionOwnerObservation } from './agent-session-conversation-view'
+import type { AgentSessionOwnerObservation } from "./agent-session-conversation-view"
 /**
  * Single-writer lease adjudication.
  *
@@ -10,11 +10,11 @@ import type { AgentSessionOwnerObservation } from './agent-session-conversation-
  * refuses an adoption, a wrong answer here creates two writers on one provider session.
  */
 
-import { nextAgentSessionFence } from './agent-session-next-fence'
-import type { AgentSessionDeathEvidence } from './agent-session-death-evidence'
-import type { AgentSessionHandoffStage, AgentSessionLease } from './agent-session-record'
-import type { AgentSessionOwnerVerdict } from '../failures/agent-session-wire-refusals'
-import type { AgentSessionRefusalDetailsByCode } from '../failures/agent-session-refusal-details'
+import { nextAgentSessionFence } from "./agent-session-next-fence"
+import type { AgentSessionDeathEvidence } from "./agent-session-death-evidence"
+import type { AgentSessionHandoffStage, AgentSessionLease } from "./agent-session-record"
+import type { AgentSessionOwnerVerdict } from "../failures/agent-session-wire-refusals"
+import type { AgentSessionRefusalDetailsByCode } from "../failures/agent-session-refusal-details"
 
 /** What a PID probe can compare against the recorded owner. */
 export type AgentSessionProcessIdentityField = 'process-start-time' | 'spawn-token'
@@ -151,6 +151,18 @@ export function agentSessionLeaseIsReleased(lease: AgentSessionLease): boolean {
   return !lease.unreconciled && lease.claimStatus === 'released' && lease.handoffStage === null
 }
 
+/** False only for a lease restart adjudication would free unchanged: no owner, reservation or handoff. */
+export function agentSessionLeaseMayBeHeld(lease: AgentSessionLease): boolean {
+  return (
+    lease.unreconciled ||
+    lease.claimStatus !== 'released' ||
+    lease.ownerProcess !== null ||
+    lease.reservedSpawnToken !== null ||
+    lease.handoffStage !== null ||
+    lease.handoffOperationId !== null
+  )
+}
+
 /** True when the recorded owner may write right now. Used by every mutating path in later parts. */
 export function agentSessionLeaseAdmitsWriter(lease: AgentSessionLease): boolean {
   return agentSessionOwnerObservationIsLive(lease)
@@ -249,7 +261,7 @@ export function evaluateAgentSessionAcquisition(args: {
   return { decision: 'granted', nextFence: nextAgentSessionFence(lease) }
 }
 
-/** Every loaded lease starts unreconciled and grants no writer until restart reconciliation finishes. */
+/** A lease that may be held loads unreconciled and grants no writer until restart reconciliation finishes. */
 export function adjudicateAgentSessionRestart(args: {
   lease: AgentSessionLease
   probe: AgentSessionOwnerProbe

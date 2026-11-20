@@ -3,29 +3,29 @@
 import {
   readAgentSessionOrcaStop,
   type AgentSessionOrcaStopCause
-} from '../agent-session/lifecycle/agent-session-orca-stop'
-import { isRootAgentJournalItem } from '../agent-session/journal/agent-session-journal-producer'
+} from "../agent-session/lifecycle/agent-session-orca-stop"
+import { isRootAgentJournalItem } from "../agent-session/journal/agent-session-journal-producer"
 import type {
   AgentJournalRenderItem,
   AgentJournalSubmission
-} from '../agent-session/journal/agent-session-journal-types'
-import { STALE_SESSION_ROW_PREFIX } from '../agent-session/lifecycle/agent-session-stop-row-identity'
+} from "../agent-session/journal/agent-session-journal-types"
+import { STALE_SESSION_ROW_PREFIX } from "../agent-session/lifecycle/agent-session-stop-row-identity"
 import {
   readAgentJournalTurn,
   readAgentJournalTurnOutcome
-} from '../agent-session/lifecycle/agent-session-turn-record'
+} from "../agent-session/lifecycle/agent-session-turn-record"
 import {
   agentTurnVerdict,
   type AgentTurnOutcome
-} from '../agent-status/lifecycle/agent-turn-outcome'
+} from "../agent-status/lifecycle/agent-turn-outcome"
 import {
   commandTurnsOf,
   type AgentJournalBodyLookup
-} from '../agent-session/structured-agent-session-command-entry'
+} from "../agent-session/structured-agent-session-command-entry"
 import {
   isStructuredAgentSessionNonRequestRow,
   type StructuredAgentSessionLatestRequest
-} from '../agent-session/requests/structured-agent-session-latest-request'
+} from "../agent-session/requests/structured-agent-session-latest-request"
 
 // Dedupe shutdown rows by stopped child; preserve the legacy prefix so older clients add no duplicate notice.
 export function orcaShutdownRowClientMessageId(
@@ -121,5 +121,16 @@ export function nativeChatStatusTurnOutcome(
     : null
   const stop =
     verdict === 'interruption' ? latestNativeChatOrcaStopCut(items, submissions, bodyOf) : null
-  return stop && stop.cause !== 'crash' ? 'cancellation' : verdict
+  return nativeChatStatusRequestOutcome(request, stop)
+}
+
+/** Named database readers supply the same selected cut without rendering the chat. */
+export function nativeChatStatusRequestOutcome(
+  request: StructuredAgentSessionLatestRequest | null,
+  stop: NativeChatOrcaStopCut | null
+): AgentTurnOutcome | null {
+  const verdict = request
+    ? agentTurnVerdict({ state: request.turnState, outcome: request.outcome })
+    : null
+  return verdict === 'interruption' && stop && stop.cause !== 'crash' ? 'cancellation' : verdict
 }

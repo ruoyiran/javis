@@ -1,10 +1,14 @@
-import type { IssueInfo, PRInfo } from '../../shared/github/pull-request-types'
+import type { IssueInfo, PRInfo } from "../../shared/github/pull-request-types"
 import type {
   WorkspaceSessionPatch,
   WorkspaceSessionState
-} from '../../shared/workspace-session/workspace-session-state-types'
-import type { ExecutionHostId } from '../../shared/execution-host'
-import type { TerminalSurfaceCloseTarget } from '../../shared/workspace-layout/terminal-surface-close-target'
+} from "../../shared/workspace-session/workspace-session-state-types"
+import type { ExecutionHostId } from "../../shared/execution-host"
+import type {
+  WorkspaceSessionEntriesPatch,
+  WorkspaceSessionEntriesPatchResult
+} from "../../shared/workspace-session/workspace-session-entries-patch"
+import type { TerminalSurfaceCloseTarget } from "../../shared/workspace-layout/terminal-surface-close-target"
 
 export type WorkspaceSessionApi = {
   session: {
@@ -14,6 +18,11 @@ export type WorkspaceSessionApi = {
     listHostIds: () => Promise<ExecutionHostId[]>
     set: (args: WorkspaceSessionState, hostId?: ExecutionHostId) => Promise<void>
     patch: (args: WorkspaceSessionPatch, hostId?: ExecutionHostId) => Promise<void>
+    /** Changed keys only; absent where the session store takes whole fields (paired web client). */
+    patchEntries?: (
+      args: WorkspaceSessionEntriesPatch,
+      hostId?: ExecutionHostId
+    ) => Promise<WorkspaceSessionEntriesPatchResult>
     /** Commits a terminal tab or split-pane close into main's membership. */
     closeTerminalSurface: (args: {
       worktreeId: string
@@ -21,9 +30,7 @@ export type WorkspaceSessionApi = {
       reason?: 'user' | 'cleanup'
     }) => Promise<void>
     flush: () => Promise<void>
-    readTerminalScrollback: (args: { ref: string }) => string | null
-    /** Stat-only: whether this machine's snapshot store holds `ref`. */
-    hasTerminalScrollback: (args: { ref: string }) => boolean
+    readTerminalScrollback: (args: { ref: string }) => Promise<string | null>
   }
   cache: {
     getGitHub: () => Promise<{

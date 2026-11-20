@@ -5,6 +5,7 @@ import { mkdir } from "node:fs/promises";
 import { homedir } from "node:os";
 import { daemonEndpoint } from "../../runtime/daemon-endpoint.js";
 import { JavisError, runtimeErrorDetails } from "../../runtime/error.js";
+import { browserDaemonParams } from "../../runtime/daemon-dispatch.js";
 import { BrowserWorkspaceFiles } from "../main/workspace-files.js";
 import {
   readAuthorizedDocPreviewFile,
@@ -116,9 +117,9 @@ export async function dispatchBrowserHostRequest(
     }
     if (
       (browserMethods as readonly string[]).includes(method) ||
-      ["browser.status", "browser.clientHost.pageStatus"].includes(method)
+      ["browser.status", "browser.clientHost.pageStatus", "browser.workspaceSnapshot"].includes(method)
     )
-      return { ok: true, result: await callBrowser(method, params) };
+      return { ok: true, result: await callBrowser(method, method === "browser.workspaceSnapshot" ? browserDaemonParams(method, params) : params) };
     const context = text(params.worktree ?? params.context ?? "default");
     await mkdir(root(context), { recursive: true, mode: 0o700 });
     let result: unknown;

@@ -1,33 +1,35 @@
 import type {
+  RendererStatusPublication,
+  RendererStatusAck
+} from "../../shared/agent-status/renderer-status-publication"
+import type {
   CrewSubscriptionAttemptArgs,
   CrewSubscriptionAttemptCallbacks,
   CrewSubscriptionSetupResult
-} from '../../shared/remote-runtime/host-catalog/runtime-environment-subscription-setup'
-import type { ManagedOrcadPreloadApi } from './managed-orcad-api'
-import type { WslHostsPreloadApi } from './wsl-hosts-api'
-import type { RuntimeHostStatusSnapshot } from '../../shared/remote-runtime/host-status/runtime-host-status'
+} from "../../shared/remote-runtime/host-catalog/runtime-environment-subscription-setup"
+import type { ManagedOrcadPreloadApi } from "./managed-orcad-api"
+import type { WslHostsPreloadApi } from "./wsl-hosts-api"
+import type { RuntimeHostStatusSnapshot } from "../../shared/remote-runtime/host-status/runtime-host-status"
 import type {
   RuntimeRendererSyncWindowGraph,
-  RuntimeSyncWindowGraphResult
-} from '../../shared/runtime-types'
-import type {
+  RuntimeSyncWindowGraphResult,
   RuntimeStatus,
   RuntimeTerminalDriverState
-} from '../../shared/runtime-session-contracts'
-import type { RuntimeRpcResponse } from '../../shared/runtime-rpc-envelope'
-import type { ClientHostedBrowserRowsEvent } from '../../shared/client-hosted-browser-rows'
-import type { SidebarInputsChangedEvent } from '../../shared/sidebar-list/sidebar-inputs-feed-contract'
+} from "../../shared/runtime-session-contracts"
+import type { RuntimeRpcResponse } from "../../shared/runtime-rpc-envelope"
+import type { ClientHostedBrowserRowsEvent } from "../../shared/client-hosted-browser-rows"
+import type { SidebarInputsChangedEvent } from "../../shared/sidebar-list/sidebar-inputs-feed-contract"
 import type {
   PublicKnownRuntimeEnvironment,
   RuntimeEnvironmentRemoval
-} from '../../shared/remote-runtime/host-catalog/runtime-environments'
-import type { VerifyAndAddRuntimeEnvironmentResult } from '../../shared/remote-runtime/pairing/remote-pairing-verification'
+} from "../../shared/remote-runtime/host-catalog/runtime-environments"
+import type { VerifyAndAddRuntimeEnvironmentResult } from "../../shared/remote-runtime/pairing/remote-pairing-verification"
 import type {
   BrowserClientHostPlacementPreparationRequest,
   BrowserPageCreationPlacement
-} from '../../shared/browser/client-hosting/browser-client-host-placement'
-import type { RemoteRuntimeSharedConnectionDiagnostics } from '../../shared/remote-runtime/control/remote-runtime-shared-control-types'
-import type { WslOrcadAccountNotAppliedEvent } from '../../shared/wsl-orcad-account-notice'
+} from "../../shared/browser/client-hosting/browser-client-host-placement"
+import type { RemoteRuntimeSharedConnectionDiagnostics } from "../../shared/remote-runtime/control/remote-runtime-shared-control-types"
+import type { WslOrcadAccountNotAppliedEvent } from "../../shared/wsl-orcad-account-notice"
 
 export type RuntimeEnvironmentSubscriptionHandle = {
   unsubscribe: () => void
@@ -36,11 +38,17 @@ export type RuntimeEnvironmentSubscriptionHandle = {
 
 export type RuntimeApi = {
   runtime: {
+    syncAgentStatus: (batch: RendererStatusPublication) => Promise<RendererStatusAck>
     syncWindowGraph: (
       graph: RuntimeRendererSyncWindowGraph
     ) => Promise<RuntimeSyncWindowGraphResult>
     getStatus: () => Promise<RuntimeStatus>
-    call: (args: { method: string; params?: unknown }) => Promise<RuntimeRpcResponse<unknown>>
+    call: (args: {
+      method: string
+      params?: unknown
+      /** An orchestration mutation's contract and idempotency key, as the CLI sends them. */
+      orchestration?: { contractVersion: number; requestId: string }
+    }) => Promise<RuntimeRpcResponse<unknown>>
     subscribe: (
       args: { method: string; params?: unknown },
       callback: (response: RuntimeRpcResponse<unknown>) => void
@@ -89,6 +97,9 @@ export type RuntimeApi = {
       callback: (event: ClientHostedBrowserRowsEvent) => void
     ) => () => void
     onSidebarInputsChanged: (callback: (event: SidebarInputsChangedEvent) => void) => () => void
+    onOrchestrationSessionWorkersChanged?: (
+      callback: (event: { sessionId: string }) => void
+    ) => () => void
   }
   runtimeEnvironments: {
     desktopCreatedChatIds?: () => Promise<string[]>
@@ -124,6 +135,8 @@ export type RuntimeApi = {
       selector: string
       timeoutMs?: number
       observeOnly?: true
+      /** A user-requested check that probes now even while a recent failure is backing off. */
+      force?: true
     }) => Promise<RuntimeRpcResponse<RuntimeStatus>>
     onSharedControlDiagnostics?: (
       callback: (event: {
@@ -179,6 +192,8 @@ export type RuntimeApi = {
   wsl: {
     isAvailable: () => Promise<boolean>
     listDistros: () => Promise<string[]>
+    /** The `\\wsl.localhost\<distro>` spelling of a path on a drive mapped to a distro share; else null. */
+    resolveMappedDrivePath: (path: string) => Promise<string | null>
   }
   pwsh: {
     isAvailable: () => Promise<boolean>

@@ -1,4 +1,4 @@
-import type { RuntimeStatus } from './runtime-types'
+import type { RuntimeStatus } from "./runtime-session-contracts"
 
 // Reachable status does not prove workspace work can run after a headed window closes. Require a non-ready
 // graph plus absent live window; graph-ready headless and legacy hosts without window status remain usable (#6844).

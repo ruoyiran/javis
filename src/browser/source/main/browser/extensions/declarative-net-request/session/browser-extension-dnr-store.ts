@@ -1,7 +1,9 @@
-import { app } from 'electron'
 import { z } from 'zod'
-import { BrowserExtensionProfileDocumentStore } from '../../profile-storage/browser-extension-profile-document-store'
-import { getBrowserExtensionProfileDataDirectory } from '../../profile-storage/browser-extension-profile-data-directory'
+import {
+  BrowserExtensionProfileDocumentStore,
+  closeBrowserExtensionProfileDocumentStoreOnQuit
+} from "../../profile-storage/browser-extension-profile-document-store"
+import { getBrowserExtensionProfileDataDirectory } from "../../profile-storage/browser-extension-profile-data-directory"
 
 /**
  * What Chrome persists per extension per profile for declarativeNetRequest: dynamic rules, the
@@ -27,7 +29,7 @@ export function getBrowserExtensionDnrStore(): BrowserExtensionProfileDocumentSt
       getBrowserExtensionProfileDataDirectory(),
       'declarative-net-request'
     )
-    app.on('will-quit', () => created.flush())
+    closeBrowserExtensionProfileDocumentStoreOnQuit(created)
     store = created
   }
   return store

@@ -1,6 +1,6 @@
-import type { GitHubOwnerRepo } from './pull-request-types'
-import type { GitHubWorkItem, GitHubWorkItemDetails } from './work-item-types'
-import { githubRepoIdentityKey } from './repository-identity-key'
+import type { GitHubRepositoryIdentity as GitHubOwnerRepo } from "./repositories/repository-identity"
+import type { GitHubWorkItem, GitHubWorkItemDetails } from "./work-item-types"
+import { githubRepoIdentityKey } from "./repository-identity-key"
 
 export type GitHubWorkItemTarget = {
   repository: GitHubOwnerRepo

@@ -1,30 +1,30 @@
-import { getAgentSessionOptionCatalog } from '../../agent-session/options/agent-session-option-catalog'
-import type { CatalogModel } from '../../agent-session/options/agent-session-option-catalog-types'
-import type { AgentType } from '../../agent-status/contracts/agent-status-types'
+import { getAgentSessionOptionCatalog } from "../../agent-session/options/agent-session-option-catalog"
+import type { CatalogModel } from "../../agent-session/options/agent-session-option-catalog-types"
+import type { AgentType } from "../../agent-status/contracts/agent-status-types"
 import type {
   SessionOptionDescriptor,
   SessionOptionsSurface,
   SessionOptionValue
-} from './native-chat-session-options'
-import { recordNativeChatSessionOptionCommand } from './native-chat-session-option-commands'
+} from "./native-chat-session-options"
+import { recordNativeChatSessionOptionCommand } from "./native-chat-session-option-commands"
 import {
   applyNativeChatReportedSessionOptions,
   clearNativeChatSessionModel,
   createNativeChatSessionOptionRecord,
   setTrackedSessionOption
-} from './native-chat-session-option-state'
+} from "./native-chat-session-option-state"
 import {
   readNativeChatSessionOptionCache,
   writeNativeChatSessionOptionCache
-} from './native-chat-session-option-cache'
-import { createSessionOptionAppliers } from './native-chat-session-option-apply'
+} from "./native-chat-session-option-cache"
+import { createSessionOptionAppliers } from "./native-chat-session-option-apply"
 import {
   buildNativeChatSessionOptionSnapshot,
   resolveEffectiveNativeChatModelId,
   withTrackedNativeChatModel,
   type NativeChatSessionOptionMode
-} from './native-chat-session-option-snapshot'
-import type { NativeChatSessionOptionDispatchCommand } from './native-chat-session-option-dispatch'
+} from "./native-chat-session-option-snapshot"
+import type { NativeChatSessionOptionDispatchCommand } from "./native-chat-session-option-dispatch"
 
 type PersistSelection = (args: {
   modelId: string
@@ -86,6 +86,7 @@ export function createNativeChatPtySessionOptions(
   let snapshot = buildNativeChatSessionOptionSnapshot({
     catalog,
     models: activeModels(),
+    legacyInventory: models,
     record,
     mode: args.mode,
     modelLabel: args.modelLabel,
@@ -98,6 +99,7 @@ export function createNativeChatPtySessionOptions(
     snapshot = buildNativeChatSessionOptionSnapshot({
       catalog,
       models: activeModels(),
+      legacyInventory: models,
       record,
       mode: args.mode,
       modelLabel: args.modelLabel,

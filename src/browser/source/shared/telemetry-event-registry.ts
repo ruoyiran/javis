@@ -2,13 +2,14 @@ import {
   onboardingLanguagePickerOpenedSchema,
   onboardingLanguageChangedSchema,
   onboardingLanguageRequestedSchema
-} from './telemetry-onboarding-language-schemas'
-import { agentTokenUsageSchema } from './telemetry-agent-token-usage-schema'
+} from "./telemetry-onboarding-language-schemas"
+import { agentTokenUsageSchema } from "./telemetry-agent-token-usage-schema"
+import { codexHistoryCleanupSweepSchema } from "./telemetry/schemas/telemetry-codex-history-cleanup-event-schemas"
 import {
   agentDashboardActiveSchema,
   agentDashboardEnabledSchema,
   agentDashboardOpenedSchema
-} from './telemetry-agent-dashboard-event-schemas'
+} from "./telemetry-agent-dashboard-event-schemas"
 import {
   agentErrorSchema,
   agentPromptSentSchema,
@@ -19,7 +20,7 @@ import {
   repoAddedSchema,
   starNagOutcomeEventSchema,
   workspaceCreatedSchema
-} from './telemetry-app-event-schemas'
+} from "./telemetry-app-event-schemas"
 import {
   agentHookInstallFailedSchema,
   agentHookTransportBlockedSchema,
@@ -30,6 +31,7 @@ import {
   daemonAuditEligibilitySchema,
   daemonFolderAccessNoticeSchema,
   daemonLifecycleSchema,
+  daemonPtyCwdDenialCaptureSchema,
   daemonPtyCwdVerdictSchema,
   daemonStartFailedSchema,
   mainThreadHangDetectedSchema,
@@ -37,7 +39,7 @@ import {
   remoteOutboundBudgetCloseSchema,
   runtimeRpcStartFailedSchema,
   settingsChangedSchema
-} from './telemetry-daemon-event-schemas'
+} from "./telemetry-daemon-event-schemas"
 import {
   contextualTourOutcomeSchema,
   contextualTourShownSchema,
@@ -48,7 +50,7 @@ import {
   setupGuideStepCompletedSchema,
   terminalPaneSplitSchema,
   toastActionOverModalSchema
-} from './telemetry-feature-education-event-schemas'
+} from "./telemetry-feature-education-event-schemas"
 import {
   chatUiFeatureTipActionSchema,
   chatUiFeatureTipExposureSchema,
@@ -75,7 +77,7 @@ import {
   orcaCliFeatureTipShownSchema,
   telemetryOptedInSchema,
   telemetryOptedOutSchema
-} from './telemetry-native-feature-event-schemas'
+} from "./telemetry-native-feature-event-schemas"
 import {
   activationChecklistItemCompletedSchema,
   onboardingAgentPickedSchema,
@@ -97,7 +99,7 @@ import {
   onboardingTaskSourcesSnapshotSchema,
   onboardingTourOutcomeEventSchema,
   onboardingWindowsTerminalSnapshotSchema
-} from './telemetry-onboarding-event-schemas'
+} from "./telemetry-onboarding-event-schemas"
 import {
   addRepoDefaultCheckoutHandoffSchema,
   addRepoExistingWorkspacesDetectedSchema,
@@ -108,26 +110,31 @@ import {
   setupScriptPromptActionSchema,
   setupScriptPromptShownSchema,
   workspaceCreateFailedSchema
-} from './telemetry-repository-event-schemas'
-import { pluginInstalledSchema } from './telemetry-plugin-event-schemas'
+} from "./telemetry-repository-event-schemas"
+import { pluginInstalledSchema } from "./telemetry-plugin-event-schemas"
+import { browserExtensionsEventSchemas } from "./browser/extensions/browser-extensions-banner"
 import {
   firstAgentInteractionSchema,
   meaningfulActivityDaySchema
-} from './telemetry-protected-milestone-schemas'
-import { sshRemoteRuntimeResolvedSchema } from './telemetry-ssh-runtime-event-schemas'
-import { wslUsageSnapshotSchema } from './telemetry-wsl-usage-event-schemas'
+} from "./telemetry-protected-milestone-schemas"
+import { sshRemoteRuntimeResolvedSchema } from "./telemetry-ssh-runtime-event-schemas"
+import { wslUsageSnapshotSchema } from "./telemetry-wsl-usage-event-schemas"
+import {
+  worktreeCardsIntroActionSchema,
+  worktreeCardStyleChangedSchema
+} from "./telemetry/schemas/telemetry-worktree-card-event-schemas"
 import {
   sshHostServerConversionSchema,
   sshHostServerDecidedSchema,
   sshHostServerDeployFailedSchema,
   sshHostServerMoveSchema,
   sshHostServerLegacyRelayBridgeSchema
-} from './telemetry-ssh-host-server-event-schemas'
+} from "./telemetry-ssh-host-server-event-schemas"
 import {
   wslMoveOrchestratorSchema,
   wslMoveUndoSchema,
   wslMoveSchema
-} from './telemetry-wsl-move-event-schemas'
+} from "./telemetry-wsl-move-event-schemas"
 
 // Breaking payload changes require a new event name to keep historical rows distinguishable; optional additions are safe.
 export const eventSchemas = {
@@ -168,6 +175,7 @@ export const eventSchemas = {
   daemon_async_io_health: daemonAsyncIoHealthSchema,
   daemon_pty_cwd_denied: daemonPtyCwdVerdictSchema,
   daemon_pty_cwd_readable: daemonPtyCwdVerdictSchema,
+  daemon_pty_cwd_denial_capture: daemonPtyCwdDenialCaptureSchema,
   daemon_folder_access_notice: daemonFolderAccessNoticeSchema,
   daemon_audit_eligibility: daemonAuditEligibilitySchema,
   runtime_rpc_start_failed: runtimeRpcStartFailedSchema,
@@ -177,6 +185,8 @@ export const eventSchemas = {
   codex_trust_grant: codexTrustGrantSchema,
 
   settings_changed: settingsChangedSchema,
+  worktree_card_style_changed: worktreeCardStyleChangedSchema,
+  worktree_cards_intro_action: worktreeCardsIntroActionSchema,
 
   native_chat_toggled: nativeChatToggledSchema,
   native_chat_message_sent: nativeChatMessageSentSchema,
@@ -257,5 +267,9 @@ export const eventSchemas = {
 
   wsl_usage_snapshot: wslUsageSnapshotSchema,
 
-  plugin_installed: pluginInstalledSchema
+  codex_history_cleanup_sweep: codexHistoryCleanupSweepSchema,
+
+  plugin_installed: pluginInstalledSchema,
+
+  ...browserExtensionsEventSchemas
 } as const

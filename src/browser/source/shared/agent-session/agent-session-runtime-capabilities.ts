@@ -1,16 +1,16 @@
-import { AGENT_SESSION_ATTENTION_RUNTIME_CAPABILITIES } from './agent-session-attention-capabilities'
-import { AGENT_SESSION_BACKGROUND_TASK_CHILD_VIEWS_CAPABILITY } from './agent-session-background-task-child-views-capability'
+import { AGENT_SESSION_ATTENTION_RUNTIME_CAPABILITIES } from "./agent-session-attention-capabilities"
+import { AGENT_SESSION_BACKGROUND_TASK_CHILD_VIEWS_CAPABILITY } from "./agent-session-background-task-child-views-capability"
 import {
   AGENT_SESSION_CONTINUE_INTERRUPTED_RUNTIME_CAPABILITY,
   AGENT_SESSION_PHONE_CONTINUE_INTERRUPTED_RUNTIME_CAPABILITY
-} from './agent-session-continue-interrupted-capability'
-import { AGENT_SESSION_CREATE_RUNTIME_CAPABILITIES } from './agent-session-create-capabilities'
-import { AGENT_SESSION_CURRENT_REQUESTS_CLIENT_CAPABILITY } from './requests/agent-session-current-requests-capability'
-import { AGENT_SESSION_PERMISSION_MODES_RUNTIME_CAPABILITY } from './agent-session-permission-modes-capability'
-import { AGENT_SESSION_RESUME_RUNTIME_CAPABILITIES } from './lifecycle/agent-session-resume-runtime-capabilities'
-import { AGENT_SESSION_STOP_RUNTIME_CAPABILITIES } from './lifecycle/agent-session-stop-capabilities'
-import { AGENT_SESSION_WORKSPACE_SLEEP_MARK_RUNTIME_CAPABILITY } from './agent-session-workspace-sleep'
-import { STRUCTURED_AGENT_SESSION_SURFACE_RUNTIME_CAPABILITIES } from './structured-agent-session-surface-capabilities'
+} from "./agent-session-continue-interrupted-capability"
+import { AGENT_SESSION_CREATE_RUNTIME_CAPABILITIES } from "./agent-session-create-capabilities"
+import { AGENT_SESSION_CURRENT_REQUESTS_CLIENT_CAPABILITY } from "./requests/agent-session-current-requests-capability"
+import { AGENT_SESSION_PERMISSION_MODES_RUNTIME_CAPABILITY } from "./agent-session-permission-modes-capability"
+import { AGENT_SESSION_RESUME_RUNTIME_CAPABILITIES } from "./lifecycle/agent-session-resume-runtime-capabilities"
+import { AGENT_SESSION_STOP_RUNTIME_CAPABILITIES } from "./lifecycle/agent-session-stop-capabilities"
+import { AGENT_SESSION_WORKSPACE_SLEEP_MARK_RUNTIME_CAPABILITY } from "./agent-session-workspace-sleep"
+import { STRUCTURED_AGENT_SESSION_SURFACE_RUNTIME_CAPABILITIES } from "./structured-agent-session-surface-capabilities"
 
 export const AGENT_SESSION_BOUNDARY_RUNTIME_CAPABILITY =
   'agent-session.session-boundary.v1' as const
@@ -92,6 +92,9 @@ export const AGENT_SESSION_REWIND_RECOVERY_CAPABILITY = 'agent-session.rewind-re
 // Why: hosts before this advertise rewind.v1 but refuse agentSession.rewind from a phone.
 export const AGENT_SESSION_PHONE_REWIND_RUNTIME_CAPABILITY =
   'agent-session.rewind.phone.v1' as const
+// Hosts before this refuse a phone's restart-offer reads and its Resume all.
+export const AGENT_SESSION_PHONE_RESTART_RESUME_RUNTIME_CAPABILITY =
+  'agent-session.restart-resume.phone.v1' as const
 // Readers must understand a monitoring roster with no available stop control.
 // Downgrade turn items to legacy status rows for incapable clients; remove only after every supported release understands turn items.
 export const AGENT_SESSION_TURN_ITEM_CAPABILITY = 'agent-session.turn-item.v1' as const
@@ -111,9 +114,17 @@ export const AGENT_SESSION_PHONE_ATTACHMENTS_RUNTIME_CAPABILITY =
 // Why: hosts before this report goals in options but refuse agentSession.threadGoal from a phone.
 export const AGENT_SESSION_PHONE_THREAD_GOAL_RUNTIME_CAPABILITY =
   'agent-session.thread-goal.phone.v1' as const
+// The host answers agentSession.mcp, from desktops and phones alike.
+export const AGENT_SESSION_MCP_RUNTIME_CAPABILITY = 'agent-session.mcp.v1' as const
+// Why: hosts before this report accountUsage in options but refuse agentSession.accountUsage from a phone.
+export const AGENT_SESSION_PHONE_ACCOUNT_USAGE_RUNTIME_CAPABILITY =
+  'agent-session.account-usage.phone.v1' as const
 // Why: hosts before this advertise usage-limit auto-continue but refuse its cancel from a phone.
 export const AGENT_SESSION_PHONE_USAGE_LIMIT_CONTINUE_CANCEL_RUNTIME_CAPABILITY =
   'agent-session.usage-limit-auto-continue.phone-cancel.v1' as const
+// The host saves Skip on an async question card for every device; older hosts hide it per screen.
+export const AGENT_SESSION_SKIP_ASYNC_QUESTIONS_RUNTIME_CAPABILITY =
+  'agent-session.skip-async-questions.v1' as const
 export const AGENT_SESSION_TEXT_ATTACHMENT_READ_CAPABILITY =
   'native-chat.text-attachment-read.v1' as const
 // Readers must explicitly honor stoppable:false on live child rows. The Stop capability alone predates this field and cannot prove safe rendering.
@@ -127,6 +138,10 @@ export const AGENT_SESSION_RESTORE_SOURCE_PANE_RUNTIME_CAPABILITY =
 // Hosts with only text-append.v1 drop `toolOutputAppend`; a reader tracking tool bases could evict a reply base they hold.
 export const AGENT_SESSION_TOOL_OUTPUT_APPEND_RUNTIME_CAPABILITY =
   'agent-session.tool-output-append.v1' as const
+
+// The host takes `capabilities.promptSuggestions` on subscribe; older hosts' params predate it.
+export const AGENT_SESSION_PROMPT_SUGGESTIONS_RUNTIME_CAPABILITY =
+  'agent-session.prompt-suggestions.v1' as const
 
 // The host appends CI result lines to chats that opened or pushed to a PR; older hosts write none.
 export const AGENT_SESSION_PR_EVENTS_RUNTIME_CAPABILITY = 'agent-session.pr-events.v1' as const
@@ -167,6 +182,7 @@ export const AGENT_SESSION_RUNTIME_CAPABILITIES = /* @__PURE__ */ (() =>
     AGENT_SESSION_REWIND_RUNTIME_CAPABILITY,
     AGENT_SESSION_REWIND_RECOVERY_CAPABILITY,
     AGENT_SESSION_PHONE_REWIND_RUNTIME_CAPABILITY,
+    AGENT_SESSION_PHONE_RESTART_RESUME_RUNTIME_CAPABILITY,
     AGENT_SESSION_CONVERSATION_OUTLINE_RUNTIME_CAPABILITY,
     AGENT_SESSION_CONTINUATION_CONTEXT_RUNTIME_CAPABILITY,
     AGENT_SESSION_ITEM_DETAIL_RUNTIME_CAPABILITY,
@@ -176,12 +192,16 @@ export const AGENT_SESSION_RUNTIME_CAPABILITIES = /* @__PURE__ */ (() =>
     AGENT_SESSION_ATTACHMENTS_RUNTIME_CAPABILITY,
     AGENT_SESSION_PHONE_ATTACHMENTS_RUNTIME_CAPABILITY,
     AGENT_SESSION_PHONE_THREAD_GOAL_RUNTIME_CAPABILITY,
+    AGENT_SESSION_MCP_RUNTIME_CAPABILITY,
+    AGENT_SESSION_PHONE_ACCOUNT_USAGE_RUNTIME_CAPABILITY,
     AGENT_SESSION_PHONE_USAGE_LIMIT_CONTINUE_CANCEL_RUNTIME_CAPABILITY,
+    AGENT_SESSION_SKIP_ASYNC_QUESTIONS_RUNTIME_CAPABILITY,
     AGENT_SESSION_TURN_ITEM_CAPABILITY,
     AGENT_SESSION_BACKGROUND_TASK_ROW_STOP_CAPABILITY,
     AGENT_SESSION_BACKGROUND_TASK_CHILD_VIEWS_CAPABILITY,
     AGENT_SESSION_PR_EVENTS_RUNTIME_CAPABILITY,
     AGENT_SESSION_TEXT_APPEND_RUNTIME_CAPABILITY,
     AGENT_SESSION_TOOL_OUTPUT_APPEND_RUNTIME_CAPABILITY,
+    AGENT_SESSION_PROMPT_SUGGESTIONS_RUNTIME_CAPABILITY,
     ...AGENT_SESSION_RESUME_RUNTIME_CAPABILITIES
   ] as const)()

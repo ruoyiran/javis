@@ -1,13 +1,11 @@
-import { parsePairingCode } from './remote-runtime/pairing/pairing'
-import { redactEphemeralVmRecipeDiagnosticText } from './ephemeral-vm-recipe-diagnostic-redaction'
+import { parsePairingCode } from "./remote-runtime/pairing/pairing"
+
 import {
   getEphemeralVmRecipeResultConnection,
   type EphemeralVmRecipeConnection,
   type EphemeralVmRecipeResult,
   type JsonValue
-} from './ephemeral-vm-recipes'
-
-export { redactEphemeralVmRecipeDiagnosticText }
+} from "./ephemeral-vm-recipes"
 
 export type EphemeralVmRecipeResultWarning = {
   id: string

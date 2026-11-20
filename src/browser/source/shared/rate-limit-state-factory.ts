@@ -1,4 +1,4 @@
-import type { RateLimitState } from './rate-limit-types'
+import type { RateLimitState } from "./agent-usage/rate-limits/rate-limit-types"
 
 // Why: single source of the empty shape so a new provider field never forces edits at unrelated call sites.
 export function createEmptyRateLimitState(overrides: Partial<RateLimitState> = {}): RateLimitState {

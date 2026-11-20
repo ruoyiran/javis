@@ -1,19 +1,19 @@
 import { z } from 'zod'
-import { safePluginDisplayText } from '../manifest/plugin-display-text'
+import { safePluginDisplayText } from "../manifest/plugin-display-text"
 import {
   pluginCommandIdSchema,
   pluginIdSchema,
   pluginRelativePathSchema
-} from '../manifest/plugin-manifest-fields'
-import { normalizeKeybinding } from '../../keybindings'
-import { PLUGIN_COMMAND_WHEN_SINCE, pluginCommandWhenSchema } from './plugin-command-contribution'
+} from "../manifest/plugin-manifest-fields"
+import { normalizeKeybinding } from "../../keybindings/normalization"
+import { PLUGIN_COMMAND_WHEN_SINCE, pluginCommandWhenSchema } from "./plugin-command-contribution"
 import {
   pluginFieldDoc,
   pluginPathFieldDoc,
   PLUGIN_MANIFEST_V2_SINCE,
   PLUGIN_SCHEMA_SINCE_V1
-} from '../manifest/plugin-schema-field-docs'
-import { pluginFileMatchFields } from './plugin-file-match'
+} from "../manifest/plugin-schema-field-docs"
+import { pluginFileMatchFields } from "./plugin-file-match"
 
 export const PLUGIN_LANGUAGE_PACK_LIMIT = 16
 export const PLUGIN_KEYBINDING_LIMIT = 256

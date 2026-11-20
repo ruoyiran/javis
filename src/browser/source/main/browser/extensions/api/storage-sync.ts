@@ -1,13 +1,13 @@
 import { z } from 'zod'
-import { emitBrowserExtensionEvent } from '../api-runtime/browser-extension-api-host'
+import { emitBrowserExtensionEvent } from "../api-runtime/browser-extension-api-host"
 import {
   BrowserExtensionApiError,
   defineBrowserExtensionMethod,
   registerBrowserExtensionNamespace,
   type BrowserExtensionCaller
-} from '../api-runtime/browser-extension-namespace-registry'
-import { getBrowserExtensionSyncStorageStore } from '../profile-storage/browser-extension-sync-storage-store'
-import type { BrowserExtensionProfileDocumentItems } from '../profile-storage/browser-extension-profile-document-store'
+} from "../api-runtime/browser-extension-namespace-registry"
+import { getBrowserExtensionSyncStorageStore } from "../profile-storage/browser-extension-sync-storage-store"
+import type { BrowserExtensionProfileDocumentItems } from "../profile-storage/browser-extension-profile-document-store"
 
 /**
  * Electron disables chrome.storage.sync ("not available in this instance of Chrome"), so Orca
@@ -15,7 +15,7 @@ import type { BrowserExtensionProfileDocumentItems } from '../profile-storage/br
  * writer, so every change carries exact old values. A write returns its changes to the caller,
  * which fires its own listeners (a starting worker's write can reach main before its listen
  * does); onChanged goes to the extension's other pages and its worker in the session.
- * The preload installs it as chrome.storage.sync (src/preload/browser-extension-storage-sync.ts).
+ * The preload installs it as chrome.storage.sync (src/preload/browser/extensions/storage/browser-extension-storage-sync.ts).
  */
 const STORAGE_SYNC_NAMESPACE = 'orcaStorageSync'
 

@@ -1,21 +1,21 @@
 // Share status-to-resume rules with main so accepted hook statuses can checkpoint panes no window opened.
 
-import { agentVerdictFields } from '../../agent-status/lifecycle/agent-main-agent-verdict'
+import { agentVerdictFields } from "../../agent-status/lifecycle/agent-main-agent-verdict"
 import {
-  agentProviderSessionsEqual,
   isResumableTuiAgent,
   type AgentProviderSessionMetadata,
   type SleepingAgentLaunchConfig,
   type SleepingAgentSessionRecord
-} from './agent-session-resume'
-import { getAgentResumeArgv } from '../../agent-launch/startup/agent-resume-argv'
-import type { AgentStatusEntry } from '../../agent-status/contracts/agent-status-types'
+} from "./agent-session-resume"
+import { agentProviderSessionsEqual } from "./resume/agent-provider-session-equality"
+import { getAgentResumeArgv } from "../../agent-launch/startup/agent-resume-argv"
+import type { AgentStatusEntry } from "../../agent-status/contracts/agent-status-types"
 import {
   recoveryRecordMatches,
   recoveryRecordTargetsSameSession,
   sleepingRecordsEquivalentIgnoringCaptureTime
-} from './agent-resume-record-equivalence'
-import { isCompletedPiCompatibleAgentWithLiveRecoveryRecord } from './live-resume-anchor-record'
+} from "./agent-resume-record-equivalence"
+import { isCompletedPiCompatibleAgentWithLiveRecoveryRecord } from "./live-resume-anchor-record"
 
 export type ResumeRecordStatus = Pick<
   AgentStatusEntry,
@@ -29,6 +29,7 @@ export type ResumeRecordStatus = Pick<
   | 'terminalTitle'
   | 'lastAssistantMessage'
   | 'terminalResumeEligible'
+  | 'executionHost'
   | 'interrupted'
   | 'mainAgent'
   | 'worktreeId'
@@ -57,6 +58,7 @@ export function resumeRecordFromStatus(args: {
   const agent = args.entry.agentType
   if (
     args.entry.terminalResumeEligible === false ||
+    args.entry.executionHost === 'shared' ||
     !isResumableTuiAgent(agent) ||
     !args.entry.providerSession
   ) {

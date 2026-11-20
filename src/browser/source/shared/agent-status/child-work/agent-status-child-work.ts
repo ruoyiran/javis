@@ -1,7 +1,7 @@
 import {
   agentStatusSubjectsEqual,
   type AgentStatusSubject
-} from '../contracts/agent-status-subject'
+} from "../contracts/agent-status-subject"
 
 export const AGENT_CHILD_WORK_KINDS = [
   'agent',
@@ -84,6 +84,8 @@ export type AgentChildWorkInput = {
   description?: string
   agentType?: string
   model?: string
+  /** Reasoning effort, in the provider's own words (`high`, `medium`). */
+  effort?: string
   totalTokens?: number
   providerTiming?: AgentChildWorkProviderTiming
   /** Invocation owner (spawner or launching agent); absence identifies the session lead. */

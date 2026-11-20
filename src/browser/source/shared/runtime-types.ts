@@ -64,7 +64,6 @@ export type {
   RuntimeTerminalAgentStatus,
   RuntimeTerminalAgentStatusState,
   RuntimeTerminalClose,
-  RuntimeTerminalCreate,
   RuntimeTerminalCreateRequestPayload,
   RuntimeTerminalFocus,
   RuntimeTerminalInteractiveWait,
@@ -78,13 +77,10 @@ export type {
   RuntimeTerminalOrphanTopologyGroup,
   RuntimeTerminalOrphanTopologyTab,
   RuntimeTerminalPresentation,
-  RuntimeTerminalPromptDelivery,
-  RuntimeTerminalPromptStage,
   RuntimeTerminalRead,
   RuntimeTerminalRename,
   RuntimeTerminalSetPaneTitle,
   RuntimeTerminalResolvePane,
-  RuntimeTerminalSend,
   RuntimeTerminalShow,
   RuntimeTerminalSplit,
   RuntimeTerminalState,
@@ -123,3 +119,6 @@ export type {
   RuntimeMarkdownReadTabResult,
   RuntimeMarkdownSaveTabResult
 } from './mobile-markdown-document'
+
+export type { RuntimeTerminalCreate } from './terminal/runtime/runtime-terminal-create-contract'
+export type { RuntimeTerminalPromptDelivery, RuntimeTerminalPromptStage, RuntimeTerminalSend } from './terminal/runtime/runtime-terminal-send-contract'

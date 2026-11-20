@@ -1,25 +1,25 @@
 import type {
   BrowserKeypressResult,
   BrowserTypeResult
-} from '../../../../shared/browser/runtime/runtime-browser-contracts'
-import { assertClipboardTextWriteWithinLimitWithYield } from '../../../../shared/clipboard-text'
-import { BrowserError } from '../../browser-error'
-import { acquireElectronDebugger } from '../../cdp/debugger/electron-debugger-lease'
+} from "../../../../shared/browser/runtime/runtime-browser-contracts"
+import { assertClipboardTextWriteWithinLimitWithYield } from "../../../../shared/clipboard-text"
+import { BrowserError } from "../../browser-error"
+import { acquireElectronDebugger } from "../../cdp/debugger/electron-debugger-lease"
 import {
   parseCdpKeyEvent,
   imeFallbackKeyEvent,
   typedInputSteps,
   type TypedInputStep
-} from '../../cdp/input/cdp-keyboard-us-layout'
-import type { ResolvedBrowserCommandTarget } from '../session-routing/agent-browser-command-target'
+} from "../../cdp/input/cdp-keyboard-us-layout"
+import type { ResolvedBrowserCommandTarget } from "../session-routing/agent-browser-command-target"
 import {
   dispatchPageKeyEvents,
   routePageTextInsertion
-} from '../../cdp/input/guest-direct-key-input'
-import type { GuestSessionCdpSender } from '../../cdp/input/guest-frame-input-sessions'
-import { assertExpectedPageUrlForStep } from '../../cdp/input/browser-expected-page-url'
-import { sendGuestCdpCommand } from '../../cdp/debugger/guest-cdp-command'
-import { AgentBrowserBridgeCaptureCommands } from './agent-browser-bridge-capture-commands'
+} from "../../cdp/input/guest-direct-key-input"
+import type { GuestSessionCdpSender } from "../../cdp/input/guest-frame-input-sessions"
+import { assertExpectedPageUrlForStep } from "../../cdp/input/browser-expected-page-url"
+import { sendGuestCdpCommand } from "../../cdp/debugger/guest-cdp-command"
+import { AgentBrowserBridgeCaptureCommands } from "./agent-browser-bridge-capture-commands"
 
 // Bounds the events a typed run holds and how long it keeps the main loop busy.
 const MAX_KEY_EVENTS_PER_RUN = 512
@@ -91,13 +91,9 @@ export abstract class AgentBrowserBridgeKeyCommands extends AgentBrowserBridgeCa
         if (typeof step === 'string') {
           // Text no key types (emoji, controls) goes in like a paste, between the keys around it.
           await flush()
-          const route = await routePageTextInsertion(wc, { text: step }, send, guardFocus)
-          try {
-            assertExpectedPageUrlForStep()
-            await route.deliver({ text: step })
-          } finally {
-            route.release()
-          }
+          const route = await routePageTextInsertion(wc, send)
+          assertExpectedPageUrlForStep()
+          await route.deliver({ text: step })
           continue
         }
         const event = {

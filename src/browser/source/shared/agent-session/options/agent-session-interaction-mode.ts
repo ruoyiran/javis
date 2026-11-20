@@ -1,5 +1,5 @@
-import type { SessionOptionDescriptor } from '../../native-chat/input/native-chat-session-options'
-import type { StructuredAgentSessionOptionState } from './structured-agent-session-options'
+import type { SessionOptionDescriptor } from "../../native-chat/input/native-chat-session-options"
+import type { StructuredAgentSessionOptionState } from "./structured-agent-session-options"
 
 export type AgentSessionInteractionMode = 'default' | 'plan'
 
@@ -43,7 +43,7 @@ export function agentSessionInteractionCommand(
   draft: string
 ): AgentSessionInteractionMode | null {
   draft = draft.trimEnd()
-  if (draft === '/plan' && (agent === 'claude' || agent === 'codex')) {
+  if (draft === '/plan') {
     return 'plan'
   }
   return draft === '/default' && agent === 'codex' ? 'default' : null

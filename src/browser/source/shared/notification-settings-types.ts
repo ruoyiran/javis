@@ -2,15 +2,16 @@ import {
   type StructuredAttentionRead,
   type StructuredAttentionOrigin,
   isStructuredAttentionRead
-} from './agent-session/agent-session-attention'
+} from "./agent-session/agent-session-attention"
 import {
   isAgentSessionExecutionLocation,
   type AgentSessionExecutionLocation
-} from './agent-session/lifecycle/agent-session-record'
-import type { AgentStatusState, AgentType } from './agent-status/contracts/agent-status-types'
-import type { AgentTurnOutcome } from './agent-status/lifecycle/agent-turn-outcome'
-import type { ExecutionHostId } from './execution-host'
-import type { NotificationSourceId } from './notification-source'
+} from "./agent-session/lifecycle/agent-session-record"
+import type { AgentStatusState, AgentType } from "./agent-status/contracts/agent-status-types"
+import type { AgentSessionFailureFact } from "./agent-session/failures/agent-session-failure"
+import type { AgentTurnOutcome } from "./agent-status/lifecycle/agent-turn-outcome"
+import type { ExecutionHostId } from "./execution-host"
+import type { NotificationSourceId } from "./notification-source"
 
 export type NotificationSettings = {
   enabled: boolean
@@ -21,6 +22,7 @@ export type NotificationSettings = {
   suppressWhenFocused: boolean
   customSoundId:
     | 'system'
+    | 'none'
     | 'two-tone'
     | 'bong'
     | 'thump'
@@ -37,6 +39,16 @@ export type NotificationSettings = {
   mutedNotificationSourceIds: NotificationSourceId[]
   /** Off silences every notification from a workspace the sidebar's Filters switches hide. Local only. */
   notifyHiddenWorkspaces: boolean
+}
+
+/** The switches a host applies to its own phone pushes; sounds and per-source mutes stay with each client. */
+export type HostNotificationSettings = Pick<
+  NotificationSettings,
+  'enabled' | 'agentTaskComplete' | 'agentNeedsInput' | 'terminalBell'
+>
+
+export function usesCustomNotificationSound(soundId: string | null | undefined): boolean {
+  return !!soundId && soundId !== 'system' && soundId !== 'none'
 }
 
 export type NotificationEventSource = 'agent-task-complete' | 'terminal-bell' | 'test'
@@ -96,6 +108,8 @@ export type NotificationDispatchRequest = {
   agentLastAssistantMessage?: string
   /** The verdict on the turn this notification reports, which picks its wording. */
   agentTurnOutcome?: AgentTurnOutcome
+  /** Why a failed turn failed, typed: its body says so instead of the last message. */
+  agentFailure?: AgentSessionFailureFact
   /** Click-routing lane; absence means terminal, preserving pre-structured-chat senders. */
   surface?: 'terminal' | 'agent-session'
   /** Producer-owned once-only news identity bypasses workspace burst dedupe so distinct events survive. */
@@ -135,6 +149,7 @@ export type NotificationSoundResult = {
     | 'read-failed'
     | 'playback-failed'
     | 'deduped'
+    | 'focus-active'
 }
 
 export type NotificationSoundDataResult =
@@ -146,12 +161,15 @@ export type NotificationSoundDataResult =
     }
   | {
       ok: false
-      reason: Exclude<NotificationSoundResult['reason'], 'playback-failed'>
+      reason: Exclude<NotificationSoundResult['reason'], 'playback-failed' | 'focus-active'>
     }
 
 export type NotificationSoundPathResult =
   | { ok: true; path: string }
-  | { ok: false; reason: 'missing-path' | 'invalid-path' | 'unsupported-type' }
+  | {
+      ok: false
+      reason: 'missing-path' | 'invalid-path' | 'unsupported-type' | 'focus-active'
+    }
 
 export type NotificationPermissionStatusResult = {
   supported: boolean

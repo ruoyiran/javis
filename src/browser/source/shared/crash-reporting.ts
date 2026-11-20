@@ -1,20 +1,12 @@
 import {
   appendDiagnosticBundleLines,
   type CrashReportDiagnosticBundle
-} from './crash-reporting-diagnostic-bundle'
-import { appendMinidumpSignatureLines } from './crash-report-signature-lines'
-import { formatCrashReportExitCode } from './crash-report-exit-code'
-import { appendBoundaryAttributionLines } from './crash-report-attribution-lines'
-import type { CrashReportAttribution } from './react-update-depth-attribution'
-import { sanitizeCrashReportString } from './crash-report-redaction'
-
-export {
-  sanitizeCrashReportBreadcrumbs,
-  sanitizeCrashReportDetails,
-  sanitizeCrashReportString
-} from './crash-report-redaction'
-
-export type { CrashReportDiagnosticBundle } from './crash-reporting-diagnostic-bundle'
+} from "./crash-reporting-diagnostic-bundle"
+import { appendMinidumpSignatureLines } from "./crash-report-signature-lines"
+import { formatCrashReportExitCode } from "./crash-report-exit-code"
+import { appendBoundaryAttributionLines } from "./crash-report-attribution-lines"
+import type { CrashReportAttribution } from "./react-update-depth-attribution"
+import { sanitizeCrashReportString } from "./crash-report-redaction"
 
 export type CrashReportStatus = 'pending' | 'sent' | 'dismissed'
 export type CrashReportSource = 'renderer' | 'child'

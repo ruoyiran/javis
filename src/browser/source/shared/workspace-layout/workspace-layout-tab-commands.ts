@@ -1,9 +1,12 @@
-import { ORCA_LAYOUT_OWNER_IS_MAIN } from '../layout-owner-switch'
-import { filterRecord, omitStoredFields, withoutKey } from './stored-record-fields'
-import { canReplacePreviewContentType, partitionPinnedTabOrder } from './tab-order'
-import { getNextTerminalOrdinal } from './terminal-tab-ordinal'
-import { layoutContainsLeafId } from './terminal-pane-tree'
-import { editorTabShowsFile, keptAfterEditorClose } from './workspace-layout-editor-tab-file'
+import { ORCA_LAYOUT_OWNER_IS_MAIN } from "../layout-owner-switch"
+import { filterRecord, omitStoredFields, withoutKey } from "./stored-record-fields"
+import { canReplacePreviewContentType, partitionPinnedTabOrder } from "./tab-order"
+import { getNextTerminalOrdinal } from "./terminal-tab-ordinal"
+import { layoutContainsLeafId } from "./terminal-pane-tree"
+import {
+  editorTabShowsFile,
+  keptAfterEditorClose
+} from "./workspace-layout-editor-tab-file"
 import {
   applied,
   boundPtyIds,
@@ -16,12 +19,12 @@ import {
   updateTab,
   type Applied,
   type TabPlacement
-} from './workspace-layout-command-steps'
+} from "./workspace-layout-command-steps"
 import type {
   CommandOf,
   LayoutCommandResult,
   LayoutContext
-} from './workspace-layout-command-types'
+} from "./workspace-layout-command-types"
 import {
   paneKeyOf,
   type LayoutClosedTab,
@@ -30,10 +33,10 @@ import {
   type LayoutTerminalTab,
   type WorkspaceLayout,
   type WorkspaceLayoutModel
-} from './workspace-layout-model'
-import { admitsInitialSurface } from './workspace-layout-initial-surface'
-import { adoptedLeaf, appliedHeldAdoption } from './workspace-layout-terminal-adoption'
-import { removeTabFromWorkspace, withWorkspace } from './workspace-layout-removal'
+} from "./workspace-layout-model"
+import { admitsInitialSurface } from "./workspace-layout-initial-surface"
+import { adoptedLeaf, appliedHeldAdoption } from "./workspace-layout-terminal-adoption"
+import { removeTabFromWorkspace, withWorkspace } from "./workspace-layout-removal"
 
 type RefusedClose = NonNullable<LayoutCommandResult['refused']>[number]
 
@@ -177,8 +180,6 @@ function recordClosedTerminalTabs(
   }
   return withWorkspace(model, key, { ...workspace, closedTerminalTabs })
 }
-
-export { renameTab } from './workspace-layout-tab-rename'
 
 export function setTabProps(
   model: WorkspaceLayoutModel,

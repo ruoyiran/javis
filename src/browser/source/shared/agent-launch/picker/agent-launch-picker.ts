@@ -1,27 +1,34 @@
-import { parseExecutionHostId, type ExecutionHostId } from '../../execution-host'
-import type { TextActionPickerCatalog } from './agent-launch-picker-text-action'
-import { agentPickerLaunchChoices } from './agent-launch-picker-effective-choices'
-import { agentPickerPanelArguments } from './agent-launch-picker-arguments'
-import { agentPickerArgumentsKnown } from './agent-launch-picker-authority'
+import { parseExecutionHostId, type ExecutionHostId } from "../../execution-host"
+import type { TextActionPickerCatalog } from "./agent-launch-picker-text-action"
+import { agentPickerLaunchChoices } from "./agent-launch-picker-effective-choices"
+import { agentPickerPanelArguments } from "./agent-launch-picker-arguments"
+import { agentPickerArgumentsKnown } from "./agent-launch-picker-authority"
 
-import { agentPickerOptions } from './agent-launch-picker-catalog'
-import { projectAgentLaunchInputViews } from '../choices/agent-launch-profile'
-import type { AgentChoicePatch, AgentDedicatedChoices } from '../choices/agent-launch-choices'
+import { agentPickerOptions } from "./agent-launch-picker-catalog"
+import { projectAgentLaunchInputViews } from "../choices/agent-launch-profile"
+import type { AgentChoicePatch, AgentDedicatedChoices } from "../choices/agent-launch-choices"
 import {
   reconcileAgentChoiceArgs,
   reconcileAgentChoiceArgsDetailed
-} from '../choices/agent-choice-reconciliation'
-import type {
-  AgentSessionModelCatalogResult,
-  AgentSessionModelOption
-} from '../../agent-session/agent-session-wire'
-import { orderAgentLaunchPickerAgents, type NewTabAgentMenuRow } from './agent-launch-picker-rows'
-import type { TuiAgent } from '../catalog/tui-agent'
-import type { CurrentActionSelection } from '../../source-control/ai/recipes/source-control-action-selection'
+} from "../choices/agent-choice-reconciliation"
+import type { AgentSessionModelCatalogResult } from "../../agent-session/agent-session-wire"
+import type { AgentSessionModelOption } from "../../agent-session/options/model-catalog/agent-session-model-option"
+import {
+  agentMenuRowSupportsChat,
+  orderAgentLaunchPickerAgents,
+  type NewTabAgentMenuRow
+} from "./agent-launch-picker-rows"
+import type { TuiAgent } from "../catalog/tui-agent"
+import type { AgentChatPermissionMode } from "../permissions/agent-chat-permission-mode"
+import type { CurrentActionSelection } from "../../source-control/ai/recipes/source-control-action-selection"
 
 export type AgentPickerSurface = 'chat' | 'terminal'
 export type AgentPickerDraftOwner = object
-export type AgentPickerModel = AgentSessionModelOption & { isLegacy?: true; hidden?: true }
+export type AgentPickerModel = AgentSessionModelOption & {
+  isLegacy?: true
+  /** Listed only by a matching search, or while it is the current choice. */
+  hidden?: true
+}
 export type AgentPickerEntry = {
   textGeneration?: TextActionPickerCatalog
   agent: TuiAgent
@@ -35,6 +42,7 @@ export type AgentPickerEntry = {
   structured: AgentDedicatedChoices
   arguments?: string | null
   catalog: AgentSessionModelCatalogResult
+  coherentCatalog?: boolean
   catalogRead?: 'pending' | 'settled' | 'failed' | 'unsupported'
   ownerKey?: string
   draftTarget?: { key: string; worktreeId?: string; repoId?: string; executionHostId: string }
@@ -42,6 +50,9 @@ export type AgentPickerEntry = {
   worktreeId?: string
   defaultsPending?: boolean
   structuredDefaultsPending?: boolean
+  /** Chooses a setup to keep (a bot's), not a launch: these permissions in the card with
+   *  the inherited one as a choice, or none where the permission is set beside the picker. */
+  keptSetup?: { permissions?: readonly AgentChatPermissionMode[]; inheritLabel?: string }
 }
 export type AgentPickerDraft = {
   agent: TuiAgent
@@ -171,11 +182,11 @@ export function agentPickerButtonOrder(entry: AgentPickerEntry): AgentPickerSurf
   ]
 }
 
-export { type AgentPickerSetup } from './agent-launch-picker-search'
+export { type AgentPickerSetup } from "./agent-launch-picker-search"
 
-export { agentPickerEffectiveChoices } from './agent-launch-picker-effective-choices'
+export { agentPickerEffectiveChoices } from "./agent-launch-picker-effective-choices"
 
-export { agentPickerSessionOptions } from '../choices/agent-launch-choices'
+export { agentPickerSessionOptions } from "../choices/agent-launch-choices"
 
 export function agentPickerEntriesFromRows(
   rows: readonly NewTabAgentMenuRow[],
@@ -189,7 +200,7 @@ export function agentPickerEntriesFromRows(
     (agent) => {
       const own = rows.filter((row) => row.agent === agent)
       const chatDefault = own.some((row) => row.kind === 'chat')
-      const chat = chatDefault || own.some((row) => row.kind === 'cli' && row.chat)
+      const chat = own.some(agentMenuRowSupportsChat)
       return {
         agent,
         label: label(agent),
@@ -206,4 +217,4 @@ export function agentPickerEntriesFromRows(
   )
 }
 
-export { agentPickerHydrationQueue } from './agent-launch-picker-rows'
+export { agentPickerHydrationQueue } from "./agent-launch-picker-rows"

@@ -1,13 +1,16 @@
 import { app } from 'electron'
 import type { BrowserWindow, WebContents } from 'electron'
-import { isBackgroundLaunch } from '../../../../window/foreground-activation-policy'
-import type { PopupChildWindowOptions, PopupOriginBarWindow } from './browser-popup-window-contract'
+import {
+  isBackgroundLaunch,
+  showWhenAppActive
+} from "../../../../window/foreground-activation-policy"
+import type { PopupChildWindowOptions, PopupOriginBarWindow } from "./browser-popup-window-contract"
 import {
   isNativeBrowserPopupWindow,
   markNativeBrowserPopupWindow
-} from './native-browser-popup-windows'
-import { MIN_POPUP_CONTENT_HEIGHT, MIN_POPUP_CONTENT_WIDTH } from './popup-window-minimum-size'
-import { describeCommittedPopupOrigin } from './popup-committed-origin'
+} from "./native-browser-popup-windows"
+import { MIN_POPUP_CONTENT_HEIGHT, MIN_POPUP_CONTENT_WIDTH } from "./popup-window-minimum-size"
+import { describeCommittedPopupOrigin } from "./popup-committed-origin"
 
 const rejectedNativePopups = new WeakSet<BrowserWindow>()
 // The latest script admission belongs to the next child the opener shows.
@@ -34,6 +37,8 @@ export function allowNativeBrowserPopup(input: {
   opener: WebContents
   options: Electron.BrowserWindowConstructorOptions
   background?: boolean
+  // An agent's input opened it, so it must not bring Orca forward.
+  showWhenAppActive?: boolean
   canPresent?: () => boolean
   onCreated: (options: PopupChildWindowOptions) => WebContents
 }): Electron.WindowOpenHandlerResponse {
@@ -47,7 +52,8 @@ export function allowNativeBrowserPopup(input: {
         return
       }
       input.onCreated({ ...input.options, nativeWindow: window })
-      if (input.background && mayPresent && !rejectedNativePopups.has(window)) {
+      const deferred = input.background || input.showWhenAppActive
+      if (deferred && mayPresent && !rejectedNativePopups.has(window)) {
         window.once('ready-to-show', () => {
           try {
             if (
@@ -62,7 +68,11 @@ export function allowNativeBrowserPopup(input: {
             ) {
               return
             }
-            window.showInactive()
+            if (input.showWhenAppActive) {
+              showWhenAppActive(window)
+            } else {
+              window.showInactive()
+            }
           } catch {}
         })
       }
@@ -100,7 +110,7 @@ export function allowNativeBrowserPopup(input: {
       fullscreenable: false,
       // Like origin-bar popups; a visible Windows app menu eats the minimum content height.
       autoHideMenuBar: true,
-      show: mayPresent && !input.background,
+      show: mayPresent && !input.background && !input.showWhenAppActive,
       // Content-sized like origin-bar popups, so resizeTo cannot hide the origin title.
       useContentSize: true,
       minWidth: MIN_POPUP_CONTENT_WIDTH,

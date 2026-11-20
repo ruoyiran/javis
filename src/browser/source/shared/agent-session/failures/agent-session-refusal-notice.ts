@@ -4,28 +4,28 @@
 import {
   agentSessionFailureSentence,
   type AgentSessionFailureWordsContext
-} from './agent-session-failure-words'
+} from "./agent-session-failure-words"
 import {
   AGENT_SESSION_HISTORY_UNREAD_CAUSES,
   AGENT_SESSION_WRITE_NOTICE_COPY,
   type AgentSessionWriteNoticePart,
   type AgentSessionWriteNoticeSentence
-} from './agent-session-write-notice-copy'
-import type { AgentSessionWireRefusal } from './agent-session-wire-refusals'
+} from "./agent-session-write-notice-copy"
+import type { AgentSessionWireRefusal } from "./agent-session-wire-refusals"
 import {
   agentSessionRefusalFailure,
   parseAgentSessionWriteFailure,
   type AgentSessionWriteFailure,
   type AgentSessionWriteKind,
   type AgentSessionWriteRefusal
-} from './agent-session-write-failure'
+} from "./agent-session-write-failure"
 import {
   agentSessionRefusalReasonWords,
   type AgentSessionRefusalHolder
-} from './agent-session-refusal-reason-words'
-import { TUI_AGENT_DISPLAY_NAMES } from '../../agent-launch/catalog/tui-agent-display-names'
-import { expiredAttachmentsSentence } from './agent-session-attachment-failure-words'
-import { agentSessionExpiredAttachmentNames } from './agent-session-expired-attachments'
+} from "./agent-session-refusal-reason-words"
+import { TUI_AGENT_DISPLAY_NAMES } from "../../agent-launch/catalog/tui-agent-display-names"
+import { expiredAttachmentsSentence } from "./agent-session-attachment-failure-words"
+import { agentSessionExpiredAttachmentNames } from "./agent-session-expired-attachments"
 
 const NOT_DONE: Record<AgentSessionWriteKind, AgentSessionWriteNoticeSentence> = {
   'read-history': 'notDoneReadHistory',
@@ -188,7 +188,7 @@ function reasonParts(
  *  A failed start's refusal keeps the holder it named, which tells a chat from a terminal. */
 export function agentSessionRefusalCauseParts(
   failure: AgentSessionWriteFailure & AgentSessionRefusalHolder,
-  context: { agentName?: string } = {}
+  context: Pick<AgentSessionFailureWordsContext, 'agentName' | 'hostName'> = {}
 ): AgentSessionWriteNoticePart[] {
   const parts =
     failure.kind === 'refused'

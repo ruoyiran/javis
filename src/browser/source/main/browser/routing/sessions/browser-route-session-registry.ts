@@ -1,45 +1,45 @@
-import { BrowserClientProfileMetadata } from '../../../../shared/browser/client-hosting/browser-client-profile-switch-protocol'
+import { BrowserClientProfileMetadata } from "../../../../shared/browser/client-hosting/browser-client-profile-switch-protocol"
 import {
   deriveBrowserRoutePartition,
   type DerivedBrowserRoutePartition
-} from '../partitions/browser-route-identity'
+} from "../partitions/browser-route-identity"
 import {
   persistBrowserRouteSessionBinding,
   resolveBrowserRouteSessionPartition
-} from './browser-route-session-partition-binding'
+} from "./browser-route-session-partition-binding"
 import type {
   BrowserRoutePageAuthority,
   BrowserRoutePageOwnerIdentity
-} from '../guest-authority/browser-route-page-authority'
+} from "../guest-authority/browser-route-page-authority"
 import {
   assertBrowserRoutePreparedPageOwner,
   BrowserRoutePreparedPageLedger
-} from './browser-route-prepared-page-ledger'
+} from "./browser-route-prepared-page-ledger"
 import {
   BrowserRouteRendererPrepareFenceRegistry,
   type BrowserRouteRendererPrepareFence
-} from './browser-route-renderer-prepare-fence'
+} from "./browser-route-renderer-prepare-fence"
 import {
   assertBrowserRouteProxyEndpoint,
   prepareBrowserRouteSessionPolicy,
   sameBrowserRouteProxyEndpoint,
   type BrowserRouteElectronSession,
   type BrowserRouteProxyEndpoint as ProxyEndpoint
-} from './browser-route-session-policy'
-import type { BrowserRouteSessionRegistryDependencies } from './browser-route-session-registry-contract'
+} from "./browser-route-session-policy"
+import type { BrowserRouteSessionRegistryDependencies } from "./browser-route-session-registry-contract"
 import {
   getBrowserRoutePreparedPageAuthority,
   rekeyBrowserRouteSessionPage
-} from './browser-route-session-rekey'
-import { retireBrowserRouteSessionRendererPages } from './browser-route-session-renderer-retirement'
-import { retireBrowserRouteSessionPage } from './browser-route-session-retirement'
+} from "./browser-route-session-rekey"
+import { retireBrowserRouteSessionRendererPages } from "./browser-route-session-renderer-retirement"
+import { retireBrowserRouteSessionPage } from "./browser-route-session-retirement"
 import type {
   BrowserRoutePreparePageInput,
   BrowserRouteSessionHandle,
   BrowserRouteSessionRekey,
   PendingBrowserRoutePartition as PendingPartition,
   PreparedBrowserRoutePartition as PreparedPartition
-} from './browser-route-session-state'
+} from "./browser-route-session-state"
 
 const DEFAULT_MAX_LIVE_PARTITIONS = 64
 const DEFAULT_MAX_PAGES_PER_PARTITION = 64
@@ -71,6 +71,11 @@ export class BrowserRouteSessionRegistry {
 
   getPartitionForSession(session: BrowserRouteElectronSession): string | null {
     return this.partitionBySession.get(session) ?? null
+  }
+
+  /** The browser profile id the server named for a live route session. */
+  getBrowserProfileIdForSession(session: BrowserRouteElectronSession): string | null {
+    return this.live.get(this.partitionBySession.get(session) ?? '')?.browserProfileId ?? null
   }
 
   getPreparedPageAuthority(input: BrowserRoutePageOwnerIdentity): symbol | null {

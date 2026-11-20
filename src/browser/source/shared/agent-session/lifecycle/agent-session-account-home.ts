@@ -1,6 +1,6 @@
 /** Durable account binding: existing single-directory records or OpenCode's data context. */
 
-import type { AgentSessionStoredAgent } from './agent-session-stored-agent'
+import type { AgentSessionStoredAgent } from "./agent-session-stored-agent"
 
 /** Account root the chat was created or adopted under, where its history was first written. An agent
  *  whose launch follows the selection starts under the account selected now instead. */
@@ -84,6 +84,26 @@ export function agentPinsAccountHome(
   return isLegacyAgentSessionAccountHome(home)
     ? agent.accountHomeVariable !== undefined && home.variable === agent.accountHomeVariable
     : agent.accountLocatorKind === home.kind
+}
+
+/** The account a chat's runtime at `fence` launched under; a chat that follows the selection
+ *  moves on, so its founding `accountHome` no longer says where it ran. */
+export type AgentSessionLaunchedAccount = { fence: number; accountHome: AgentSessionAccountHome }
+
+export function isOptionalAgentSessionLaunchedAccount(
+  value: unknown
+): value is AgentSessionLaunchedAccount | undefined {
+  return (
+    value === undefined ||
+    (typeof value === 'object' &&
+      value !== null &&
+      'fence' in value &&
+      typeof value.fence === 'number' &&
+      Number.isSafeInteger(value.fence) &&
+      value.fence > 0 &&
+      'accountHome' in value &&
+      isAgentSessionAccountHome(value.accountHome))
+  )
 }
 
 function isBoundedAccountString(value: unknown, max: number): value is string {

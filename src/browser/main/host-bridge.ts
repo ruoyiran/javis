@@ -86,6 +86,24 @@ export class BrowserHostBridge {
     pending.resolve(params.response);
     return true;
   }
+  private retireSubscription(id: string, notifyRemote: boolean): boolean {
+    const stream = this.streams.get(id);
+    if (!stream) return false;
+    this.streams.delete(id);
+    for (const [requestId, pending] of this.invocations)
+      if (pending.subscriptionId === id) {
+        clearTimeout(pending.timer);
+        pending.reject(new Error("browser_host_disconnected"));
+        this.invocations.delete(requestId);
+      }
+    stream.release();
+    if (notifyRemote) this.emit({ method: "browser.host.unsubscribe", params: { id } });
+    stream.callbacks.onClose?.();
+    return true;
+  }
+  subscriptionClosed(id: string): boolean {
+    return this.retireSubscription(id, false);
+  }
   async subscribe(
     target: string,
     method: string,
@@ -95,20 +113,7 @@ export class BrowserHostBridge {
   ): Promise<RemoteRuntimeTransportSubscription> {
     target = this.target(target);
     const id = randomUUID();
-    const close = () => {
-      const stream = this.streams.get(id);
-      if (!stream) return;
-      this.streams.delete(id);
-      for (const [requestId, pending] of this.invocations)
-        if (pending.subscriptionId === id) {
-          clearTimeout(pending.timer);
-          pending.reject(new Error("browser_host_disconnected"));
-          this.invocations.delete(requestId);
-        }
-      stream.release();
-      this.emit({ method: "browser.host.unsubscribe", params: { id } });
-      stream.callbacks.onClose?.();
-    };
+    const close = () => { this.retireSubscription(id, true); };
     options?.signal?.addEventListener("abort", close, { once: true });
     this.streams.set(id, {
       callbacks,
@@ -134,6 +139,7 @@ export class BrowserHostBridge {
       requestId: id,
       close,
       sendRequest: (method, params, timeoutMs) => {
+        if (!this.streams.has(id)) return Promise.reject(new RemoteRuntimeClientError("remote_runtime_unavailable", "Browser host transport is closed"));
         const requestId = randomUUID();
         return new Promise((resolve, reject) => {
           const timer = setTimeout(() => {

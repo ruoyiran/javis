@@ -1,4 +1,5 @@
-import { WINDOWS_FILE_ALL_ACCESS, type WindowsDacl } from './windows-security-addon'
+import { WINDOWS_FILE_ALL_ACCESS } from "./windows-security-addon"
+import type { WindowsDacl } from '../main/windows/windows-security/index'
 
 /** SYSTEM and the local Administrators group: they can take ownership regardless, so denying them buys nothing. */
 export const LOCAL_SYSTEM_SID = 'S-1-5-18'

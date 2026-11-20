@@ -1,5 +1,5 @@
-import { WORKSPACE_ATTACHMENT_RUNTIME_CAPABILITIES } from './workspace-attachments/workspace-attachment-capabilities'
-import { ORCA_SIDEBAR_INPUTS_IS_MAIN } from './sidebar-inputs-switch'
+import { WORKSPACE_ATTACHMENT_RUNTIME_CAPABILITIES } from "./workspace-attachments/workspace-attachment-capabilities"
+import { ORCA_SIDEBAR_INPUTS_IS_MAIN } from "./sidebar-inputs-switch"
 
 export const WORKTREE_RENAME_ERROR_DISMISS_RUNTIME_CAPABILITY =
   'worktree.rename-error-dismiss.v1' as const
@@ -25,6 +25,9 @@ export const WORKTREE_GITHUB_PR_SUPPRESSION_RUNTIME_CAPABILITY =
 // Legacy clients cannot safely derive a branch name from a qualified ref selector.
 export const REPO_SEARCH_QUALIFIED_REFS_RUNTIME_CAPABILITY =
   'repo.search-qualified-refs.v1' as const
+// Clients that label full refs/heads|remotes selectors; older qualified-ref clients display refName raw.
+export const REPO_SEARCH_CANONICAL_REFS_RUNTIME_CAPABILITY =
+  'repo.search-canonical-refs.v1' as const
 export const FOLDER_WORKSPACE_PATH_STATUS_RUNTIME_CAPABILITY =
   'folder-workspace.path-status.v1' as const
 // Hosts whose folderWorkspace.update/delete honor `requireUniqueId`; older hosts edit the first twin and delete every row with the id.
@@ -105,6 +108,13 @@ export const WORKTREE_RUN_APPROVED_SETUP_RUNTIME_CAPABILITY =
 // Hosts that run a folder project's setup and archive scripts when its workspaces are created and removed.
 export const WORKTREE_FOLDER_SETUP_RUNTIME_CAPABILITY = 'worktree.folder-setup.v1' as const
 
+// Hosts that support setup settings, trust and creation for project-group folder workspaces.
+export const PROJECT_GROUP_FOLDER_SETUP_RUNTIME_CAPABILITY = 'projectGroup.folder-setup.v1' as const
+
+// Setup-only hosts strip Archive delete options, so callers must check this separately.
+export const PROJECT_GROUP_FOLDER_ARCHIVE_RUNTIME_CAPABILITY =
+  'projectGroup.folder-archive.v1' as const
+
 // Hosts that honor branchIntent 'create-exact': the unsuffixed new branch, or a coded refusal.
 export const WORKTREE_CREATE_EXACT_NAME_RUNTIME_CAPABILITY =
   'worktree.create.exact-name.v1' as const
@@ -139,6 +149,8 @@ export const WORKTREE_RUNTIME_CAPABILITIES = [
   WORKSPACE_SELECTOR_FOLDER_MATCH_RUNTIME_CAPABILITY,
   WORKTREE_RUN_APPROVED_SETUP_RUNTIME_CAPABILITY,
   WORKTREE_FOLDER_SETUP_RUNTIME_CAPABILITY,
+  PROJECT_GROUP_FOLDER_SETUP_RUNTIME_CAPABILITY,
+  PROJECT_GROUP_FOLDER_ARCHIVE_RUNTIME_CAPABILITY,
   WORKTREE_CREATE_EXACT_NAME_RUNTIME_CAPABILITY,
   ...(ORCA_SIDEBAR_INPUTS_IS_MAIN ? [] : [WORKTREE_ROWS_CHANGED_EVENT_RUNTIME_CAPABILITY])
 ] as const

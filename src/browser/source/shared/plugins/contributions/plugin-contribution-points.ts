@@ -1,9 +1,9 @@
 import { z } from 'zod'
-import type { PluginCatalogType } from '../catalog/plugin-catalog-types'
+import type { PluginCatalogType } from "../catalog/plugin-catalog-types"
 import {
   PLUGIN_COMMAND_LIMIT,
   pluginCommandContributionSchema
-} from './plugin-command-contribution'
+} from "./plugin-command-contribution"
 import {
   PLUGIN_ICON_THEME_LIMIT,
   PLUGIN_KEYBINDING_LIMIT,
@@ -17,43 +17,43 @@ import {
   pluginSyntaxContributionSchema,
   pluginThemeContributionSchema,
   pluginVmRecipeContributionSchema
-} from './plugin-content-pack-contributions'
+} from "./plugin-content-pack-contributions"
 import {
   PLUGIN_EVENT_SUBSCRIPTION_LIMIT,
   pluginEventContributionSchema
-} from './plugin-event-contribution'
-import { PLUGIN_HOOK_LIMIT, pluginHookContributionSchema } from './plugin-hook-contribution'
+} from "./plugin-event-contribution"
+import { PLUGIN_HOOK_LIMIT, pluginHookContributionSchema } from "./plugin-hook-contribution"
 import {
   PLUGIN_FONT_LIMIT,
   PLUGIN_FONTS_SINCE,
   pluginFontContributionSchema
-} from './plugin-font-contribution'
-import type { PluginExecutionProfile } from './plugin-execution-profile'
+} from "./plugin-font-contribution"
+import type { PluginExecutionProfile } from "./plugin-execution-profile"
 import {
   PLUGIN_CUSTOM_EDITOR_LIMIT,
   pluginCustomEditorContributionSchema
-} from './plugin-custom-editor-contribution'
+} from "./plugin-custom-editor-contribution"
 import {
   PLUGIN_NEW_FILE_LIMIT,
   pluginNewFileContributionSchema
-} from './plugin-new-file-contribution'
-import { PLUGIN_PANEL_LIMIT, pluginPanelContributionSchema } from './plugin-panel-contribution'
+} from "./plugin-new-file-contribution"
+import { PLUGIN_PANEL_LIMIT, pluginPanelContributionSchema } from "./plugin-panel-contribution"
 import {
   pluginFieldDoc,
   PLUGIN_HOOKS_SINCE,
   PLUGIN_MANIFEST_V2_SINCE,
   PLUGIN_PANEL_BRIDGE_SINCE,
   PLUGIN_SCHEMA_SINCE_V1
-} from '../manifest/plugin-schema-field-docs'
+} from "../manifest/plugin-schema-field-docs"
 import {
   PLUGIN_STATUS_BAR_ITEM_LIMIT,
   PLUGIN_STATUS_BAR_SINCE,
   pluginStatusBarItemContributionSchema
-} from './plugin-status-bar-item-contribution'
+} from "./plugin-status-bar-item-contribution"
 import {
   PLUGIN_SETTING_LIMIT,
   pluginSettingContributionSchema
-} from './plugin-settings-contribution'
+} from "./plugin-settings-contribution"
 
 /** Every `contributes` key, in manifest order. Adding a point starts here. */
 export const PLUGIN_CONTRIBUTION_POINTS = [
@@ -92,7 +92,7 @@ export const PLUGIN_RESERVED_CONTRIBUTION_POINTS = {
 
 export type PluginReservedContributionPoint = keyof typeof PLUGIN_RESERVED_CONTRIBUTION_POINTS
 
-/** The intended shape of each reserved point, in the order the references list them. */
+/** The intended shape of each reserved point. */
 export const PLUGIN_PLANNED_CONTRIBUTION_POINTS: Readonly<
   Record<PluginReservedContributionPoint, string>
 > = {

@@ -1,13 +1,13 @@
-import type { AgentJournalCursor } from '../journal/agent-session-journal-identity'
-import type { AgentJournalThreadGoal } from '../journal/agent-session-journal-types'
-import type { AgentSessionConversationCommand } from '../agent-session-conversation-command'
-import type { AgentSessionContextUsage } from '../agent-session-context-usage'
-import type { AgentSessionRewindSupport } from '../lifecycle/agent-session-rewind'
+import type { AgentJournalCursor } from "../journal/agent-session-journal-identity"
+import type { AgentJournalThreadGoal } from "../journal/agent-session-journal-types"
+import type { AgentSessionConversationCommand } from "../agent-session-conversation-command"
+import type { AgentSessionContextUsage } from "../agent-session-context-usage"
+import type { AgentSessionRewindSupport } from "../lifecycle/agent-session-rewind"
 import type {
   AgentSessionFastModeState,
-  AgentSessionFastModeSupport,
-  AgentSessionModelOption
-} from '../agent-session-wire'
+  AgentSessionFastModeSupport
+} from "../agent-session-wire"
+import type { AgentSessionModelOption } from "./model-catalog/agent-session-model-option"
 
 export type AgentSessionAcceptedInputSources = Partial<
   Record<
@@ -35,7 +35,7 @@ export type AgentSessionOptionsResult = {
   /** Offer goal controls only with threadGoal support; current spans the whole journal, including unloaded pages. */
   threadGoal?: { current: AgentJournalThreadGoal | null; contextFloor?: AgentJournalCursor }
   /** Journal goal changed only by the agent's /goal; separate from threadGoal so older clients never offer host controls. */
-  reportedThreadGoal?: { current: AgentJournalThreadGoal; contextFloor?: AgentJournalCursor }
+  reportedThreadGoal?: { current: AgentJournalThreadGoal | null; contextFloor?: AgentJournalCursor }
   /** Present for sessions writing turn context facts; current takes each part from the whole journal, including unloaded pages. */
   contextUsage?: { current: AgentSessionContextUsage; contextFloor?: AgentJournalCursor }
   /** This session takes image attachments. Absent = unknown (an older host). */
@@ -52,7 +52,7 @@ export type AgentSessionOptionsResult = {
     /** Accepted input origins; an empty map excludes all display-only observations. */
     acceptedInputSources?: AgentSessionAcceptedInputSources
     model?: string
-    /** Current child reports this model for display; it is never a next-turn selection. */
+    /** Legacy hosts may include an answer model; clients ignore it when presenting selection. */
     reportedModel?: string
     effort?: string
     /** Child-scoped actual for display only; effort remains accepted raw input. */

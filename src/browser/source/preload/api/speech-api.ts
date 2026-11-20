@@ -1,4 +1,5 @@
-import type { SecretAtRestProtection } from '../../shared/secret-at-rest-protection'
+import type { SecretAtRestProtection } from "../../shared/secret-at-rest-protection"
+import type { DictationCleanupResult } from "../../shared/speech/dictation/dictation-cleanup"
 import type {
   DictationContext,
   OpenAiCompatibleSpeechProvider,
@@ -9,7 +10,7 @@ import type {
   SpeechModelState,
   SpeechPendingEvent,
   SpeechTranscriptEvent
-} from '../../shared/speech-types'
+} from "../../shared/speech-types"
 
 export type SpeechApi = {
   getCatalog: () => Promise<SpeechModelManifest[]>
@@ -38,6 +39,13 @@ export type SpeechApi = {
   stopDictation: (sessionId?: string) => Promise<void>
   /** Drops the session's audio and any text it hasn't returned yet, without transcribing the rest. */
   cancelDictation: (sessionId: string) => Promise<void>
+  /** Absent in the paired web client: its host cleans up inside `speech.dictation.finish`. */
+  cleanUpDictation?: (
+    text: string,
+    context: DictationContext | undefined,
+    requestId: string
+  ) => Promise<DictationCleanupResult>
+  cancelDictationCleanup?: (requestId: string) => Promise<void>
   onPartialTranscript: (callback: (data: SpeechTranscriptEvent) => void) => () => void
   onFinalTranscript: (callback: (data: SpeechTranscriptEvent) => void) => () => void
   onSpeechPending: (callback: (data: SpeechPendingEvent) => void) => () => void

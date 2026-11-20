@@ -1,8 +1,11 @@
 // Labels and order of the desktop sidebar's project sections, shared so the paired phone matches.
-import type { ProjectSectionEntry, ProjectSectionRepo } from './project-section-grouping'
-import { getRepoDisplayLabelKey, getRepoDisplayLabelsByPath } from './repo-display-labels'
-import type { ProjectOrderBy } from './ui-chrome-types'
-import { compareCodePoints, compareSidebarText } from './sidebar-list/text-order'
+import type { ProjectSectionEntry, ProjectSectionRepo } from "./project-section-grouping"
+import {
+  getRepoDisplayLabelKey,
+  getRepoDisplayLabelsByPath
+} from "./repo-display-labels"
+import type { ProjectOrderBy } from "./ui-chrome-types"
+import { compareCodePoints, compareSidebarText } from "./sidebar-list/text-order"
 
 export type ActivityItem = { lastActivityAt?: number }
 

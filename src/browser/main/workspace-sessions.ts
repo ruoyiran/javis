@@ -1,11 +1,12 @@
+import { FLOATING_TERMINAL_WORKTREE_ID } from "../source/shared/workspace/identity/floating-workspace-id";
 import { readFileSync, renameSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import {
   getDefaultUIState,
   getDefaultWorkspaceSession,
-  FLOATING_TERMINAL_WORKTREE_ID,
 } from "../source/shared/constants";
 import type { WorkspaceSessionState } from "../source/shared/workspace-session/workspace-session-state-types";
+import type { PersistedUIState } from "../source/shared/persisted-ui-state-types";
 import {
   withOpenedServeBrowserTab,
   findSavedBrowserPage,
@@ -27,6 +28,7 @@ export class BrowserWorkspaceSessions {
     floating?: WorkspaceSessionState;
   };
   private readonly listeners = new Set<(hostId?: string) => void>();
+  private readonly uiListeners = new Set<(ui: PersistedUIState) => void>();
   private readonly path: string;
   constructor(directory: string) {
     this.path = join(directory, "workspace.json");
@@ -76,8 +78,7 @@ export class BrowserWorkspaceSessions {
     return [
       ...new Set([
         ...Object.keys(this.state.sessions),
-        FLOATING_TERMINAL_WORKTREE_ID,
-      ]),
+            ]),
     ];
   }
   session(context = this.context): BrowserSession {
@@ -168,6 +169,11 @@ export class BrowserWorkspaceSessions {
   updateUI(patch: Record<string, unknown>): void {
     this.state.ui = { ...this.ui, ...patch };
     this.persist();
+    for (const listener of this.uiListeners) listener(this.ui as PersistedUIState);
+  }
+  onUIChanged(listener: (ui: PersistedUIState) => void): () => void {
+    this.uiListeners.add(listener);
+    return () => { this.uiListeners.delete(listener); };
   }
   owner(page: string): string | undefined {
     return this.contexts().find(

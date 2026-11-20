@@ -1,13 +1,9 @@
 import {
   isAgentSessionId,
   type AgentSessionExecutionLocation
-} from '../../agent-session/lifecycle/agent-session-record'
-import { isAgentStatusRunId, type AgentStatusRunId } from './agent-status-run'
-import {
-  parseExecutionHostId,
-  toRuntimeExecutionHostId,
-  toSshExecutionHostId
-} from '../../execution-host'
+} from "../../agent-session/lifecycle/agent-session-record"
+import { isAgentStatusRunId, type AgentStatusRunId } from "./agent-status-run"
+import { canonicalExecutionHostId, parseExecutionHostId } from "../../execution-host"
 
 const SUBJECT_KEY_PREFIX = 'agent-status-subject-v1:'
 const MAX_SCOPE_PART_LENGTH = 512
@@ -68,15 +64,9 @@ function parseExecutionScope(record: Record<string, unknown>): AgentStatusExecut
     return null
   }
   const parsedHost = parseExecutionHostId(record.executionHostId)
-  const canonicalHostId =
-    parsedHost?.kind === 'ssh'
-      ? toSshExecutionHostId(parsedHost.targetId)
-      : parsedHost?.kind === 'runtime'
-        ? toRuntimeExecutionHostId(parsedHost.environmentId)
-        : parsedHost?.id
   if (
     !parsedHost ||
-    canonicalHostId !== record.executionHostId ||
+    canonicalExecutionHostId(record.executionHostId) !== record.executionHostId ||
     (parsedHost.kind !== 'local' && record.wslDistro !== null) ||
     (record.wslDistro !== null && !isBoundedIdentity(record.wslDistro, MAX_SCOPE_PART_LENGTH)) ||
     !isBoundedIdentity(record.workspaceId, MAX_SCOPE_PART_LENGTH) ||

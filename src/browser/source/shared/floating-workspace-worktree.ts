@@ -1,5 +1,5 @@
-import { FLOATING_TERMINAL_WORKTREE_ID } from './constants'
-import type { Worktree } from './worktree/types'
+import { FLOATING_TERMINAL_WORKTREE_ID } from "./workspace/identity/floating-workspace-id"
+import type { Worktree } from "./worktree/types"
 
 /** Floating workspaces have no repo/worktree/folder row; synthesize a Worktree for filesystem resolution.
  * Keep the sentinel id: session journals and status subjects key by workspace id, so another identity would split the workspace. */

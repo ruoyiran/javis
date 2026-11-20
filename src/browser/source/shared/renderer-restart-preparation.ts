@@ -1,19 +1,20 @@
 import {
   ORCA_EDITOR_PREPARE_HOT_EXIT_EVENT,
   type EditorPrepareHotExitDetail
-} from './editor-save-events'
+} from "./editor-save-events"
 import {
   consumeShutdownCheckpointFailureReason,
   ORCA_RENDERER_SHUTDOWN_CHECKPOINT_ABORTED_EVENT,
   ORCA_RENDERER_SHUTDOWN_CHECKPOINT_FAILED_EVENT
-} from './renderer-shutdown-events'
-import type { UpdateStatus } from './update-status-types'
+} from "./renderer-shutdown-events"
+import type { UpdateStatus } from "./update-status-types"
 
 export type AppRestartPrepOptions = {
   startedEventName: string
   abortedEventName: string
   /** Joins the durable write of the state the checkpoint staged; rejects if it failed. */
   awaitCheckpoint: () => Promise<void>
+  isCanceled?: () => boolean
 }
 
 function requestEditorHotExitBackup(eventTarget: EventTarget): Promise<void> {
@@ -42,13 +43,16 @@ function requestEditorHotExitBackup(eventTarget: EventTarget): Promise<void> {
 
 export async function prepareRendererForAppRestart(
   eventTarget: EventTarget,
-  { startedEventName, abortedEventName, awaitCheckpoint }: AppRestartPrepOptions
+  { startedEventName, abortedEventName, awaitCheckpoint, isCanceled }: AppRestartPrepOptions
 ): Promise<void> {
   eventTarget.dispatchEvent(new Event(startedEventName))
   let checkpointFailed = false
 
   try {
     await requestEditorHotExitBackup(eventTarget)
+    if (isCanceled?.()) {
+      return
+    }
     const markCheckpointFailed = (): void => {
       checkpointFailed = true
     }

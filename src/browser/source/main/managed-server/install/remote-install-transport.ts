@@ -1,6 +1,6 @@
 import type { Duplex, Readable, Writable } from 'node:stream'
 type SshRemoteFileOptions = { signal?: AbortSignal }
-import type { SshExecOptions } from '../../ssh/connection/ssh-exec-options'
+import type { SshExecOptions } from "../../ssh/connection/ssh-exec-options"
 
 type RemoteFileWriteOptions = SshRemoteFileOptions & { signal?: AbortSignal }
 
@@ -13,7 +13,7 @@ export type RemoteCommandChannel = Duplex & {
 
 export type RemoteInstallTransport = {
   exec(command: string, options?: SshExecOptions): Promise<RemoteCommandChannel>
-  /** WSL can reuse a process for closed-stdin commands; SSH leaves this absent. */
+  /** For commands that send no input; WSL can reuse a process. */
   execWithClosedStdin?(command: string, options?: SshExecOptions): Promise<RemoteCommandChannel>
   usesSystemSshTransport(): boolean
   /** Changes whenever the underlying transport is replaced; scopes per-transport verdicts. */

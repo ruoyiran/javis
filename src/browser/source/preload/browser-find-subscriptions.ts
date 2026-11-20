@@ -1,17 +1,18 @@
-import { asBrowserFindTarget, type BrowserFindSource } from '../shared/browser-find-source'
+import {
+  asBrowserFindTarget,
+  type BrowserFindSource
+} from "../shared/browser-find-source"
 
 type BrowserFindCallback = () => void
 
 export function createBrowserFindSubscriptions(): {
   dispatch: (target: unknown) => void
   subscribe: (source: BrowserFindSource, callback: BrowserFindCallback) => () => void
-  subscribedPageCount: () => number
 } {
   // Page-only targets must reach every workspace holding that page.
   const callbacksByPage = new Map<string, Map<string, Set<BrowserFindCallback>>>()
 
   return {
-    subscribedPageCount: () => callbacksByPage.size,
     dispatch: (target) => {
       const findTarget = asBrowserFindTarget(target)
       if (!findTarget) {

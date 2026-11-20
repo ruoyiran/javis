@@ -1,45 +1,52 @@
-import type { RuntimeTerminalAttention } from '../../shared/runtime-terminal-contracts'
-import type { PaintedRestorePane } from '../../shared/painted-restore-ack'
+import type { RuntimeTerminalAttention } from "../../shared/runtime-terminal-contracts"
+import type { PaintedRestorePane } from "../../shared/painted-restore-ack"
 import type {
   PtyFencedTerminationRequest,
   PtyFencedTerminationOutcome
-} from '../../shared/terminal/pty/lifecycle/pty-fenced-termination'
-import type { ResourceViewAdmission } from '../../shared/resource-view-admission'
-import type { SpawnIntent } from '../../shared/terminal/pty/admission/spawn-admission-contract'
+} from "../../shared/terminal/pty/lifecycle/pty-fenced-termination"
+import type { ResourceViewAdmission } from "../../shared/resource-view-admission"
+import type { SpawnIntent } from "../../shared/terminal/pty/admission/spawn-admission-contract"
 import type {
   SavedResumeDecision,
   TerminalLaunchResult,
   AgentProviderSessionMetadata,
   SleepingAgentLaunchConfig
-} from '../../shared/agent-session/lifecycle/agent-session-resume'
-import type { StartupCommandDelivery } from '../../shared/agent-launch/startup/codex-startup-delivery'
-import type { TerminalInputKind } from '../../shared/terminal/input/terminal-input-kind'
+} from "../../shared/agent-session/lifecycle/agent-session-resume"
+import type { StartupCommandDelivery } from "../../shared/agent-launch/startup/codex-startup-delivery"
+import type { TerminalInputKind } from "../../shared/terminal/input/terminal-input-kind"
 import type {
   TerminalLeafMoveRequest,
   TerminalLeafMoveResult
-} from '../../shared/workspace-layout/terminal-leaf-move'
-import type { ProjectExecutionRuntimeResolution } from '../../shared/execution-host/project-execution-runtime'
+} from "../../shared/workspace-layout/terminal-leaf-move"
+import type { ProjectExecutionRuntimeResolution } from "../../shared/execution-host/project-execution-runtime"
 import type {
   PtyListedSession,
   PtySessionListScope,
   PtySessionLifecycle
-} from '../../shared/terminal/pty/lifecycle/pty-listed-session'
-import type { PtyMainDeliveryDiagnostics } from '../../shared/terminal/pty/diagnostics/pty-delivery-diagnostics'
-import type { PtyModelRestoreNeededEvent } from '../../shared/terminal/replay/pty-model-restore-marker'
+} from "../../shared/terminal/pty/lifecycle/pty-listed-session"
+import type { PtyMainDeliveryDiagnostics } from "../../shared/terminal/pty/diagnostics/pty-delivery-diagnostics"
+import type { PtyModelRestoreNeededEvent } from "../../shared/terminal/replay/pty-model-restore-marker"
 import type {
   PtyRendererDeliveryHealthReply,
   PtyRendererDeliveryStateReport
-} from '../../shared/terminal/pty/diagnostics/pty-renderer-delivery-health'
-import type { AgentKind, LaunchSource, RequestKind } from '../../shared/telemetry-events'
-import type { TerminalSideEffectBatch } from '../../shared/terminal/output/terminal-side-effect-facts'
-import type { TerminalViewAttributes } from '../../shared/terminal/protocol/queries/terminal-view-attributes'
-import type { TuiAgent } from '../../shared/agent-launch/catalog/tui-agent'
-import type { TerminalPanePlacement } from '../../shared/workspace-layout/terminal-pane-placement'
-import type { AgentPaneLaunchRequest } from '../../shared/agent-launch/contracts/agent-pane-launch-request'
-import type { PtyManagementApi } from './pty-management-api'
-import type { TerminalProcessInspection } from '../../shared/terminal/pty/lifecycle/terminal-process-inspection'
-import type { CodexSharedServerStatus } from '../../shared/codex-shared-server-command'
-import type { NewerDaemonHeldScreen, NewerDaemonReopenResult } from '../../shared/newer-daemon-hold'
+} from "../../shared/terminal/pty/diagnostics/pty-renderer-delivery-health"
+import type {
+  AgentKind,
+  LaunchSource,
+  RequestKind
+} from "../../shared/telemetry-property-schemas"
+import type { TerminalSideEffectBatch } from "../../shared/terminal/output/terminal-side-effect-facts"
+import type { TerminalViewAttributes } from "../../shared/terminal/protocol/queries/terminal-view-attributes"
+import type { TuiAgent } from "../../shared/agent-launch/catalog/tui-agent"
+import type { TerminalPanePlacement } from "../../shared/workspace-layout/terminal-pane-placement"
+import type { AgentPaneLaunchRequest } from "../../shared/agent-launch/contracts/agent-pane-launch-request"
+import type { PtyManagementApi } from "./pty-management-api"
+import type { TerminalProcessInspection } from "../../shared/terminal/pty/lifecycle/terminal-process-inspection"
+import type { CodexSharedServerStatus } from "../../shared/codex-shared-server-command"
+import type {
+  NewerDaemonHeldScreen,
+  NewerDaemonReopenResult
+} from "../../shared/newer-daemon-hold"
 
 export type PtyApi = {
   spawn: (opts: {
@@ -120,7 +127,7 @@ export type PtyApi = {
     id: string,
     data: string,
     inputKind: TerminalInputKind,
-    options?: { requireWriteSettlement?: true }
+    options?: { requireWriteSettlement?: true; requireStartupDialog?: string }
   ) => Promise<boolean>
   onWriteUnavailable?: (callback: (payload: { id: string }) => void) => () => void
   resize: (id: string, cols: number, rows: number) => void
@@ -132,7 +139,8 @@ export type PtyApi = {
   clearBuffer: (id: string) => void
   resetInputModes: (id: string) => void
   killFenced: (request: PtyFencedTerminationRequest) => Promise<PtyFencedTerminationOutcome>
-  kill: (id: string, opts?: { keepHistory?: boolean }) => Promise<void>
+  /** `replaced` stops a restarted pane's old PTY without retiring the pane. */
+  kill: (id: string, opts?: { keepHistory?: boolean; replaced?: boolean }) => Promise<void>
   /** Acknowledge the pane that actually painted the restored frame. */
   ackColdRestore: (id: string, pane?: PaintedRestorePane) => void
   /** Hidden-output recovery painted main's snapshot; retires the hidden-delivery drop latch. */
@@ -154,7 +162,7 @@ export type PtyApi = {
   setActiveRendererPty: (id: string, active: boolean) => void
   setRendererPtyVisible: (id: string, visible: boolean) => void
   /** Hidden panes may skip renderer bytes after model ingestion; reveal restores a snapshot. */
-  setHiddenRendererPty: (id: string, hidden: boolean) => void
+  setHiddenRendererPty: (id: string, hidden: boolean, retainGraphics?: boolean) => void
   /** Ref-counted raw-byte consumers suppress the hidden-delivery gate. */
   setPtyDeliveryInterest: (id: string, interested: boolean) => void
   /** Main uses the composed appearance for hidden-PTY OSC/DSR color replies. */
@@ -167,6 +175,7 @@ export type PtyApi = {
       expectedIncarnationId?: string
       scanChildProcesses?: boolean
       steadyState?: boolean
+      jobMembershipOnly?: boolean
     }
   ) => Promise<TerminalProcessInspection>
   confirmForegroundProcess: (id: string) => Promise<string | null>
@@ -267,6 +276,8 @@ export type PtyApi = {
   onReplay: (callback: (data: { id: string; data: string }) => void) => () => void
   /** Out-of-band byte-drop signal; restore the model snapshot instead of waiting on pty:data. */
   onModelRestoreNeeded: (callback: (event: PtyModelRestoreNeededEvent) => void) => () => void
+  /** Hidden PTYs that printed output main dropped (throttled, batched); bytes are not included. */
+  onHiddenOutputActivity: (callback: (event: { ids: string[] }) => void) => () => void
   /** Covers only PTYs whose bytes transit local main. */
   onSideEffect: (callback: (batch: TerminalSideEffectBatch) => void) => () => void
   /** Title-only replay snapshot for (re)attach; attention facts never replay. */

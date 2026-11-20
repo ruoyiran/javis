@@ -1,12 +1,12 @@
-import { FLOATING_TERMINAL_WORKTREE_ID } from '../../constants'
+import { FLOATING_TERMINAL_WORKTREE_ID } from "../../workspace/identity/floating-workspace-id"
 import {
   isWslUncPathForCallerLinuxPath,
   normalizeRuntimePathForComparison,
   resolveRuntimePath
-} from '../../cross-platform-path'
-import { parseWorkspaceKey } from '../../workspace-scope'
-import { parseWslUncPath } from '../../wsl-paths'
-import { splitWorktreeIdForFilesystem } from '../../worktree/id'
+} from "../../cross-platform-path"
+import { parseWorkspaceKey } from "../../workspace-scope"
+import { parseWslUncPath } from "../../wsl-paths"
+import { splitWorktreeIdForFilesystem } from "../../worktree/id"
 
 export type TerminalStartupCwdMissingDirFallback = {
   // Inject existence checks: only the execution host can probe SSH/remote paths.

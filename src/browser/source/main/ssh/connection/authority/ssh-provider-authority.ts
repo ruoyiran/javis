@@ -1,10 +1,13 @@
 import { randomBytes } from 'node:crypto'
-import type { DirectSshAuthority, SshProviderEpoch } from '../../../../shared/ssh-types'
+import type {
+  DirectSshAuthority,
+  SshProviderEpoch
+} from "../../../../shared/ssh-types"
 import {
   advanceSshConnectionGeneration,
   isSshConnectionGenerationInCurrentSession,
   getSshConnectionGeneration
-} from './ssh-connection-generation'
+} from "./ssh-connection-generation"
 
 const authorityByTarget = new Map<string, DirectSshAuthority>()
 type ProviderRequestAbortRegistration = {

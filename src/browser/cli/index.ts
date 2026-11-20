@@ -134,6 +134,7 @@ export type BrowserCliDependencies = {
   stdout: BrowserOutput;
   stderr: BrowserOutput;
   cwd: string;
+  stdin?: () => Promise<string>;
 };
 export async function runBrowserCli(
   argv: string[],
@@ -244,6 +245,7 @@ export async function runBrowserCli(
         client,
         cwd: deps.cwd,
         json: flags.has("json"),
+        stdin: deps.stdin,
       });
       return 0;
     } catch (error) {

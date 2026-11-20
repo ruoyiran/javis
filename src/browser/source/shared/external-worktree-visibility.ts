@@ -1,10 +1,13 @@
-import { normalizeRuntimePathSeparators } from './cross-platform-path'
+import { normalizeRuntimePathSeparators } from "./cross-platform-path"
 import {
   normalizeCustomWorktreeVisibilitySources,
   normalizeWorktreeVisibilitySourcePreferences
-} from './worktree/visibility-sources'
-import type { WorktreeVisibilityDefaults } from './global-settings-types'
-import type { ExternalWorktreeVisibility, Repo } from './repo-types'
+} from "./worktree/visibility-sources"
+import type {
+  WorktreeVisibilityDefaults,
+  ExternalWorktreeVisibility,
+  Repo
+} from "./repo-types"
 
 export const EXTERNAL_WORKTREE_VISIBILITY_ROLLOUT_AT = Date.UTC(2026, 4, 23)
 export const UNKNOWN_EXTERNAL_WORKTREE_PARENT_PATH = 'Unknown location'

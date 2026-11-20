@@ -1,6 +1,6 @@
 // The sentences a chat notice is made of, each whole so desktop can translate it on its own.
 
-import type { AgentSessionFailureFact } from './agent-session-failure'
+import type { AgentSessionFailureFact } from "./agent-session-failure"
 import {
   AGENT_STARTING,
   AGENT_STILL_WORKING,
@@ -10,11 +10,11 @@ import {
   TERMINAL_AGENT_HOLDS_CHAT,
   WAIT_FOR_BACKGROUND_TASKS,
   WAIT_FOR_START
-} from './agent-session-failure-copy'
+} from "./agent-session-failure-copy"
 import type {
   AgentSessionFailureSurface,
   AgentSessionFailureWordsContext
-} from './agent-session-failure-words'
+} from "./agent-session-failure-words"
 
 /** Translate whole sentences on desktop with English fallbacks; mobile displays them directly. */
 export const AGENT_SESSION_WRITE_NOTICE_COPY = {
@@ -42,6 +42,7 @@ export const AGENT_SESSION_WRITE_NOTICE_COPY = {
   historyUnreadable: "Orca couldn't read this chat's saved history.",
   historyUnusable: 'Unable to load this chat.',
   historyUnavailable: "Orca couldn't open this chat's history right now.",
+  savedInOtherFolder: 'This conversation was saved in another folder.',
   savedByNewerOrca: 'Chats were saved by a newer Orca.',
   updateOrcaToKeepUsing: 'Update Orca to keep using them.',
   chatSavedByNewerOrca: 'This chat was saved by a newer Orca.',

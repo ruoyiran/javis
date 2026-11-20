@@ -1,6 +1,10 @@
-import type { CheckStatus, GitHubOwnerRepo, ProviderCheckSummary } from './pull-request-types'
-import { githubRepoIdentityKey } from './repository-identity-key'
-import { matchesGitHubWorkItemTarget, parseGitHubItemRepository } from './work-item-target'
+import type { CheckStatus, ProviderCheckSummary } from "./pull-request-types"
+import type { GitHubRepositoryIdentity as GitHubOwnerRepo } from "./repositories/repository-identity"
+import { githubRepoIdentityKey } from "./repository-identity-key"
+import {
+  matchesGitHubWorkItemTarget,
+  parseGitHubItemRepository
+} from "./work-item-target"
 
 type CheckOwner = {
   number?: number

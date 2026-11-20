@@ -1,26 +1,26 @@
-import { analyzeAgentChoiceArgs } from '../choices/agent-choice-args'
+import { analyzeAgentChoiceArgs } from "../choices/agent-choice-args"
 import {
   removeOverriddenAgentSessionArgs,
   resolveAgentSessionOptionLaunch
-} from '../../agent-session/options/agent-session-option-launch'
-import { resolveAgentChoiceLayers, yieldAgentChoicesToArgs } from '../choices/agent-choice-layers'
-import { resolveTuiAgentLaunchRawArgs } from '../choices/tui-agent-launch-defaults'
+} from "../../agent-session/options/agent-session-option-launch"
+import { resolveAgentChoiceLayers, yieldAgentChoicesToArgs } from "../choices/agent-choice-layers"
+import { resolveTuiAgentLaunchRawArgs } from "../choices/tui-agent-launch-defaults"
 import {
   hasExtraAgentArgs,
   parseExtraAgentArgs,
   mergeParsedExtraAgentArgs
-} from './automation-extra-agent-args'
-import type { AgentLaunchProfileSettings } from '../choices/tui-agent-launch-defaults'
-import { readLaunchPermissionChoice } from '../permissions/tui-agent-permission-choice'
-import type { SessionOptionValue } from '../../native-chat/input/native-chat-session-options'
-import { agentArgTerminatorIndex } from '../../agent-session/options/agent-session-option-agent-args'
-import { getTuiAgentLaunchCommand, TUI_AGENT_CONFIG } from '../catalog/tui-agent-config'
+} from "./automation-extra-agent-args"
+import type { AgentLaunchProfileSettings } from "../choices/tui-agent-launch-defaults"
+import { readLaunchPermissionChoice } from "../permissions/tui-agent-permission-choice"
+import type { SessionOptionValue } from "../../native-chat/input/native-chat-session-options"
+import { agentArgTerminatorIndex } from "../../agent-session/options/agent-session-option-agent-args"
+import { getTuiAgentLaunchCommand, TUI_AGENT_CONFIG } from "../catalog/tui-agent-config"
 import {
   quoteStartupArg,
   tokenizeStartupCommand,
   type AgentStartupShell
-} from './tui-agent-startup-shell'
-import type { TuiAgent } from '../catalog/tui-agent'
+} from "./tui-agent-startup-shell"
+import type { TuiAgent } from "../catalog/tui-agent"
 
 // Why: Enter on Codex's "Update available" screen picks "Update now", which installs and exits.
 const STARTUP_UPDATE_PROMPT_SUPPRESSION_ARGS: Partial<Record<TuiAgent, readonly string[]>> = {
@@ -183,10 +183,14 @@ export function resolveAgentLaunchCommand(args: {
     args.agent === 'aider'
       ? insertBeforeTerminator(args.agent, initialTokens, suppressionArgs)
       : initialTokens
-  // Restart retains explicit policy and surviving raw pins, while providers restore model seeds.
-  const resumeArgs = render(
-    insertBeforeTerminator(args.agent, keptTokens, resolvedOptions.permissionArgs ?? [])
-  )
+  // Restart retains explicit policy and surviving raw pins. agy --conversation also needs the
+  // launch's --model or custom models fail with "model is empty" (#43154); --effort stays out
+  // because combining it with --model makes agy run a different model (#39556).
+  const resumeOptionArgs =
+    args.agent === 'antigravity'
+      ? [...antigravityModelArgs(resolvedOptions.args), ...(resolvedOptions.permissionArgs ?? [])]
+      : (resolvedOptions.permissionArgs ?? [])
+  const resumeArgs = render(insertBeforeTerminator(args.agent, keptTokens, resumeOptionArgs))
   return {
     ok: true,
     command: withArgs(render(launchTokens), launchHead),
@@ -194,7 +198,8 @@ export function resolveAgentLaunchCommand(args: {
       agentCommand: withArgs(resumeArgs),
       ...(keptTokens.length !== rawTokens.length ||
       keptTokens.some((token, index) => token !== rawTokens[index]) ||
-      resolvedOptions.permissionArgs
+      resolvedOptions.permissionArgs ||
+      resumeOptionArgs.length > 0
         ? { agentArgs: resumeArgs }
         : {})
     },
@@ -203,6 +208,20 @@ export function resolveAgentLaunchCommand(args: {
       ? { startupEnv: STARTUP_UPDATE_PROMPT_SUPPRESSION_ENV[args.agent] }
       : {})
   }
+}
+
+/** The resolved `--model <id>` (or `--model=<id>`) tokens, without any other launch option. */
+function antigravityModelArgs(tokens: readonly string[]): string[] {
+  for (let index = 0; index < tokens.length; index += 1) {
+    const token = tokens[index]
+    if (token.startsWith('--model=')) {
+      return [token]
+    }
+    if (token === '--model' && index + 1 < tokens.length) {
+      return [token, tokens[index + 1]]
+    }
+  }
+  return []
 }
 
 function insertBeforeTerminator(

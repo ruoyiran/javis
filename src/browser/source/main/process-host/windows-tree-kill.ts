@@ -1,6 +1,6 @@
 import { spawn as nodeSpawn, type ChildProcess } from 'node:child_process'
 import { constants, getPriority, setPriority } from 'node:os'
-import { windowsSystem32Binary } from './windows-system-binary'
+import { windowsSystem32Binary } from "./windows-system-binary"
 
 /** Only a successful taskkill proves the entire tree exited. */
 export type WindowsTreeKillVerdict = 'live' | 'unverifiable' | 'exited'
@@ -34,6 +34,11 @@ const treeKills = new WeakMap<ChildProcess, WindowsTreeKill>()
 export function trackedWindowsTreeKill(child: ChildProcess): WindowsTreeKill | undefined {
   const kill = treeKills.get(child)
   return kill && kill.verdict() !== 'unverifiable' ? kill : undefined
+}
+
+/** Any tree kill already started for this handle, settled or not: a second walk could hit a reused pid. */
+export function windowsTreeKillFor(child: ChildProcess): WindowsTreeKill | undefined {
+  return treeKills.get(child)
 }
 
 export function inFlightWindowsTreeKill(

@@ -1,10 +1,12 @@
-import { BrowserError } from '../../../browser/browser-error'
-import { whenBrowserMainWindowReady } from '../../../browser/guest-lifecycle/browser-main-window-readiness'
+import { BrowserError } from "../../../browser/browser-error"
+import { whenBrowserMainWindowReady } from "../../../browser/guest-lifecycle/browser-main-window-readiness"
 import { randomUUID } from 'node:crypto'
 import { ipcMain } from 'electron'
-import type { RuntimeBrowserCommandHost } from '../commands/browser-command-contracts'
-import type { BrowserTabSplitDirection } from '../../../../shared/browser-tab-split-direction'
-import type { BrowserTabCreateRequest } from '../../../../shared/browser-tab-create-request'
+import { captureActiveRpcCall } from "../../rpc/callers/active-call"
+import { retainBrowserMemoryPageForAgent } from "../../../browser/guest-lifecycle/browser-page-memory"
+import type { RuntimeBrowserCommandHost } from "../commands/browser-command-contracts"
+import type { BrowserTabSplitDirection } from "../../../../shared/browser-tab-split-direction"
+import type { BrowserTabCreateRequest } from "../../../../shared/browser-tab-create-request"
 
 export async function createBrowserTabInRenderer(
   host: Pick<RuntimeBrowserCommandHost, 'getAuthoritativeWindow'>,
@@ -22,6 +24,7 @@ export async function createBrowserTabInRenderer(
   if (await whenBrowserMainWindowReady(8000) !== window) throw new BrowserError('browser_host_unavailable', 'Browser workspace is not ready for tab requests')
   const rendererWebContents = window.webContents
   const requestId = randomUUID()
+  const withCaller = captureActiveRpcCall()
 
   const browserPageId = await new Promise<string>((resolve, reject) => {
     const timer = setTimeout(() => {
@@ -41,6 +44,7 @@ export async function createBrowserTabInRenderer(
       if (reply.error) {
         reject(new Error(reply.error))
       } else {
+        withCaller(() => retainBrowserMemoryPageForAgent(reply.browserPageId!, rendererWebContents))
         resolve(reply.browserPageId!)
       }
     }

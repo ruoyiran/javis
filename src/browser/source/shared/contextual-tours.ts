@@ -1,9 +1,11 @@
-import type { FeatureInteractionId } from './feature-interactions'
+import { BROWSER_EXTENSION_DISCOVERY_TOUR } from "./browser/extensions/browser-extension-discovery-tour"
+import type { FeatureInteractionId } from "./feature-interaction-catalog"
 
 export type ContextualTourId =
   | 'workspace-board'
   | 'workspace-agent-sessions'
   | 'browser'
+  | 'browser-extensions'
   | 'client-hosted-browser'
   | 'tasks'
   | 'automations'
@@ -11,9 +13,9 @@ export type ContextualTourId =
   | 'workspace-creation'
   | 'projects-collapse-all'
 
-export type ContextualTourStepControl = {
-  kind: 'auto-rename-branch-from-work'
-}
+export type ContextualTourStepControl =
+  | { kind: 'auto-rename-branch-from-work' }
+  | { kind: 'browser-extension-icons'; colored: boolean }
 
 export type ContextualTourStepActionKind =
   | 'next'
@@ -25,6 +27,7 @@ export type ContextualTourStepActionKind =
   | 'open-tasks'
   | 'open-getting-started'
   | 'open-client-hosted-browser-settings'
+  | 'open-chrome-web-store'
 
 export type ContextualTourStepAction = {
   kind: ContextualTourStepActionKind
@@ -43,7 +46,6 @@ export type ContextualTourStep = {
   fallbackCopy?: string
   preferredPlacement?: ContextualTourStepPlacement
   targetPulse?: boolean
-  hidePrimaryAction?: boolean
   control?: ContextualTourStepControl
   primaryAction?: ContextualTourStepAction
   secondaryAction?: ContextualTourStepAction
@@ -54,6 +56,7 @@ export type ContextualTourStep = {
 
 export type ContextualTour = {
   id: ContextualTourId
+  kind?: 'announcement'
   preserveFocus?: boolean
   allowedActiveModals?: readonly string[]
   steps: readonly ContextualTourStep[]
@@ -121,8 +124,7 @@ export const CONTEXTUAL_TOURS = [
         body: 'Each worktree gets its own branch, so parallel work stays separate.',
         targetSelector: '[data-contextual-tour-target="workspace-create-control"]',
         preferredPlacement: 'right',
-        targetPulse: true,
-        hidePrimaryAction: true
+        targetPulse: true
       }
     ]
   },
@@ -148,6 +150,7 @@ export const CONTEXTUAL_TOURS = [
       }
     ]
   },
+  BROWSER_EXTENSION_DISCOVERY_TOUR,
   {
     id: 'client-hosted-browser',
     steps: [

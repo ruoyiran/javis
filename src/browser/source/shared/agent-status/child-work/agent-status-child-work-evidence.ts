@@ -1,6 +1,6 @@
 // Host-internal provider edges patch one record per child, carrying facts instead of records. Only the child's ending or session end settles it.
 
-import type { AgentChildWorkAliasKind } from './agent-status-child-work-alias'
+import type { AgentChildWorkAliasKind } from "./agent-status-child-work-alias"
 import type {
   AgentChildWorkId,
   AgentChildWorkInvocationFence,
@@ -9,7 +9,7 @@ import type {
   AgentChildWorkOutcome,
   AgentChildWorkResidency,
   AgentChildWorkState
-} from './agent-status-child-work'
+} from "./agent-status-child-work"
 
 /** id is the stable task/thread handle; runId is its spawn-call/turn handle. A different runId starts the child again. */
 export type AgentChildWorkEvidenceHandle = {
@@ -27,6 +27,8 @@ export type AgentChildWorkLiveObservation = {
   name?: string
   description?: string
   agentType?: string
+  model?: string
+  effort?: string
   totalTokens?: number
   /** `null`: the operation that was open has ended. Absent: this edge says nothing about it. */
   operation?: AgentChildWorkOperation | null
@@ -52,6 +54,8 @@ export type AgentChildWorkOperationEvidence = {
   childId: string
   /** `null`: the call it had open has ended. */
   operation: AgentChildWorkOperation | null
+  /** The model the child's own message ran on. */
+  model?: string
 }
 
 /** The child's own terminal frame. `unknown` is an ending whose status the provider did not say. */

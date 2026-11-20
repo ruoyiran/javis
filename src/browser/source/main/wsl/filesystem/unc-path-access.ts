@@ -1,11 +1,14 @@
-import { runProcess } from '../../process-host/run-process'
-import { parseWslUncPath, type WslUncPathInfo as WslPathInfo } from '../../../shared/wsl-paths'
-import { buildWslExecArgs } from '../../../shared/wsl-login-shell-command'
-import { WSL_PROBE_TIMEOUT_MS, runWslExe, wslExeProcessSpec } from '../execution/wsl-exe-process'
+import { runProcess } from "../../process-host/run-process"
+import {
+  parseWslUncPath,
+  type WslUncPathInfo as WslPathInfo
+} from "../../../shared/wsl-paths"
+import { buildWslExecArgs } from "../../../shared/wsl-login-shell-command"
+import { WSL_PROBE_TIMEOUT_MS, runWslExe, wslExeProcessSpec } from "../execution/wsl-exe-process"
 import {
   getWslDirectoryProbeArgs,
   parseWslDirectoryProbeOutput
-} from './wsl-directory-probe-command'
+} from "./wsl-directory-probe-command"
 
 export function parseWslPath(windowsPath: string): WslPathInfo | null {
   if (process.platform !== 'win32') {

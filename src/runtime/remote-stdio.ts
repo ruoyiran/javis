@@ -19,6 +19,7 @@ export type RemoteMethod =
   | BrowserMethod
   | "browser.open"
   | "browser.status"
+  | "browser.workspaceSnapshot"
   | "browser.catalog.context"
   | "browser.catalog.list"
   | "browser.catalog.register"
@@ -29,6 +30,7 @@ const REMOTE_DEADLINE_MS = 60_000;
 const RPC_METHODS: ReadonlySet<string> = new Set<RemoteMethod>([
   "capabilities",
   "listApps",
+  "launchApp",
   "listWindows",
   "getAppState",
   "click",
@@ -44,6 +46,7 @@ const RPC_METHODS: ReadonlySet<string> = new Set<RemoteMethod>([
   ...publicBrowserMethods,
   "browser.open",
   "browser.status",
+  "browser.workspaceSnapshot",
   "browser.catalog.context",
   "browser.catalog.list",
   "browser.catalog.register",
@@ -358,10 +361,12 @@ export async function runBrowserRemoteStdioBridge(
     "../browser/remote/framed-channel.js"
   );
   const { browserMethods } = await import("../browser/contract/index.js");
+  const { browserDaemonParams } = await import("./daemon-dispatch.js");
   const allowed = new Set<string>([
     ...browserMethods,
     "browser.status",
     "browser.clientHost.pageStatus",
+    "browser.workspaceSnapshot",
   ]);
   let connection:
     | import("../browser/remote/framed-channel.js").BrowserStream
@@ -466,7 +471,7 @@ export async function runBrowserRemoteStdioBridge(
             "Browser stream method is not allowed",
           );
         const operation = connection
-          .call(frame.method, frame.params as Record<string, unknown>)
+          .call(frame.method, frame.method === "browser.workspaceSnapshot" ? browserDaemonParams(frame.method, frame.params as Record<string, unknown>) : frame.params as Record<string, unknown>)
           .then(
             (result) => {
               writeBrowserFrame(output, { id: frame.id, ok: true, result });

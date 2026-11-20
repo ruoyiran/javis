@@ -1,35 +1,36 @@
 // Apply pure layout commands synchronously so runtime arrival order remains authoritative.
 
-import { clientLayoutCommand } from './workspace-layout-client-command'
+import { clientLayoutCommand } from "./workspace-layout-client-command"
 import {
   closeBrowserPage,
   openBrowserPage,
-  replaceBrowserPage,
+  replaceTabContent,
   setBrowserTabProfile
-} from './workspace-layout-browser-commands'
-import { applied, refuse, type Applied } from './workspace-layout-command-steps'
+} from "./workspace-layout-browser-commands"
+import { applied, refuse, type Applied } from "./workspace-layout-command-steps"
 import type {
   CommandOf,
   LayoutCommand,
   LayoutContext,
   RenameTabsCommand
-} from './workspace-layout-command-types'
+} from "./workspace-layout-command-types"
 import {
   openAgentSessionTab,
+  openRoomTab,
   openBrowserTab,
   openEditorTab
-} from './workspace-layout-content-commands'
+} from "./workspace-layout-content-commands"
 import {
   moveTab,
   openInNewGroup,
   setGroupRatios,
   splitGroup
-} from './workspace-layout-group-commands'
-import { renameEditorFiles } from './workspace-layout-editor-rekey'
-import { openSimulatorTab } from './workspace-layout-simulator-tab'
-import { updateLegacyPersistence } from './workspace-layout-legacy-persistence'
-import { runDroppedLeafStep } from './workspace-layout-dropped-leaves'
-import type { WorkspaceLayoutModel } from './workspace-layout-model'
+} from "./workspace-layout-group-commands"
+import { renameEditorFiles } from "./workspace-layout-editor-rekey"
+import { openSimulatorTab } from "./workspace-layout-simulator-tab"
+import { updateLegacyPersistence } from "./workspace-layout-legacy-persistence"
+import { runDroppedLeafStep } from "./workspace-layout-dropped-leaves"
+import type { WorkspaceLayoutModel } from "./workspace-layout-model"
 import {
   closePane,
   equalizePanes,
@@ -40,25 +41,26 @@ import {
   releasePaneTerminal,
   setPaneRatios,
   splitPane
-} from './workspace-layout-pane-commands'
-import { restartPane, sleep, startPane, wake } from './workspace-layout-process-commands'
+} from "./workspace-layout-pane-commands"
+import { restartPane, sleep, startPane, wake } from "./workspace-layout-process-commands"
 import {
   closeTabs,
   createTerminalTab,
   promotePreviewTab,
-  renameTab,
   setChatPane,
   setTabProps
-} from './workspace-layout-tab-commands'
-import { moveTabToWorkspace } from './workspace-layout-workspace-move'
-import { applyDefaultTabs } from './workspace-layout-default-tabs'
+} from "./workspace-layout-tab-commands"
+import { renameTab } from "./workspace-layout-tab-rename"
+import { moveTabToWorkspace } from "./workspace-layout-workspace-move"
+import { applyDefaultTabs } from "./workspace-layout-default-tabs"
 
 const CREATES_WORKSPACE = new Set<LayoutCommand['type']>([
   'createTerminalTab',
   'openEditorTab',
   'openBrowserTab',
   'openAgentSessionTab',
-  'openSimulatorTab'
+  'openSimulatorTab',
+  'openRoomTab'
 ])
 
 export function renameTabCommandsOf(command: RenameTabsCommand): CommandOf<'renameTab'>[] {
@@ -165,12 +167,14 @@ function applyCommand(
       return openBrowserPage(model, command)
     case 'closeBrowserPage':
       return closeBrowserPage(model, command)
-    case 'replaceBrowserPage':
-      return replaceBrowserPage(model, command)
+    case 'replaceTabContent':
+      return replaceTabContent(model, command)
     case 'setBrowserTabProfile':
       return setBrowserTabProfile(model, command)
     case 'openAgentSessionTab':
       return openInNewGroup(model, command, (next) => openAgentSessionTab(next, command, context))
+    case 'openRoomTab':
+      return openInNewGroup(model, command, (next) => openRoomTab(next, command, context))
     case 'startPane':
       return startPane(model, command, context)
     case 'restartPane':

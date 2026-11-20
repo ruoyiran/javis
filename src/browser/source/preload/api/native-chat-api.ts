@@ -1,15 +1,18 @@
-import type { AgentType } from '../../shared/agent-status/contracts/agent-status-types'
-import type { NativeChatVisualTheme } from '../../shared/native-chat/native-chat-visual-shell'
+import type { AgentType } from "../../shared/agent-status/contracts/agent-status-types"
+import type { NativeChatVisualTheme } from "../../shared/native-chat/native-chat-visual-shell"
 import type {
   NativeChatMessage,
   NativeChatTurnLifecycle
-} from '../../shared/native-chat/native-chat-types'
+} from "../../shared/native-chat/native-chat-types"
 
 // notFound marks a not-yet-on-disk miss (retry-worthy) vs a real read/parse error (#8401).
 export type NativeChatReadSessionResult =
   | {
       messages: NativeChatMessage[]
       lifecycle?: NativeChatTurnLifecycle
+      /** Older rows exist before this window; absent from hosts that predate cursor paging. */
+      hasMore?: boolean
+      beforeOffset?: number
     }
   | { error: string; notFound?: true }
 
@@ -55,6 +58,12 @@ export type NativeChatSubscribeArgs = {
   wakeWslDistro?: boolean
 }
 
+export type NativeChatReadSessionOptions = {
+  wakeWslDistro?: boolean
+  /** Provider row cursor: read only rows strictly older than it. */
+  beforeOffset?: number
+}
+
 export type NativeChatApi = {
   /** Desktop-only appearance snapshot for ordinary chat-created HTML file guests. */
   publishVisualGuestTheme?: (theme: NativeChatVisualTheme) => void
@@ -65,7 +74,7 @@ export type NativeChatApi = {
     limit?: number,
     transcriptPath?: string,
     /** The user opened or paged this chat: may start its stopped local WSL distro (E9). */
-    options?: { wakeWslDistro?: boolean }
+    options?: NativeChatReadSessionOptions
   ) => Promise<NativeChatReadSessionResult>
   /** First frame is a bounded snapshot; later frames contain only appended messages. */
   subscribe: (

@@ -1,29 +1,32 @@
 import { execFile } from 'node:child_process'
 import type { WebContents } from 'electron'
-import { BrowserError } from '../../browser-error'
+import { BrowserError } from "../../browser-error"
 import {
   isCdpProxyRejectedError,
   isTabClosedTransportError,
   pageUnavailableMessageForSession
-} from './agent-browser-command-errors'
-import { translateResult } from '../protocol/agent-browser-bridge-result'
+} from "./agent-browser-command-errors"
+import { translateResult } from "../protocol/agent-browser-bridge-result"
 import {
   AGENT_BROWSER_BATCH_ARGS,
   agentBrowserBatchInput,
   agentBrowserResultMintsRefs
-} from '../protocol/agent-browser-batch-command'
-import { AgentBrowserBridgeTabs } from '../session-routing/agent-browser-bridge-tabs'
-import { assertRemoteCliBrowserAccess } from '../../../runtime/desktop-browser-bridge/remote-cli-browser-scope'
-import { assertExpectedPageUrlForStep } from '../../cdp/input/browser-expected-page-url'
-import { ORCA_TAB_SESSION_PREFIX } from '../session-lifecycle/agent-browser-session-name'
-import { canSkipAgentBrowserSessionReset } from '../session-lifecycle/agent-browser-session-reset'
+} from "../protocol/agent-browser-batch-command"
+import { AgentBrowserBridgeTabs } from "../session-routing/agent-browser-bridge-tabs"
+import { assertRemoteCliBrowserAccess } from "../../../runtime/desktop-browser-bridge/remote-cli-browser-scope"
+import { assertExpectedPageUrlForStep } from "../../cdp/input/browser-expected-page-url"
+import { ORCA_TAB_SESSION_PREFIX } from "../session-lifecycle/agent-browser-session-name"
+import {
+  canSkipAgentBrowserSessionReset,
+  waitForAgentBrowserSessionExit
+} from "../session-lifecycle/agent-browser-session-reset"
 import {
   AGENT_BROWSER_CLEANUP_TIMEOUT_MS,
   type AgentBrowserCleanupOptions
-} from '../session-lifecycle/agent-browser-cleanup-options'
-import type { AgentBrowserExecOptions } from './agent-browser-exec-options'
-import type { SessionState } from '../session-lifecycle/agent-browser-session-state'
-import type { ResolvedBrowserCommandTarget } from '../session-routing/agent-browser-command-target'
+} from "../session-lifecycle/agent-browser-cleanup-options"
+import type { AgentBrowserExecOptions } from "./agent-browser-exec-options"
+import type { SessionState } from "../session-lifecycle/agent-browser-session-state"
+import type { ResolvedBrowserCommandTarget } from "../session-routing/agent-browser-command-target"
 
 // These act on an element with no pointer input, so the agent cursor is shown on it first.
 const ELEMENT_COMMANDS_WITHOUT_POINTER = new Set(['check', 'uncheck', 'select', 'focus'])
@@ -184,7 +187,7 @@ export abstract class AgentBrowserBridgeExecution extends AgentBrowserBridgeTabs
     return new BrowserError('browser_tab_not_found', pageUnavailableMessageForSession(sessionName))
   }
 
-  protected closeStaleAgentBrowserSession(sessionName: string): Promise<void> {
+  protected async closeStaleAgentBrowserSession(sessionName: string): Promise<void> {
     if (
       canSkipAgentBrowserSessionReset({
         ownsSocketDirectory: this.ownsAgentBrowserSocketDirectory,
@@ -192,9 +195,9 @@ export abstract class AgentBrowserBridgeExecution extends AgentBrowserBridgeTabs
         sessionName
       })
     ) {
-      return Promise.resolve()
+      return
     }
-    return new Promise((resolve, reject) => {
+    await new Promise<void>((resolve, reject) => {
       let child: ReturnType<typeof execFile> | null = null
       let settled = false
 
@@ -250,6 +253,11 @@ export abstract class AgentBrowserBridgeExecution extends AgentBrowserBridgeTabs
           )
         )
       }
+    })
+    await waitForAgentBrowserSessionExit({
+      ownsSocketDirectory: this.ownsAgentBrowserSocketDirectory,
+      socketDirectory: this.agentBrowserEnv.AGENT_BROWSER_SOCKET_DIR,
+      sessionName
     })
   }
 

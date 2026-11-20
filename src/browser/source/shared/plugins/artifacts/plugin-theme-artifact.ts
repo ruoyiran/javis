@@ -1,11 +1,11 @@
 import { z } from 'zod'
-import { PLUGIN_MANIFEST_V2_SINCE, pluginFieldDoc } from '../manifest/plugin-schema-field-docs'
+import { PLUGIN_MANIFEST_V2_SINCE, pluginFieldDoc } from "../manifest/plugin-schema-field-docs"
 import {
   tolerantPluginThemeBackgroundRegistration,
   pluginThemeBackgroundSchema,
   tolerantPluginThemeBackground,
   type PluginThemeBackgroundArtifact
-} from './plugin-theme-background'
+} from "./plugin-theme-background"
 
 // Why: this is a public, additive-only theme API. Exposing every main.css
 // variable would make internal renderer refactors plugin-breaking changes.
@@ -68,6 +68,7 @@ export const PLUGIN_APP_THEME_TOKENS = [
   '--chat-selection',
   '--chat-selection-foreground',
   '--text-link',
+  '--editor-selection',
   '--diff-added',
   '--diff-added-background',
   '--diff-added-emphasis',

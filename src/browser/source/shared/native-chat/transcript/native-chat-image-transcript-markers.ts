@@ -1,25 +1,16 @@
-import { unwrapClaudePastedContent } from '../../claude-pasted-content'
+import { unwrapClaudePastedContent } from "../../claude-pasted-content"
 import {
   stripAnsiEscapeSequences,
   TERMINAL_CONTROL_CHARACTER_PATTERN
-} from '../../ansi-escape-sequences'
-import { isTextBlock, type NativeChatBlock, type NativeChatMessage } from '../native-chat-types'
-import { imageReferenceToken, replaceImageReferences } from '../native-chat-image-reference'
-import { NATIVE_CHAT_QUOTED_FILE_REFERENCE } from '../../agent-image-paste'
+} from "../../ansi-escape-sequences"
+import { isTextBlock, type NativeChatBlock, type NativeChatMessage } from "../native-chat-types"
+import {
+  IMAGE_PROMPT_MARKER,
+  stripImagePromptMarker
+} from "./images/native-chat-sent-image-prompt-markers"
 
 // Keep whitespace and path starts disjoint so incomplete markers cannot rescan their suffix.
 const IMAGE_SOURCE_MARKER = /^\[Image:\s*source:\s*(\S.*?|[^\S\r\n\u2028\u2029])\]\s*$/
-export const IMAGE_PROMPT_MARKER = /\[Image #\d+\]/
-const IMAGE_PROMPT_MARKERS = /\[Image #\d+\]/g
-// A quoted file reference is matched whole, so a path that reads like a marker is left as typed.
-const IMAGE_PROMPT_MARKER_NUMBERS_OUTSIDE_FILE_REFERENCES = new RegExp(
-  `(${NATIVE_CHAT_QUOTED_FILE_REFERENCE.source})|\\[Image #(\\d+)\\]`,
-  'g'
-)
-const IMAGE_PROMPT_MARKER_AT_START = /^[^\S\r\n]*\[Image #\d+\]/
-const IMAGE_PROMPT_MARKER_AT_END = /\[Image #\d+\][^\S\r\n]*$/
-const HORIZONTAL_WHITESPACE_START = /^[^\S\r\n]+/
-const HORIZONTAL_WHITESPACE_END = /[^\S\r\n]+$/
 
 export function imageSourcePathFromText(text: string): string | null {
   return text.match(IMAGE_SOURCE_MARKER)?.[1]?.trim() ?? null
@@ -60,63 +51,6 @@ function deriveImageSourcePaths(message: NativeChatMessage): string[] {
 
 export function isImageSourceUserTurn(message: NativeChatMessage): boolean {
   return imageSourcePathsFromMessage(message).length > 0
-}
-
-/** Map chips to sent-image [Image #N] positions, matching Claude/Codex TUIs; drop chips whose images were not sent. */
-export function imageReferencesToPromptMarkers(
-  text: string,
-  sentImageIds: readonly string[]
-): string {
-  return replaceImageReferences(text, (attachmentId) => {
-    const index = sentImageIds.indexOf(attachmentId)
-    return index === -1 ? '' : `[Image #${index + 1}]`
-  })
-}
-
-function replaceSentImagePromptMarkers(
-  text: string,
-  replace: (number: number, marker: string) => string
-): string {
-  return text.replace(
-    IMAGE_PROMPT_MARKER_NUMBERS_OUTSIDE_FILE_REFERENCES,
-    (match, fileReference: string | undefined, number: string) =>
-      fileReference === undefined ? replace(Number(number), match) : match
-  )
-}
-
-/** Restore sent markers as image chips; leave out-of-range numbers literal. */
-export function promptMarkersToImageReferences(text: string, imageIds: readonly string[]): string {
-  return replaceSentImagePromptMarkers(text, (number, marker) => {
-    const attachmentId = imageIds[number - 1]
-    return attachmentId === undefined ? marker : imageReferenceToken(attachmentId)
-  })
-}
-
-/** Remove only markers belonging to this structured send’s imageCount; leave out-of-range numbers literal. */
-export function stripSentImagePromptMarkers(text: string, imageCount: number): string {
-  return withoutStrippedMarkerSpace(
-    text,
-    replaceSentImagePromptMarkers(text, (number, marker) =>
-      number >= 1 && number <= imageCount ? '' : marker
-    )
-  )
-}
-
-export function stripImagePromptMarker(text: string): string {
-  return withoutStrippedMarkerSpace(text, text.replace(IMAGE_PROMPT_MARKERS, ''))
-}
-
-function withoutStrippedMarkerSpace(text: string, stripped: string): string {
-  if (stripped === text) {
-    return text
-  }
-  let result = IMAGE_PROMPT_MARKER_AT_START.test(text)
-    ? stripped.replace(HORIZONTAL_WHITESPACE_START, '')
-    : stripped
-  if (IMAGE_PROMPT_MARKER_AT_END.test(text)) {
-    result = result.replace(HORIZONTAL_WHITESPACE_END, '')
-  }
-  return result
 }
 
 /** Normalizes PTY-backed user text into the pending-echo comparison key. */
@@ -185,7 +119,12 @@ export function hasImagePromptMarker(message: NativeChatMessage): boolean {
   return hasMarker
 }
 
-/** Consecutive source turns and their optional prompt form one preparation dependency. */
+function isImagePromptTurn(message: NativeChatMessage | undefined): message is NativeChatMessage {
+  return message?.role === 'user' && hasImagePromptMarker(message)
+}
+
+/** Consecutive source turns and their prompt form one preparation dependency. Claude writes the
+ *  prompt first and its source turns right after; a prompt following its sources is also folded. */
 export function nativeChatImageTranscriptUnits(
   messages: readonly NativeChatMessage[]
 ): NativeChatMessage[][] {
@@ -193,21 +132,18 @@ export function nativeChatImageTranscriptUnits(
   for (let index = 0; index < messages.length; index += 1) {
     const first = messages[index]!
     const members = [first]
-    if (imageSourcePathsFromMessage(first).length > 0) {
+    const sourceFirst = isImageSourceUserTurn(first)
+    if (sourceFirst || isImagePromptTurn(first)) {
       while (index + 1 < messages.length) {
         const next = messages[index + 1]!
-        if (next.source !== first.source || imageSourcePathsFromMessage(next).length === 0) {
+        if (next.source !== first.source || !isImageSourceUserTurn(next)) {
           break
         }
         members.push(next)
         index += 1
       }
       const prompt = messages[index + 1]
-      if (
-        prompt?.role === 'user' &&
-        prompt.source === first.source &&
-        hasImagePromptMarker(prompt)
-      ) {
+      if (sourceFirst && prompt?.source === first.source && isImagePromptTurn(prompt)) {
         members.push(prompt)
         index += 1
       }
@@ -217,8 +153,8 @@ export function nativeChatImageTranscriptUnits(
   return units
 }
 
-/** Claude records image paths as source turns followed by a prompt carrying
- *  image markers. Merge the whole run back into one native user turn. */
+/** Claude records image paths as source turns next to a prompt carrying image
+ *  markers. Merge the whole run back into one native user turn. */
 export function normalizeImageTranscriptMessages(
   messages: readonly NativeChatMessage[]
 ): NativeChatMessage[] {
@@ -228,28 +164,34 @@ export function normalizeImageTranscriptMessages(
     : rows
 }
 
+/** The unit's one non-source row, wherever Claude wrote it relative to its sources. */
+export function imageTranscriptUnitPrompt(
+  unit: readonly NativeChatMessage[]
+): NativeChatMessage | undefined {
+  return unit.find((message) => !isImageSourceUserTurn(message))
+}
+
 export function normalizeImageTranscriptUnit(
   messages: readonly NativeChatMessage[]
 ): NativeChatMessage[] {
-  const first = messages[0]!
-  if (imageSourcePathsFromMessage(first).length > 0) {
-    const last = messages.at(-1)!
-    const hasPrompt = imageSourcePathsFromMessage(last).length === 0
-    const sources = hasPrompt ? messages.slice(0, -1) : messages
+  const prompt = imageTranscriptUnitPrompt(messages)
+  const sources = messages.filter((message) => message !== prompt)
+  if (sources.length > 0) {
     const images = (source: NativeChatMessage) =>
       imageSourcePathsFromMessage(source).map((path) => ({ type: 'image-ref' as const, path }))
-    return hasPrompt
+    return prompt
       ? [
           {
-            ...last,
+            ...prompt,
             blocks: [
               ...sources.flatMap(images),
-              ...stripImagePromptMarkersFromTextBlocks(last.blocks)
+              ...stripImagePromptMarkersFromTextBlocks(prompt.blocks)
             ]
           }
         ]
       : sources.map((source) => ({ ...source, blocks: images(source) }))
   }
+  const first = messages[0]!
   if (first.role !== 'user') {
     return messages as NativeChatMessage[]
   }

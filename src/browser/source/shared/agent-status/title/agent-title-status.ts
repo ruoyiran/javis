@@ -1,12 +1,13 @@
-import { getDeepSeekBuildTitleStatus } from './providers/dsb-terminal-title'
-import { qoderTitleStatus } from './providers/qoder-terminal-title'
-import { cursorTitleStatus } from './providers/cursor-terminal-title'
+import { getDeepSeekBuildTitleStatus } from "./providers/dsb-terminal-title"
+import { qoderTitleStatus } from "./providers/qoder-terminal-title"
+import { isJcodeIdentityTerminalTitle } from "./providers/jcode-terminal-title"
+import { cursorTitleStatus } from "./providers/cursor-terminal-title"
 import {
   AGY_AGENT_NAME_RE,
   DROID_AGENT_NAME_RE,
   HERMES_AGENT_NAME_RE,
   titleHasAgentName
-} from './agent-name-token-match'
+} from "./agent-name-token-match"
 import {
   CLAUDE_IDLE,
   GEMINI_IDLE,
@@ -16,7 +17,7 @@ import {
   QUARTER_CIRCLE_SPINNER_RE,
   containsAgentSpinnerGlyph,
   containsQuarterCircleSpinner
-} from './agent-title-glyphs'
+} from "./agent-title-glyphs"
 import {
   CURSOR_NATIVE_TITLE_LOWER,
   STRONG_IDLE_KEYWORDS_RE,
@@ -27,20 +28,22 @@ import {
   isPiAgentTitle,
   isPiTerminalTitle,
   isGeminiTerminalTitle,
-  isGrokRotatingWorkingTitle,
+  grokFrameTitleStatus,
+  GROK_PERMISSION_TITLE,
+  GROK_WORKING_TITLE,
   type AgentStatus
-} from './agent-title-core'
-import { isDshTerminalTitle } from './providers/dsh-terminal-title'
+} from "./agent-title-core"
+import { isDshTerminalTitle } from "./providers/dsh-terminal-title"
 
-import { isOpenCodeNativeTitle } from './providers/opencode-terminal-title'
+import { isOpenCodeNativeTitle } from "./providers/opencode-terminal-title"
 import {
   getPiCompatibleTitleSeparatorStatus,
   getPiCompatibleSyntheticAgentStatus
-} from './providers/pi-compatible-synthetic-title'
-import { getPiStateTitleStatus } from './providers/pi-state-title-marker'
-import { getWrapperTitleSegments } from './terminal-title-wrapper-segments'
-import { resolveExplicitTerminalTitleAgentType } from './terminal-title-agent-type'
-import { memoizeTitleClassification } from './terminal-title-classification-memo'
+} from "./providers/pi-compatible-synthetic-title"
+import { getPiStateTitleStatus } from "./providers/pi-state-title-marker"
+import { getWrapperTitleSegments } from "./terminal-title-wrapper-segments"
+import { resolveExplicitTerminalTitleAgentType } from "./terminal-title-agent-type"
+import { memoizeTitleClassification } from "./terminal-title-classification-memo"
 
 /** Where a working agent settled: at rest, or on a prompt that needs the user. */
 export type AgentIdleStatus = Exclude<AgentStatus, 'working'>
@@ -144,7 +147,6 @@ export function normalizeTerminalTitle(title: string): string {
 const GEMINI_DISPLAY_LABEL = 'Gemini CLI'
 const QODER_DISPLAY_LABEL = 'Qoder CLI'
 const QODER_CN_DISPLAY_LABEL = 'Qoder CLI CN'
-const GROK_WORKING_TITLE = '\u280b Grok'
 const QODER_TITLE_GLYPHS = { working: GEMINI_WORKING, permission: '▲', idle: GEMINI_IDLE } as const
 const DESTRUCTIVE_TITLE_STAMPS: ReadonlySet<string> = new Set([
   ...[GEMINI_WORKING, GEMINI_PERMISSION, GEMINI_IDLE].map(
@@ -153,7 +155,8 @@ const DESTRUCTIVE_TITLE_STAMPS: ReadonlySet<string> = new Set([
   ...Object.values(QODER_TITLE_GLYPHS).flatMap((glyph) =>
     [QODER_DISPLAY_LABEL, QODER_CN_DISPLAY_LABEL].map((label) => `${glyph} ${label}`)
   ),
-  GROK_WORKING_TITLE
+  GROK_WORKING_TITLE,
+  GROK_PERMISSION_TITLE
 ])
 
 export function isNormalizedAgentTitleStamp(title: string): boolean {
@@ -195,9 +198,10 @@ function proposeTerminalTitle(title: string): string {
     return canonicalizeBrailleSpinnerFrame(title)
   }
 
-  // Collapse Grok spinner/status churn to one label; idle titles pass through so the final semantic title remains (#7863).
-  if (isGrokRotatingWorkingTitle(title)) {
-    return GROK_WORKING_TITLE
+  // Collapse Grok spinner/activity/blink churn to one label per state; idle titles pass through so the final semantic title remains (#7863).
+  const grokStatus = grokFrameTitleStatus(title)
+  if (grokStatus) {
+    return grokStatus === 'permission' ? GROK_PERMISSION_TITLE : GROK_WORKING_TITLE
   }
 
   return title
@@ -240,6 +244,10 @@ function computeAgentStatusFromTitle(title: string): AgentStatus | null {
   if (cursorStatus) {
     return cursorStatus
   }
+  const grokStatus = grokFrameTitleStatus(title)
+  if (grokStatus) {
+    return grokStatus
+  }
   if (!title || isClaudeManagementTitle(title)) {
     return null
   }
@@ -277,6 +285,10 @@ function computeAgentStatusFromTitle(title: string): AgentStatus | null {
   }
 
   if (title.startsWith(`${CLAUDE_IDLE} `) || title === CLAUDE_IDLE) {
+    return 'idle'
+  }
+  // Activity comes from jcodePaneTitleStatus; the identity alone says Jcode is at rest.
+  if (isJcodeIdentityTerminalTitle(title)) {
     return 'idle'
   }
   // Read π ! as blocked before generic idle or OMP user waits disappear.

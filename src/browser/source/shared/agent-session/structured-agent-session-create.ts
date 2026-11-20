@@ -1,11 +1,12 @@
-import type { StructuredAgentId } from './lifecycle/agent-session-provider-handle'
-import type { AgentSessionMutationEnvelope } from './agent-session-wire'
+import type { StructuredAgentId } from "./lifecycle/agent-session-provider-handle"
+import type { AgentJournalMessageItem } from "./journal/agent-session-journal-types"
+import type { AgentSessionMutationEnvelope } from "./agent-session-wire"
 import type { z } from 'zod'
-import type { SendBody } from '../rpc-contract/structured-agent-session-message-params'
+import type { SendBody } from "../rpc-contract/structured-agent-session-message-params"
 import {
   createStructuredAgentSessionOperationId,
   structuredAgentSessionCreateFingerprint
-} from './lifecycle/structured-agent-session-mutation'
+} from "./lifecycle/structured-agent-session-mutation"
 
 /** Send conversation identity only; the executing host derives transcript/account paths so paired clients cannot choose files or credentials. */
 export type StructuredAgentSessionResumeSource = {
@@ -36,22 +37,10 @@ export type StructuredAgentSessionCreateParams = {
 
 export type StructuredAgentSessionFirstMessage = {
   clientMessageId: string
-  body: z.infer<typeof SendBody>
+  /** A run's fields only from the host: a client's body is parsed as `SendBody`. */
+  body: z.infer<typeof SendBody> &
+    Pick<AgentJournalMessageItem, 'memorySource' | 'triggeredBy' | 'origin' | 'automationRun'>
   selection?: Readonly<Record<string, string>>
-}
-
-/** Provider-prefixed IDs use underscore-only suffix tokens for embedding in tab IDs/log keys. */
-export function createStructuredAgentSessionId(
-  agent: StructuredAgentId,
-  randomUuid: () => string
-): string {
-  return `${agent}_${randomUuid().replaceAll('-', '_')}`
-}
-
-/** Validate only the generated suffix token so hyphenated agent names remain wire-compatible. */
-export function isStructuredAgentSessionIdFor(agent: string, sessionId: string): boolean {
-  const prefix = `${agent}_`
-  return sessionId.startsWith(prefix) && /^[A-Za-z0-9_]+$/.test(sessionId.slice(prefix.length))
 }
 
 /** Share create fingerprints across clients and host recomputation; ambiguous transport failures replay this durable envelope. */

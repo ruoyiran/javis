@@ -2,11 +2,11 @@ import { randomUUID } from 'node:crypto'
 import type {
   BrowserCertificateFailure,
   BrowserCertificateProceedResult
-} from '../../../shared/browser-workspace-types'
+} from "../../../shared/browser-workspace-types"
 import {
   isEligibleLocalCertificateHost,
   toSecureCertificateEndpoint
-} from '../../../shared/browser-url'
+} from "../../../shared/browser-url"
 import {
   certificateChallengeIdentityMatches,
   CERTIFICATE_CHALLENGE_TTL_MS,
@@ -14,15 +14,15 @@ import {
   toBrowserCertificateFailure,
   type BrowserCertificateTrustControllerDependencies,
   type PendingCertificateChallenge
-} from './browser-certificate-challenge'
+} from "./browser-certificate-challenge"
 import {
   getLeafCertificateSha256,
   getSupportedCertificateErrorCode,
   SUPPORTED_CERTIFICATE_ERROR,
   SUPPORTED_CERTIFICATE_ERROR_CODE
-} from './browser-certificate-identity'
-import { normalizeCertificateError } from '../../../shared/browser/certificate-trust/browser-certificate-errors'
-import { BrowserCertificateRequestGuard } from './browser-certificate-request-guard'
+} from "./browser-certificate-identity"
+import { normalizeCertificateError } from "../../../shared/browser/certificate-trust/browser-certificate-errors"
+import { BrowserCertificateRequestGuard } from "./browser-certificate-request-guard"
 
 export class BrowserCertificateTrustController {
   private readonly pendingByGuestId = new Map<number, PendingCertificateChallenge>()
@@ -125,9 +125,12 @@ export class BrowserCertificateTrustController {
   }
 
   onGuestRetired(webContentsId: number): void {
-    this.clearPending(webContentsId, true)
-    this.requestGuard.revokeGuest(webContentsId)
-    this.navigationSequenceByGuestId.delete(webContentsId)
+    try {
+      this.clearPending(webContentsId, true)
+    } finally {
+      this.requestGuard.revokeGuest(webContentsId)
+      this.navigationSequenceByGuestId.delete(webContentsId)
+    }
   }
 
   onMainFrameNavigationStarted(webContentsId: number): void {
@@ -140,6 +143,18 @@ export class BrowserCertificateTrustController {
 
   onMainFrameNavigationCommitted(webContentsId: number, url: string): void {
     this.requestGuard.revokeForCommittedNavigation(webContentsId, url)
+  }
+
+  hasFailureForGuest(webContentsId: number): boolean {
+    const pending = this.pendingByGuestId.get(webContentsId)
+    if (!pending) {
+      return false
+    }
+    if (pending.expiresAt <= this.now()) {
+      this.clearPending(webContentsId, true)
+      return false
+    }
+    return true
   }
 
   getFailure(browserPageId: string): BrowserCertificateFailure | null {

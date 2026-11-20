@@ -39,6 +39,8 @@ export class BrowserHostSubscriptions {
           _meta: route.metadata,
         },
       }).catch(() => {});
+    else if (!route.closed && notify && route.stream)
+      void callBrowser("browser.host.closed", { id }).catch(() => {});
     route.closed = true;
     if (this.routes.get(id) === route) this.routes.delete(id);
     if (route.admitted && route.authority && !route.release) {
@@ -74,7 +76,14 @@ export class BrowserHostSubscriptions {
       return;
     }
     if (event.method === "browser.host.invoke") {
-      if (!previous?.stream || previous.closed) return;
+      if (!previous?.stream || previous.closed) {
+        await callBrowser("browser.host.invokeReply", {
+          id,
+          requestId: event.params.requestId,
+          response: { ok: false, error: { code: "remote_runtime_unavailable", message: "Browser host transport is not ready" }, _meta: previous?.metadata },
+        });
+        return;
+      }
       let response;
       try {
         response = {
@@ -338,7 +347,7 @@ export class BrowserHostSubscriptions {
       });
     } catch (error) {
       const cancelled = route.closed || this.stopped;
-      await this.retire(id, route);
+      await this.retire(id, route, cancelled);
       if (!cancelled)
         await callBrowser("browser.host.subscription", {
           id,

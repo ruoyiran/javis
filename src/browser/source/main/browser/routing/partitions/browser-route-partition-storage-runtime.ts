@@ -1,27 +1,27 @@
-import { listEnvironments } from '../../../../shared/remote-runtime/host-store/runtime-environment-store'
+import { listEnvironments } from "../../../../shared/remote-runtime/host-store/runtime-environment-store"
 import {
   deriveBrowserRoutePartitionStorageScope,
   deriveLocalSshBrowserRoutePartitionStorageScope
-} from './browser-route-identity'
-import { isBrowserRoutePartitionRetainedByAnyOwner } from './browser-route-partition-retention'
+} from "./browser-route-identity"
+import { isBrowserRoutePartitionRetainedByAnyOwner } from "./browser-route-partition-retention"
 import {
   findBrowserRoutePartitionsForStorageScope,
   findOrphanedBrowserRoutePartitions,
   partitionDirectory,
   releaseBrowserRoutePartitionStorage,
   type BrowserRoutePartitionStorageDependencies
-} from './browser-route-partition-storage-lifecycle'
+} from "./browser-route-partition-storage-lifecycle"
 import {
   browserRoutePartitionDirectoryKey,
   browserRoutePartitionPendingDeletesPath,
   deletePendingBrowserRoutePartitionDirectories
-} from './browser-route-partition-pending-deletes'
+} from "./browser-route-partition-pending-deletes"
 import {
   activeBrowserRoutePartitionOrcaProfileId,
   currentBrowserRoutePartitionBindingFilePath
-} from './browser-route-partition-binding-runtime'
-import { browserRoutePartitionStorageDependencies } from './browser-route-partition-storage-dependencies'
-import { getRuntimeEnvironmentRegistryRoot } from '../../../ipc/runtime-environments/runtime-environment-registry-root'
+} from "./browser-route-partition-binding-runtime"
+import { browserRoutePartitionStorageDependencies } from "./browser-route-partition-storage-dependencies"
+import { getRuntimeEnvironmentRegistryRoot } from "../../../ipc/runtime-environments/runtime-environment-registry-root"
 
 export type BrowserRoutePartitionStorageClear = {
   clearedPartitions: string[]
@@ -59,7 +59,7 @@ export async function collectOrphanedBrowserRoutePartitionStorage(
     })
   )
   const liveStorageScopes = new Set(
-    listEnvironments(getRuntimeEnvironmentRegistryRoot()).map((environment) =>
+    (await listEnvironments(getRuntimeEnvironmentRegistryRoot())).map((environment) =>
       deriveBrowserRoutePartitionStorageScope({ orcaProfileId, environmentId: environment.id })
     )
   )

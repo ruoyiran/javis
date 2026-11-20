@@ -1,27 +1,27 @@
-import { resolveAgentChoiceLayers } from '../../agent-launch/choices/agent-choice-layers'
-import { isTuiAgent } from '../../agent-launch/catalog/tui-agent-config'
-import type { AgentType } from '../../agent-status/contracts/agent-status-types'
+import { resolveAgentChoiceLayers } from "../../agent-launch/choices/agent-choice-layers"
+import { isTuiAgent } from "../../agent-launch/catalog/tui-agent-config"
+import type { AgentType } from "../../agent-status/contracts/agent-status-types"
 import {
-  AGENT_CHAT_PERMISSION_MODE_OPTION_ID,
   isAgentChatPermissionChoice,
   newChatPermissionModeForSettings,
   type NewChatPermissionSettings
-} from '../../agent-launch/permissions/agent-chat-permission-mode'
-import type { GlobalSettings } from '../../global-settings-types'
+} from "../../agent-launch/permissions/agent-chat-permission-mode"
+import { AGENT_CHAT_PERMISSION_MODE_OPTION_ID } from "../../agent-launch/permissions/agent-chat-permission-mode-option-id"
+import type { GlobalSettings } from "../../global-settings-types"
 import {
   findCatalogModel,
   getAgentSessionOptionCatalog,
   sessionOptionValueIsValid
-} from '../../agent-session/options/agent-session-option-catalog'
+} from "../../agent-session/options/agent-session-option-catalog"
 import type {
   NativeChatSessionOptionSettingsMutation,
   PersistedNativeChatSessionOptions,
   SessionOptionValue
-} from './native-chat-session-options'
+} from "./native-chat-session-options"
 import {
   decodeStructuredAgentSessionOptionValue,
   encodeStructuredAgentSessionOptionValue
-} from '../../agent-session/options/structured-agent-session-option-codec'
+} from "../../agent-session/options/structured-agent-session-option-codec"
 
 export function resolveNativeChatSessionOptionDefaults(
   persisted: PersistedNativeChatSessionOptions | null | undefined,
@@ -150,6 +150,21 @@ export function structuredLaunchSeedOptions(
   return permissionMode
     ? { ...selection, [AGENT_CHAT_PERMISSION_MODE_OPTION_ID]: permissionMode }
     : selection
+}
+
+/** The owner's explicit new-chat choice for `agent` (Settings > Agents), without the selection
+ *  remembered from their last chat pick or the permission default. Unattended work starts on this, so
+ *  a model the owner happened to pick in some chat never decides what a background run uses. */
+export function explicitStructuredLaunchSeedOptions(
+  settings: Parameters<typeof structuredLaunchSeedOptions>[0],
+  agent: AgentType
+): Record<string, string> | undefined {
+  const { [AGENT_CHAT_PERMISSION_MODE_OPTION_ID]: _permission, ...seed } =
+    structuredLaunchSeedOptions(
+      settings ? { ...settings, nativeChatSessionOptions: undefined } : settings,
+      agent
+    ) ?? {}
+  return Object.keys(seed).length > 0 ? seed : undefined
 }
 
 /** Apply settled picks in one pass for surfaces replacing the whole record, so later picks cannot drop earlier ones. */

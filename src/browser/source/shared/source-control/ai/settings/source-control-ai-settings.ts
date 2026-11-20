@@ -1,21 +1,21 @@
-import { isCustomAgentId } from '../generation/commit-message-agent-spec'
-import type { CommitMessageAiSettings } from '../generation/commit-message-ai-types'
+import { isCustomAgentId } from "../generation/commit-message-agent-spec"
+import type { CommitMessageAiSettings } from "../generation/commit-message-ai-types"
 import {
   DEFAULT_SOURCE_CONTROL_ACTION_COMMAND_TEMPLATES,
   AI_ACTION_IDS,
   SOURCE_CONTROL_TEXT_ACTION_IDS,
   normalizeSourceControlAiActionDefaults,
   readSourceControlActionDefault
-} from '../recipes/source-control-ai-actions'
+} from "../recipes/source-control-ai-actions"
 import {
   actionRecipeFromLegacyCommitMessageAi,
   commandTemplateFromOperationInstruction,
   isLegacyBranchInstructionTemplate
-} from '../recipes/source-control-ai-command-template'
+} from "../recipes/source-control-ai-command-template"
 import type {
   SourceControlAiPrCreationDefaults,
   SourceControlAiSettings
-} from './source-control-ai-settings-types'
+} from "./source-control-ai-settings-types"
 
 export const DEFAULT_SOURCE_CONTROL_AI_PR_CREATION_DEFAULTS: Required<SourceControlAiPrCreationDefaults> =
   {
@@ -27,6 +27,20 @@ export const DEFAULT_SOURCE_CONTROL_AI_PR_CREATION_DEFAULTS: Required<SourceCont
 
 function copyRecord<T>(value: T | undefined): T | undefined {
   return value === undefined ? undefined : structuredClone(value)
+}
+
+export function getDefaultCommitMessageAiSettings(): CommitMessageAiSettings {
+  return {
+    enabled: true,
+    agentId: null,
+    selectedModelByAgent: {},
+    discoveredModelsByAgent: {},
+    selectedModelByAgentByHost: {},
+    discoveredModelsByAgentByHost: {},
+    selectedThinkingByModel: {},
+    customPrompt: '',
+    customAgentCommand: ''
+  }
 }
 
 export function getDefaultSourceControlAiSettings(): SourceControlAiSettings {

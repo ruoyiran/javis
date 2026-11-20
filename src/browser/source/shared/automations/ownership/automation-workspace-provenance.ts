@@ -1,11 +1,14 @@
-import type { Automation } from '../automation-definition'
-import type { AutomationRun } from '../history/automation-run'
-import { getRepoExecutionHostId, LOCAL_EXECUTION_HOST_ID } from '../../execution-host'
-import type { Repo } from '../../repo-types'
+import type { Automation } from "../automation-definition"
+import type { AutomationRun } from "../history/automation-run"
+import {
+  getRepoExecutionHostId,
+  LOCAL_EXECUTION_HOST_ID
+} from "../../execution-host"
+import type { Repo } from "../../repo-types"
 import type {
   AutomationWorkspaceProvenance,
   ClientAutomationWorkspaceProvenance
-} from '../../worktree/types'
+} from "../../worktree/types"
 
 /** A host's cap on a client label's name snapshots. */
 export const CLIENT_PROVENANCE_SNAPSHOT_MAX = 1024

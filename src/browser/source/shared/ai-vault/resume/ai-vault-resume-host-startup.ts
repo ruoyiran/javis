@@ -1,17 +1,17 @@
 // How a saved conversation resumes on the session's own host: its platform, shell and prebuilt line.
 
-import { isAntigravityReferenceSession } from '../../antigravity-session-origin'
-import { realHomeCodexResumeEnvDeletion } from './ai-vault-resume-command'
+import { isAntigravityReferenceSession } from "../../antigravity-session-origin"
+import { realHomeCodexResumeEnvDeletion } from "./ai-vault-resume-command"
+import { getAiVaultResumeCodexHome } from "./ai-vault-resume-path"
 import {
   getAiVaultAgentProviderSession,
-  getAiVaultResumeCodexHome,
   type AiVaultResumeCommandSession,
   type AiVaultResumeHostShell,
   type AiVaultResumeStartup
-} from './ai-vault-resume-startup'
-import { LOCAL_EXECUTION_HOST_ID } from '../../execution-host'
-import { managedDataAccountResumeEnv } from '../../managed-data-account-resume'
-import type { AgentStartupShell } from '../../agent-launch/startup/tui-agent-startup-shell'
+} from "./ai-vault-resume-startup"
+import { LOCAL_EXECUTION_HOST_ID } from "../../execution-host"
+import { managedDataAccountResumeEnv } from "../../managed-data-account-resume"
+import type { AgentStartupShell } from "../../agent-launch/startup/tui-agent-startup-shell"
 
 /** A remote session resumes on its own host's platform; a local one on the target workspace's.
  *  Local shell settings cannot describe remote Windows hosts, so those keep PowerShell-default quoting. */

@@ -1,7 +1,11 @@
-import type { LibprocProcessRow } from './libproc-addon'
-import { DEADLINE_PASSED, beforeDeadline, monotonicNow } from './deadline-settle-notifier'
-import { NODEV, P_WEXIT, SIDL, SZOMB } from './libproc-ps-format'
-import { runArgvRecoveryPs } from './libproc-ps-fallback'
+import type { LibprocProcessRow } from "./libproc-addon"
+import {
+  DEADLINE_PASSED,
+  beforeDeadline,
+  monotonicNow
+} from "./deadline-settle-notifier"
+import { NODEV, P_WEXIT, SIDL, SZOMB } from "./libproc-ps-format"
+import { runArgvRecoveryPs } from "./libproc-ps-fallback"
 
 const MAX_ANCESTOR_DEPTH = 64
 

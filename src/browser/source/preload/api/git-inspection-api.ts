@@ -1,25 +1,27 @@
+import type { GitBlameResult } from "../../shared/git/blame/git-blame-types"
 import type {
   GitBranchCompareResult,
   GitCommitCompareResult,
   GitDiffResult
-} from '../../shared/git/diff/git-diff-compare-types'
-import type { GitMutationInFlight } from '../../shared/git/commands/git-mutation-in-flight'
+} from "../../shared/git/diff/git-diff-compare-types"
+import type { GitMutationInFlight } from "../../shared/git/commands/git-mutation-in-flight"
 import type {
   GitConflictOperation,
   GitStagingArea,
   GitStatusResult,
   GitUpstreamStatus
-} from '../../shared/git/status/git-status-types'
-import type { GitPushTarget } from '../../shared/worktree/types'
+} from "../../shared/git/status/git-status-types"
+import type { GitPushTarget } from "../../shared/worktree/types"
+import type { WorktreeAtRiskLocalFiles } from "../../shared/worktree/removal/at-risk-local-files"
 import type {
   GitHistoryItemRef,
   GitHistoryOptions,
   GitHistoryResult
-} from '../../shared/git/history/git-history-types'
+} from "../../shared/git/history/git-history-types"
 import type {
   CommitMessageAgentCapability,
   CommitMessageModelCapability
-} from '../../shared/source-control/ai/generation/commit-message-agent-spec'
+} from "../../shared/source-control/ai/generation/commit-message-agent-spec"
 
 export type GitInspectionApi = {
   status: (args: {
@@ -56,6 +58,13 @@ export type GitInspectionApi = {
     paths: string[]
     connectionId?: string
   }) => Promise<string[]>
+  atRiskLocalFiles: (args: {
+    worktreePath: string
+    connectionId?: string
+    /** Lets cancelAtRiskLocalFiles stop the scan once its preview closes. */
+    requestToken?: string
+  }) => Promise<WorktreeAtRiskLocalFiles>
+  cancelAtRiskLocalFiles: (args: { requestToken: string }) => Promise<void>
   findHugeFoldersToIgnore: (args: { worktreePath: string }) => Promise<string[]>
   refs: (args: {
     worktreePath: string
@@ -150,4 +159,10 @@ export type GitInspectionApi = {
     sha: string
     connectionId?: string
   }) => Promise<string | null>
+  blame: (args: {
+    worktreePath: string
+    filePath: string
+    knownHeadOid?: string
+    connectionId?: string
+  }) => Promise<GitBlameResult>
 }

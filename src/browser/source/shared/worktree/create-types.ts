@@ -1,10 +1,10 @@
-import type { WorktreeCatalogVersion } from './catalog-version'
-import type { ExecutionHostId } from '../execution-host'
-import type { ArchiveHookOverride } from './archive-hook-removal-gate'
-import type { WorkspaceSource } from '../workspace-source'
-import type { TaskSourceContext } from '../work-items/task-source-context'
-import type { WorkspaceKey } from '../workspace-scope'
-import type { TuiAgent } from '../agent-launch/catalog/tui-agent'
+import type { WorktreeCatalogVersion } from "./catalog-version"
+import type { ExecutionHostId } from "../execution-host"
+import type { ArchiveHookOverride } from "./archive-hook-removal-gate"
+import type { WorkspaceSource } from "../workspace/creation/workspace-source"
+import type { TaskSourceContext } from "../work-items/task-source-context"
+import type { WorkspaceKey } from "../workspace-scope"
+import type { TuiAgent } from "../agent-launch/catalog/tui-agent"
 import type {
   GitPushTarget,
   GitWorktreeInfo,
@@ -12,37 +12,30 @@ import type {
   WorkspaceAttachment,
   WorkspaceStatus,
   Worktree
-} from './types'
+} from "./types"
 import type {
   CrossStoreParentRef,
   CrossStoreWorkspaceLineage,
   WorkspaceLineage,
   WorktreeLineage,
   WorktreeLineageWarning
-} from './lineage-types'
+} from "./lineage-types"
 import type {
   WorktreeDefaultTabsLaunch,
   WorktreeSetupLaunch,
   WorktreeStartupLaunch
-} from './launch-types'
+} from "./launch-types"
 import type {
   PreparedCheckoutMissReason,
   PreparedCheckoutOrigin,
   PreparedCheckoutReset,
   WorktreeCreateExecutionHost
-} from './create-timing-vocabulary'
+} from "./create-timing-vocabulary"
 import type {
   LocalBaseRefRefreshResult,
   LocalBaseRefUpdateSuggestion,
   WorktreeBaseStatusEvent
-} from './base-ref-drift-types'
-
-export type {
-  PreparedCheckoutMissReason,
-  PreparedCheckoutOrigin,
-  PreparedCheckoutReset,
-  WorktreeCreateExecutionHost
-}
+} from "./base-ref-drift-types"
 
 export type SetupDecision = 'inherit' | 'run' | 'skip'
 

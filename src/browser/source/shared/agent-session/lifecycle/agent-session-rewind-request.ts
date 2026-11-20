@@ -1,19 +1,16 @@
 import type * as React from 'react'
-import {
-  AGENT_SESSION_REWIND_REASONS,
-  type AgentSessionRewindReason,
-  type AgentSessionRewindResult,
-  type AgentSessionRewindSupport
-} from './agent-session-rewind'
+import type { AgentSessionRewindResult, AgentSessionRewindSupport } from "./agent-session-rewind"
+import { AGENT_SESSION_REWIND_REASONS } from "./agent-session-rewind-reasons"
+import type { AgentSessionRewindReason } from "./agent-session-rewind-reasons"
 import {
   agentSessionRewindContextFloor,
   agentSessionRewindTargetIds
-} from './agent-session-rewind-targets'
-import type { AgentSessionWriteFailure } from '../failures/agent-session-write-failure'
-import type { StructuredAgentSessionState } from '../structured-agent-session-reducer'
-import type { AgentJournalMessageItem } from '../journal/agent-session-journal-types'
-import { nativeChatRewindOffered } from '../../native-chat/native-chat-rewind-eligibility'
-import type { AgentJournalCursor } from '../journal/agent-session-journal-identity'
+} from "./agent-session-rewind-targets"
+import type { AgentSessionWriteFailure } from "../failures/agent-session-write-failure"
+import type { StructuredAgentSessionState } from "../structured-agent-session-reducer"
+import type { AgentJournalMessageItem } from "../journal/agent-session-journal-types"
+import { nativeChatRewindOffered } from "../../native-chat/native-chat-rewind-eligibility"
+import type { AgentJournalCursor } from "../journal/agent-session-journal-identity"
 
 /** How long a confirmed rewind waits for its new conversation before letting go. */
 export const AGENT_SESSION_REWIND_RESET_TIMEOUT_MS = 120_000

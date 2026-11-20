@@ -1,32 +1,32 @@
-import type { InstalledBrowserExtension } from '../../../../shared/browser/extensions/browser-extension-types'
-import { getBrowserExtensionInstallStore } from '../installation/browser-extension-install-store'
-import { getBrowserExtensionProfileStateStore } from '../profile-storage/browser-extension-profile-state-store'
+import type { InstalledBrowserExtension } from "../../../../shared/browser/extensions/browser-extension-types"
+import { getBrowserExtensionInstallStore } from "../installation/browser-extension-install-store"
+import { getBrowserExtensionProfileStateStore } from "../profile-storage/browser-extension-profile-state-store"
 import {
   fireRuntimeLifecycleEvents,
   type BrowserExtensionLoadKind
-} from './browser-extension-runtime-lifecycle'
+} from "./browser-extension-runtime-lifecycle"
 import {
   noteBrowserExtensionStorageOpened,
   removeReinstalledBrowserExtensionData,
   throwIfBrowserExtensionStorageAwaitingRestart
-} from '../profile-storage/browser-extension-data-removal'
+} from "../profile-storage/browser-extension-data-removal"
 import {
   clearBrowserExtensionLoadFailure,
   recordBrowserExtensionLoadFailure
-} from './browser-extension-load-errors'
+} from "./browser-extension-load-errors"
 import {
   prepareBrowserExtensionDirectory,
   type BrowserExtensionLoadSource
-} from '../installation/browser-extension-load-directory'
+} from "../installation/browser-extension-load-directory"
 import {
   throwIfBrowserExtensionLoadCancelled,
   type BrowserExtensionProfileLoad
-} from './browser-extension-profile-loads'
+} from "./browser-extension-profile-loads"
 import {
   refreshWorkerRegistration,
   removeBrowserExtensionFromSession,
   whenWorkerRegistered
-} from './browser-extension-worker-registration'
+} from "./browser-extension-worker-registration"
 
 export async function loadBrowserExtensionIntoSession(
   sess: Electron.Session,
@@ -42,7 +42,7 @@ export async function loadBrowserExtensionIntoSession(
     return known
   }
   const store = getBrowserExtensionInstallStore()
-  const generation = store.removalGenerations().get(extension.id) ?? 0
+  const generation = store.removalGeneration(extension.id)
   if (
     getBrowserExtensionProfileStateStore().read(profileId, extension.id).removalGeneration !==
     generation

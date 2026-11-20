@@ -2,13 +2,16 @@ import type {
   BrowserBackResult,
   BrowserClickResult,
   BrowserGotoResult,
-  BrowserReloadResult
-} from '../../../../shared/browser/runtime/runtime-browser-contracts'
+  BrowserReloadResult,
+  BrowserStopResult
+} from "../../../../shared/browser/runtime/runtime-browser-contracts"
+import type { BrowserPageZoomDirection } from "../../../../shared/browser-page-zoom"
+import type { BrowserPageSiteDisplay } from "../../../../shared/browser-site-display"
 import type {
   BrowserCommandTargetParams,
   RuntimeBrowserCommandHost
-} from './browser-command-contracts'
-import type { RuntimeBrowserCommandTargets } from './browser-command-targets'
+} from "./browser-command-contracts"
+import type { RuntimeBrowserCommandTargets } from "./browser-command-targets"
 
 export class RuntimeBrowserNavigation {
   constructor(
@@ -63,15 +66,33 @@ export class RuntimeBrowserNavigation {
     return result
   }
 
-  async browserReload(params: BrowserCommandTargetParams): Promise<BrowserReloadResult> {
+  async browserReload(
+    params: BrowserCommandTargetParams & { ignoreCache?: boolean }
+  ): Promise<BrowserReloadResult> {
     const target = await this.targets.resolveBrowserCommandTarget(params)
     const bridge = this.targets.requireAgentBrowserBridge()
-    const result = await bridge.reload(target.worktreeId, target.browserPageId)
+    const result = await bridge.reload(target.worktreeId, target.browserPageId, {
+      ignoreCache: params.ignoreCache === true
+    })
     const pageId = bridge.getActivePageId(target.worktreeId, target.browserPageId)
     if (pageId) {
       this.targets.notifyRendererNavigation(pageId, result.url, result.title)
     }
     return result
+  }
+
+  async browserZoom(
+    params: { direction: BrowserPageZoomDirection } & BrowserCommandTargetParams
+  ): Promise<BrowserPageSiteDisplay | null> {
+    const target = await this.targets.resolveBrowserCommandTarget(params)
+    return this.targets
+      .requireAgentBrowserBridge()
+      .zoom(params.direction, target.worktreeId, target.browserPageId)
+  }
+
+  async browserStop(params: BrowserCommandTargetParams): Promise<BrowserStopResult> {
+    const target = await this.targets.resolveBrowserCommandTarget(params)
+    return this.targets.requireAgentBrowserBridge().stop(target.worktreeId, target.browserPageId)
   }
 
   async browserForward(params: BrowserCommandTargetParams): Promise<unknown> {

@@ -4,16 +4,16 @@ import type {
   GitBranchChangeEntry,
   GitBranchCompareSummary,
   GitCommitCompareSummary
-} from './git/diff/git-diff-compare-types'
+} from "./git/diff/git-diff-compare-types"
 import type {
   GitConflictKind,
   GitConflictResolutionStatus,
   GitConflictStatusSource,
   GitStatusEntry
-} from './git/status/git-status-types'
-import type { GitLabProjectRef } from './gitlab-types'
-import type { PRCheckDetail, PRCheckRunDetails } from './github/check-types'
-import type { GitHubRepositoryIdentity } from './github/pull-request-types'
+} from "./git/status/git-status-types"
+import type { GitLabProjectRef } from "./gitlab-types"
+import type { PRCheckDetail, PRCheckRunDetails } from "./github/check-types"
+import type { GitHubRepositoryIdentity } from "./github/repositories/repository-identity"
 
 export type DiffSource =
   | 'unstaged'

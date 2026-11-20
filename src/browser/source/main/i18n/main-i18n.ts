@@ -1,9 +1,13 @@
 import { app } from 'electron'
 import type { i18n as I18nInstance } from 'i18next'
 
-import { createOrcaI18n } from '../../shared/orca-i18n-instance'
-import { DEFAULT_UI_LOCALE, resolveUiLocale, type SupportedUiLocale } from '../../shared/ui-locale'
-import { UI_LANGUAGE_SYSTEM, type UiLanguage } from '../../shared/ui-language'
+import { createOrcaI18n } from "../../shared/orca-i18n-instance"
+import {
+  DEFAULT_UI_LOCALE,
+  resolveUiLocale,
+  type SupportedUiLocale
+} from "../../shared/ui-locale"
+import { UI_LANGUAGE_SYSTEM, type UiLanguage } from "../../shared/ui-language"
 
 let languageGeneration = 0
 
@@ -12,16 +16,16 @@ const LAZY_LOCALE_LOADERS: Record<
   Exclude<SupportedUiLocale, 'en'>,
   () => Promise<{ default: Record<string, unknown> }>
 > = {
-  de: () => import('../../renderer/src/i18n/locales/de.json'),
-  es: () => import('../../renderer/src/i18n/locales/es.json'),
-  fr: () => import('../../renderer/src/i18n/locales/fr.json'),
-  ja: () => import('../../renderer/src/i18n/locales/ja.json'),
-  ko: () => import('../../renderer/src/i18n/locales/ko.json'),
-  pt: () => import('../../renderer/src/i18n/locales/pt.json'),
-  ru: () => import('../../renderer/src/i18n/locales/ru.json'),
-  tr: () => import('../../renderer/src/i18n/locales/tr.json'),
-  zh: () => import('../../renderer/src/i18n/locales/zh.json'),
-  'zh-Hant': () => import('../../renderer/src/i18n/locales/zh-Hant.json')
+  de: () => import("../../renderer/src/i18n/locales/de.json"),
+  es: () => import("../../renderer/src/i18n/locales/es.json"),
+  fr: () => import("../../renderer/src/i18n/locales/fr.json"),
+  ja: () => import("../../renderer/src/i18n/locales/ja.json"),
+  ko: () => import("../../renderer/src/i18n/locales/ko.json"),
+  pt: () => import("../../renderer/src/i18n/locales/pt.json"),
+  ru: () => import("../../renderer/src/i18n/locales/ru.json"),
+  tr: () => import("../../renderer/src/i18n/locales/tr.json"),
+  zh: () => import("../../renderer/src/i18n/locales/zh.json"),
+  'zh-Hant': () => import("../../renderer/src/i18n/locales/zh-Hant.json")
 }
 const LAZY_LOCALE_LOADER_MAP = new Map<string, () => Promise<{ default: Record<string, unknown> }>>(
   Object.entries(LAZY_LOCALE_LOADERS)

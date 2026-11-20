@@ -1,20 +1,20 @@
-import { structuredLaunchRequestedOptions } from '../../native-chat/input/native-chat-session-option-defaults'
+import { structuredLaunchRequestedOptions } from "../../native-chat/input/native-chat-session-option-defaults"
 import {
   commitStructuredAgentSessionOptionValues,
   type StructuredAgentSessionOptionState
-} from './structured-agent-session-options'
+} from "./structured-agent-session-options"
 import {
   structuredAgentSessionOptionSnapshot,
   structuredAgentSessionDescribedModel
-} from './structured-agent-session-option-snapshot'
-import type { SessionOptionDescriptor } from '../../native-chat/input/native-chat-session-options'
+} from "./structured-agent-session-option-snapshot"
+import type { SessionOptionDescriptor } from "../../native-chat/input/native-chat-session-options"
 import {
   cloneStructuredAgentSessionOptionRecord,
   createStructuredAgentSessionOptionRecord,
   structuredAgentSessionModelId,
   structuredAgentSessionOwnValue
-} from './structured-agent-session-option-state'
-import { AGENT_CHAT_PERMISSION_MODE_OPTION_ID } from '../../agent-launch/permissions/agent-chat-permission-mode'
+} from "./structured-agent-session-option-state"
+import { AGENT_CHAT_PERMISSION_MODE_OPTION_ID } from "../../agent-launch/permissions/agent-chat-permission-mode-option-id"
 
 /** Query base or immutable launch seed, with finite controller operations above it.
  *  Display provenance stays separate from accepted input while catalog labels load. */

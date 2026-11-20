@@ -3,21 +3,23 @@ import {
   trimActionArgumentDocument,
   demoteActionArgumentChoices,
   type ActionArgumentChoices
-} from './source-control-action-argument-document'
-import { isCustomAgentId, type CustomAgentId } from '../generation/commit-message-agent-spec'
-import { isTuiAgent } from '../../../agent-launch/catalog/tui-agent-config'
-import type { TuiAgent } from '../../../agent-launch/catalog/tui-agent'
-import type { AgentPermissionChoice } from '../../../agent-launch/permissions/tui-agent-permission-choice'
+} from "./source-control-action-argument-document"
+import { isCustomAgentId, type CustomAgentId } from "../generation/commit-message-agent-spec"
+import { isTuiAgent } from "../../../agent-launch/catalog/tui-agent-config"
+import type { TuiAgent } from "../../../agent-launch/catalog/tui-agent"
+import type { AgentPermissionChoice } from "../../../agent-launch/permissions/tui-agent-permission-choice"
 import {
   isRecord,
   normalizeSourceControlActionLaunchPreferences,
   readActionModelSelection
-} from './source-control-action-model-selection'
+} from "./source-control-action-model-selection"
 
 // Keep the variable registry separate for max-lines headroom; no re-export so consumer searches stay complete.
 
 export type SourceControlTextActionId = 'commitMessage' | 'pullRequest' | 'branchName'
-export type AiTextActionId = SourceControlTextActionId | 'conversationName'
+/** Text actions outside any repository: they read global settings only, never a repo's overrides. */
+export type GlobalAiTextActionId = 'conversationName' | 'dictationCleanup'
+export type AiTextActionId = SourceControlTextActionId | GlobalAiTextActionId
 
 export type SourceControlLaunchActionId =
   | 'fixCommitFailure'
@@ -94,8 +96,13 @@ export const SOURCE_CONTROL_ACTION_IDS = [
 
 export const AI_TEXT_ACTION_IDS = [
   ...SOURCE_CONTROL_TEXT_ACTION_IDS,
-  'conversationName'
+  'conversationName',
+  'dictationCleanup'
 ] as const satisfies readonly AiTextActionId[]
+
+export function isGlobalAiTextAction(actionId: string): actionId is GlobalAiTextActionId {
+  return actionId === 'conversationName' || actionId === 'dictationCleanup'
+}
 
 export const AI_ACTION_IDS = [
   ...AI_TEXT_ACTION_IDS,
@@ -126,6 +133,7 @@ export const DEFAULT_SOURCE_CONTROL_ACTION_COMMAND_TEMPLATES: Record<AiActionId,
   pullRequest: '{basePrompt}',
   branchName: '{basePrompt}',
   conversationName: '{basePrompt}',
+  dictationCleanup: '{basePrompt}',
   fixCommitFailure: '{basePrompt}',
   fixPushFailure: '{basePrompt}',
   fixChecks: '{basePrompt}',

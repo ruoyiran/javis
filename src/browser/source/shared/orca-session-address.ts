@@ -1,11 +1,10 @@
-import { isAgentSessionId } from './agent-session/lifecycle/agent-session-record'
-import { isTerminalHandle } from './terminal-handle-prefix'
-import { ORCA_SESSION_ADDRESS_PREFIX } from './orca-session-address-prefix'
+import { isAgentSessionId } from "./agent-session/lifecycle/agent-session-record"
+import { isTerminalHandle } from "./terminal-handle-prefix"
+import { ORCA_SESSION_ADDRESS_PREFIX } from "./orca-session-address-prefix"
 
 /** Orca-minted structured session identity (record id/ORCA_AGENT_SESSION_ID), never provider identity. Orchestration stores bare lineage-root ids after /clear,
  * not live replacement ids; derive mail spelling orca_session_id:<id> alongside run:/dispatch: addresses.
  * Resolve execution location from records. PTYs have no id today; never use pane keys because later agents inherit panes. */
-export { ORCA_SESSION_ADDRESS_PREFIX }
 
 declare const orcaSessionIdBrand: unique symbol
 declare const orcaSessionAddressBrand: unique symbol
@@ -17,6 +16,16 @@ export type OrcaSessionAddress = string & { readonly [orcaSessionAddressBrand]: 
 
 export function isOrcaSessionId(id: string): id is OrcaSessionId {
   return isAgentSessionId(id) && !isTerminalHandle(id)
+}
+
+/** A plain random UUID; the agent is on the record, never in the ID. */
+export function createOrcaSessionId(randomUuid: () => string): OrcaSessionId {
+  const id = randomUuid()
+  // Always true for a UUID; the check brands the id without a type assertion.
+  if (!isOrcaSessionId(id)) {
+    throw new Error(`Not an Orca session id: ${id}`)
+  }
+  return id
 }
 
 export function formatOrcaSessionAddress(orcaSessionId: OrcaSessionId): OrcaSessionAddress {

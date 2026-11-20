@@ -1,4 +1,4 @@
-import type { GitHubRepositoryIdentity } from './pull-request-types'
+import type { GitHubRepositoryIdentity } from "./repositories/repository-identity"
 
 export type GitHubReactionContent =
   | '+1'

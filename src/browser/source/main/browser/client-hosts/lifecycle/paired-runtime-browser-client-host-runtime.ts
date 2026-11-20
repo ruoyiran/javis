@@ -1,51 +1,54 @@
-import { BROWSER_CLIENT_PROFILE_SWITCH_CAPABILITY } from '../../../../shared/browser/client-hosting/browser-client-profile-switch-protocol'
+import { BROWSER_CLIENT_PROFILE_SWITCH_CAPABILITY } from "../../../../shared/browser/client-hosting/browser-client-profile-switch-protocol"
 import { createHash } from 'node:crypto'
 import path from 'node:path'
 import { app } from 'electron'
 import {
   BROWSER_CLIENT_AUTOMATION_HOST_CAPABILITY,
   BROWSER_CLIENT_EXPECT_URL_HOST_CAPABILITY
-} from '../../../../shared/browser/client-hosting/browser-client-automation-protocol'
-import { BROWSER_CLIENT_FILE_CHANNEL_HOST_CAPABILITY } from '../../../../shared/browser/client-hosting/browser-client-file-channel-protocol'
-import type { BrowserClientHostLeaseAuthority } from '../../../../shared/browser/client-hosting/browser-client-host-protocol'
-import type { PairedRuntimeConnection } from '../../../../shared/remote-runtime/pairing/paired-runtime-connection'
+} from "../../../../shared/browser/client-hosting/browser-client-automation-protocol"
+import { BROWSER_CLIENT_FILE_CHANNEL_HOST_CAPABILITY } from "../../../../shared/browser/client-hosting/browser-client-file-channel-protocol"
+import {
+  BROWSER_CLIENT_PAGE_INITIALIZATION_CAPABILITY,
+  type BrowserClientHostLeaseAuthority
+} from "../../../../shared/browser/client-hosting/browser-client-host-protocol"
+import type { PairedRuntimeConnection } from "../../../../shared/remote-runtime/pairing/paired-runtime-connection"
 import {
   getPreferredPairedRuntimeConnection,
   type KnownRuntimeEnvironment
-} from '../../../../shared/remote-runtime/host-catalog/runtime-environments'
-import { BrowserClientNetworkRouteRegistry } from '../../network/client-routes/browser-client-network-route-registry'
+} from "../../../../shared/remote-runtime/host-catalog/runtime-environments"
+import { BrowserClientNetworkRouteRegistry } from "../../network/client-routes/browser-client-network-route-registry"
 import {
   browserAuthorityExecutionHostStorageIdentity,
   legacyBrowserNativeExecutionHostStorageIdentity
-} from '../../routing/identity/browser-execution-host-storage-identity'
-import { getBrowserClientHostId } from './browser-client-host-id'
-import { deriveBrowserRoutePartitionStorageScope } from '../../routing/partitions/browser-route-identity'
-import { BrowserClientDownloadRelay } from '../file-transfers/browser-client-download-relay'
-import { BrowserClientFileChannelTransport } from '../file-transfers/browser-client-file-channel-transport'
-import { registerBrowserClientHostEnvironmentRoutes } from './browser-client-host-environment-routes'
-import { BrowserClientPageCommandExecutor } from '../../client-pages/execution/browser-client-page-command-executor'
-import { createBrowserClientPageGuestBinding } from '../../client-pages/lifecycle/browser-client-page-guest-binding'
-import { browserManager } from '../../guest-lifecycle/manager/browser-manager'
-import { browserSessionRegistry } from '../../sessions/profiles/browser-session-registry'
-import { BrowserClientUploadStaging } from '../file-transfers/browser-client-upload-staging'
+} from "../../routing/identity/browser-execution-host-storage-identity"
+import { getBrowserClientHostId } from "./browser-client-host-id"
+import { deriveBrowserRoutePartitionStorageScope } from "../../routing/partitions/browser-route-identity"
+import { BrowserClientDownloadRelay } from "../file-transfers/browser-client-download-relay"
+import { BrowserClientFileChannelTransport } from "../file-transfers/browser-client-file-channel-transport"
+import { registerBrowserClientHostEnvironmentRoutes } from "./browser-client-host-environment-routes"
+import { BrowserClientPageCommandExecutor } from "../../client-pages/execution/browser-client-page-command-executor"
+import { createBrowserClientPageGuestBinding } from "../../client-pages/lifecycle/browser-client-page-guest-binding"
+import { browserManager } from "../../guest-lifecycle/manager/browser-manager"
+import { browserSessionRegistry } from "../../sessions/profiles/browser-session-registry"
+import { BrowserClientUploadStaging } from "../file-transfers/browser-client-upload-staging"
 import {
   executeBrowserClientPageAutomation,
   retireBrowserClientPageAutomation
-} from '../../client-pages/execution/browser-client-page-automation-runtime'
-import { selectBrowserClientPageRenderer } from '../../client-pages/renderer/browser-client-page-renderer-runtime'
-import { PairedRuntimeBrowserClientHostComposition } from './paired-runtime-browser-client-host-composition'
-import { PairedRuntimeBrowserClientHost } from './paired-runtime-browser-client-host'
+} from "../../client-pages/execution/browser-client-page-automation-runtime"
+import { selectBrowserClientPageRenderer } from "../../client-pages/renderer/browser-client-page-renderer-runtime"
+import { PairedRuntimeBrowserClientHostComposition } from "./paired-runtime-browser-client-host-composition"
+import { PairedRuntimeBrowserClientHost } from "./paired-runtime-browser-client-host"
 import {
   PairedRuntimeBrowserClientHostRegistry,
   type PairedRuntimeBrowserClientHostStart
-} from './paired-runtime-browser-client-host-registry'
-import { PairedRuntimeBrowserNetworkRoute } from '../../network/execution-routes/paired-runtime-browser-network-route'
-import { derivePairedRuntimeBrowserAuthorityIdentity } from '../leases/paired-runtime-browser-authority-identity'
-import type { BrowserClientPageAuthorityIdentity } from '../../client-pages/execution/browser-client-page-command-executor-dependencies'
+} from "./paired-runtime-browser-client-host-registry"
+import { PairedRuntimeBrowserNetworkRoute } from "../../network/execution-routes/paired-runtime-browser-network-route"
+import { derivePairedRuntimeBrowserAuthorityIdentity } from "../leases/paired-runtime-browser-authority-identity"
+import type { BrowserClientPageAuthorityIdentity } from "../../client-pages/execution/browser-client-page-command-executor-dependencies"
 import {
   browserRouteSessionRegistry,
   browserRouteWebContentsRegistry
-} from '../../routing/sessions/browser-route-session-runtime'
+} from "../../routing/sessions/browser-route-session-runtime"
 
 const connectedHosts = new Map<string, PairedRuntimeBrowserClientHost>()
 export function invokePairedRuntimeBrowser(environmentId: string, method: string, params: unknown) { const host = connectedHosts.get(environmentId); if (!host) return null; return host.sendRequest(method, params, 30000) }
@@ -124,12 +127,14 @@ const browserClientHosts =
             browserHostClientId: getBrowserClientHostId(),
             hostCapabilities: [
               'webview',
+              BROWSER_CLIENT_PAGE_INITIALIZATION_CAPABILITY,
               BROWSER_CLIENT_PROFILE_SWITCH_CAPABILITY,
               BROWSER_CLIENT_AUTOMATION_HOST_CAPABILITY,
               BROWSER_CLIENT_EXPECT_URL_HOST_CAPABILITY,
               BROWSER_CLIENT_FILE_CHANNEL_HOST_CAPABILITY
             ],
             handler,
+            acquireInitialization: (event) => executor?.acquireInitialization(event),
             getPageInventory,
             pageReconciliationProtocolVersion: 1,
             fileChannelProtocolVersion: 1,

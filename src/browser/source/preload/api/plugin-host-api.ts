@@ -1,55 +1,48 @@
-import type { PluginHostImages } from '../../shared/plugins/images/plugin-image-url'
-import type { EditorSaveHookDecision } from '../../shared/plugins/events/plugin-editor-save-hook'
-import type { PluginUpdateAccessGrowth } from '../../shared/plugins/approval/plugin-update-access-growth'
+import type { PluginHostImages } from "../../shared/plugins/images/plugin-image-url"
+import type { EditorSaveHookDecision } from "../../shared/plugins/events/plugin-editor-save-hook"
+import type { PluginUpdateAccessGrowth } from "../../shared/plugins/approval/plugin-update-access-growth"
 import type {
   PluginAutoUpdateState,
   PluginUpdateReviewNotice
-} from '../../shared/plugins/catalog/plugin-update-policy'
+} from "../../shared/plugins/catalog/plugin-update-policy"
 import type {
   PluginIconThemeMetadata,
   PluginIconThemeRegistration
-} from '../../shared/plugins/artifacts/plugin-icon-theme-artifact'
-import type { PluginThemeRegistration } from '../../shared/plugins/artifacts/plugin-theme-artifact'
+} from "../../shared/plugins/artifacts/plugin-icon-theme-artifact"
+import type { PluginThemeRegistration } from "../../shared/plugins/artifacts/plugin-theme-artifact"
 import type {
   PluginSyntaxMetadata,
   PluginSyntaxPayload
-} from '../../shared/plugins/artifacts/plugin-syntax-artifact'
-import type { PluginTerminalThemeRegistration } from '../../shared/plugins/artifacts/plugin-terminal-theme-artifact'
+} from "../../shared/plugins/artifacts/plugin-syntax-artifact"
+import type { PluginTerminalThemeRegistration } from "../../shared/plugins/artifacts/plugin-terminal-theme-artifact"
 import type {
   PluginFrameEntry,
   PluginFrameTheme
-} from '../../shared/plugins/frames/plugin-frame-bridge'
-import type { PluginHostCallOutcome } from '../../shared/plugins/frames/plugin-protocol'
+} from "../../shared/plugins/frames/plugin-frame-bridge"
+import type { PluginHostCallOutcome } from "../../shared/plugins/frames/plugin-protocol"
 import type {
   PluginPanelStateRequest,
   PluginPanelStateResult
-} from '../../shared/plugins/declarative/plugin-declarative-panel-state'
-import type { PluginConsentRequest } from '../../shared/plugins/approval/plugin-consent-request'
-import type { PluginLanguagePackRegistration } from '../../shared/plugins/artifacts/plugin-language-pack-artifact'
-import type { PluginChangeEvent } from '../../shared/plugins/events/plugin-change-event'
+} from "../../shared/plugins/declarative/plugin-declarative-panel-state"
+import type { PluginConsentRequest } from "../../shared/plugins/approval/plugin-consent-request"
+import type { PluginLanguagePackRegistration } from "../../shared/plugins/artifacts/plugin-language-pack-artifact"
+import type { PluginChangeEvent } from "../../shared/plugins/events/plugin-change-event"
 import type {
   PluginViewReply,
   PluginViewRequest
-} from '../../shared/plugins/view/plugin-view-protocol'
-import type { PluginManifest } from '../../shared/plugins/manifest/plugin-manifest'
+} from "../../shared/plugins/view/plugin-view-protocol"
+import type { PluginManifest } from "../../shared/plugins/manifest/plugin-manifest"
 import type {
   PluginCatalogGitSource,
   PluginMarketplaceGitSource
-} from '../../shared/plugins/catalog/plugin-marketplace'
-import type { PluginCatalogRelease } from '../../shared/plugins/catalog/plugin-catalog-release'
-import type { PluginGitSourceResolution } from '../../shared/plugins/installation/plugin-git-resolution'
+} from "../../shared/plugins/catalog/plugin-marketplace"
+import type { PluginCatalogRelease } from "../../shared/plugins/catalog/plugin-catalog-release"
+import type { PluginGitSourceResolution } from "../../shared/plugins/installation/plugin-git-resolution"
 
-export type {
-  PluginHostCustomEditor,
-  PluginHostListEntry,
-  PluginHostNewFile,
-  PluginHostPanel,
-  PluginHostStatus
-} from '../../shared/plugins/plugin-list-entry'
-import type { PluginHostListEntry } from '../../shared/plugins/plugin-list-entry'
-import type { PluginStatusBarOverrides } from '../../shared/plugins/contributions/plugin-status-bar-state'
-import type { PluginDeclaredSettingsSnapshot } from '../../shared/plugins/contributions/plugin-settings-values'
-import type { PluginJsonValue } from '../../shared/plugins/workers/plugin-host-api'
+import type { PluginHostListEntry } from "../../shared/plugins/plugin-list-entry"
+import type { PluginStatusBarOverrides } from "../../shared/plugins/contributions/plugin-status-bar-state"
+import type { PluginDeclaredSettingsSnapshot } from "../../shared/plugins/contributions/plugin-settings-values"
+import type { PluginJsonValue } from "../../shared/plugins/workers/plugin-host-api-storage-schemas"
 
 export type PluginHostLogLine = {
   ts: number
@@ -102,6 +95,9 @@ export type PluginMarketplaceHostListing = {
   official: boolean
   bundled: boolean
   blockedByKillList?: { reason: string; advisoryUrl?: string }
+  /** Estimated listing date (ISO 8601): a community plugin's oldest dated release. Absent for
+   *  official plugins and undated releases. */
+  addedAt?: string
   /** The release record a v2 catalog vouches for; absent for v1 catalogs. */
   release?: PluginCatalogRelease
   /** The offered release's images, verified and cached by main; never hotlinked. */

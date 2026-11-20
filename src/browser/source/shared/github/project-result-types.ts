@@ -1,14 +1,14 @@
 // Project IPC envelopes share classified failures and cross-module work-item/comment/user types unnecessary in the ProjectV2 domain model.
-import type { PRComment } from './comment-types'
+import type { PRComment } from "./comment-types"
 import type {
   GitHubIssueType,
   GitHubProjectOwnerType,
   GitHubProjectSummary,
   GitHubProjectTable,
   GitHubProjectViewSummary
-} from './project-types'
-import type { GitHubAssignableUser } from './pull-request-types'
-import type { GitHubWorkItemDetails } from './work-item-types'
+} from "./projects/project-types"
+import type { GitHubAssignableUser } from "./pull-request-types"
+import type { GitHubWorkItemDetails } from "./work-item-types"
 
 export type GitHubProjectViewErrorType =
   | 'auth_required'

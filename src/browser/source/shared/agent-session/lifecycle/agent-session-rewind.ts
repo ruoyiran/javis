@@ -3,24 +3,20 @@ import {
   AgentJournalItemBodySchema,
   AgentJournalProducerLinkageFields,
   AgentJournalTurnScopeSchema
-} from '../journal/agent-session-journal-schemas'
+} from "../journal/agent-session-journal-schemas"
 import {
   agentJournalSubmissionKey,
   parseAgentJournalItemKey
-} from '../journal/agent-session-journal-item-key'
-import { isQueuedAgentJournalSubmission } from '../requests/agent-session-queued-submission'
+} from "../journal/agent-session-journal-item-key"
+import { isQueuedAgentJournalSubmission } from "../requests/agent-session-queued-submission"
 import type {
   AgentJournalRenderItem,
   AgentJournalSubmission
-} from '../journal/agent-session-journal-types'
-import type { AgentSessionMutationEnvelope } from '../agent-session-wire'
+} from "../journal/agent-session-journal-types"
+import type { AgentSessionMutationEnvelope } from "../agent-session-wire"
 
-import type { AgentSessionRewindReason } from './agent-session-rewind-reasons'
+import type { AgentSessionRewindReason } from "./agent-session-rewind-reasons"
 
-export {
-  AGENT_SESSION_REWIND_REASONS,
-  type AgentSessionRewindReason
-} from './agent-session-rewind-reasons'
 export type AgentSessionRewindSupport =
   | { supported: true }
   | { supported: false; reason: AgentSessionRewindReason }
@@ -124,7 +120,12 @@ export function isAgentSessionRewindTarget(
   item: Pick<AgentJournalRenderItem, 'itemId' | 'body' | 'turnScope'>,
   turnOpener: (turnItemId: string) => string | undefined
 ): boolean {
-  if (item.body.kind !== 'message' || item.body.role !== 'user') {
+  // An automation's run was Orca's send, not the person's turn to take back; refused for every client.
+  if (
+    item.body.kind !== 'message' ||
+    item.body.role !== 'user' ||
+    item.body.origin === 'automation-run'
+  ) {
     return false
   }
   return (

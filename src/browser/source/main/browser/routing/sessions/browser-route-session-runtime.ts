@@ -1,19 +1,19 @@
-import { BrowserClientProfileMetadata } from '../../../../shared/browser/client-hosting/browser-client-profile-switch-protocol'
-import { installBrowserRoutePartitionPolicies } from './browser-session-route-policies'
+import { BrowserClientProfileMetadata } from "../../../../shared/browser/client-hosting/browser-client-profile-switch-protocol"
+import { installBrowserRoutePartitionPolicies } from "./browser-session-route-policies"
 import { session, webContents } from 'electron'
-import { setBrowserClientRouteWebContentsProbe } from '../../client-hosts/file-transfers/browser-client-download-routing'
-import type { BrowserRoutePartitionBindingStore } from '../partitions/browser-route-partition-binding-store'
-import { currentBrowserRoutePartitionBindingStore } from '../partitions/browser-route-partition-binding-runtime'
-import { releaseEvictedBrowserRoutePartitionStorage } from '../partitions/browser-route-partition-storage-dependencies'
-import { isBrowserRouteGuestPopup } from '../guest-authority/browser-route-guest-popup-ownership'
-import { browserManager } from '../../guest-lifecycle/manager/browser-manager'
+import { setBrowserClientRouteWebContentsProbe } from "../../client-hosts/file-transfers/browser-client-download-routing"
+import type { BrowserRoutePartitionBindingStore } from "../partitions/browser-route-partition-binding-store"
+import { currentBrowserRoutePartitionBindingStore } from "../partitions/browser-route-partition-binding-runtime"
+import { releaseEvictedBrowserRoutePartitionStorage } from "../partitions/browser-route-partition-storage-dependencies"
+import { isBrowserRouteGuestPopup } from "../guest-authority/browser-route-guest-popup-ownership"
+import { browserManager } from "../../guest-lifecycle/manager/browser-manager"
 import {
   isBrowserRoutePartitionRetainedByAnyOwner,
   registerBrowserRoutePartitionRetentionProbe
-} from '../partitions/browser-route-partition-retention'
-import { BrowserRouteSessionRegistry } from './browser-route-session-registry'
-import { BrowserRouteWebContentsRegistry } from '../guest-authority/browser-route-webcontents-registry'
-import { browserSessionRegistry } from '../../sessions/profiles/browser-session-registry'
+} from "../partitions/browser-route-partition-retention"
+import { BrowserRouteSessionRegistry } from "./browser-route-session-registry"
+import { BrowserRouteWebContentsRegistry } from "../guest-authority/browser-route-webcontents-registry"
+import { browserSessionRegistry } from "../../sessions/profiles/browser-session-registry"
 
 const routeWebContentsRegistryRef: {
   current: BrowserRouteWebContentsRegistry | null
@@ -88,7 +88,11 @@ export const browserRouteWebContentsRegistry = new BrowserRouteWebContentsRegist
   retirePreparedPage: (page) => browserRouteSessionRegistry.retirePreparedPage(page),
   retirePreparedPagesOwnedByRenderer: (rendererWebContentsId) =>
     browserRouteSessionRegistry.retirePreparedPagesOwnedByRenderer(rendererWebContentsId),
-  reportBlockedPopup: (blocked) => browserManager.reportRouteGuestPopupBlocked(blocked)
+  reportBlockedPopup: (blocked) => browserManager.reportRouteGuestPopupBlocked(blocked),
+  popupReleased: (opener) => browserManager.invalidateGuestMemoryProtection(opener),
+  openNewTabPopup: (source, request, observed) =>
+    browserManager.openNewTabPopup(source, request, observed),
+  releaseAgentLead: (openerWebContentsId) => browserManager.releaseAgentLead(openerWebContentsId)
 })
 routeWebContentsRegistryRef.current = browserRouteWebContentsRegistry
 

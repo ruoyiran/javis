@@ -1,22 +1,27 @@
-import type { GlobalSettings } from './global-settings-types'
-import type { NotificationSettings } from './notification-settings-types'
-import type { VoiceSettings } from './speech-types'
-import { DEFAULT_TERMINAL_FONT_WEIGHT_BOLD } from './terminal/appearance/terminal-fonts'
-import { getDefaultTerminalQuickCommands } from './terminal/quick-commands/terminal-quick-commands'
-import { TASK_PROVIDERS } from './work-items/task-providers'
-import { getDefaultSourceControlAiSettings } from './source-control/ai/settings/source-control-ai-settings'
-import { DEFAULT_APP_ICON_ID } from './app-icon'
-import { DEFAULT_OPEN_IN_APPLICATIONS } from './open-in-applications'
-import { DEFAULT_NATIVE_CHAT_IDLE_STOP_MINUTES } from './native-chat/native-chat-idle-stop'
-import { DEFAULT_DISABLED_TUI_AGENTS } from './agent-launch/catalog/tui-agent-selection'
-import { UI_LANGUAGE_SYSTEM } from './ui-language'
+import type { GlobalSettings } from "./global-settings-types"
+import type { NotificationSettings } from "./notification-settings-types"
+import type { VoiceSettings } from "./speech-types"
+import { DEFAULT_TERMINAL_FONT_WEIGHT_BOLD } from "./terminal/appearance/terminal-fonts"
+import { getDefaultTerminalQuickCommands } from "./terminal/quick-commands/terminal-quick-commands"
+import { TASK_PROVIDERS } from "./work-items/task-providers"
+import {
+  getDefaultCommitMessageAiSettings,
+  getDefaultSourceControlAiSettings
+} from "./source-control/ai/settings/source-control-ai-settings"
+import { DEFAULT_APP_ICON_ID } from "./app-icon"
+import { DEFAULT_OPEN_IN_APPLICATIONS } from "./open-in-applications"
+import { DEFAULT_NATIVE_CHAT_IDLE_STOP_MINUTES } from "./native-chat/native-chat-idle-stop"
+import { DEFAULT_BROWSER_MEMORY_SAVER_HOURS } from "./browser/guest-lifecycle/browser-memory-saver"
+import { DEFAULT_DISABLED_TUI_AGENTS } from "./agent-launch/catalog/tui-agent-selection"
+import { UI_LANGUAGE_SYSTEM } from "./ui-language"
 import {
   DEFAULT_LEFT_SIDEBAR_TINT_COLOR,
   DEFAULT_LEFT_SIDEBAR_TINT_OPACITY
-} from './left-sidebar-appearance'
-import { DEFAULT_SOURCE_CONTROL_GROUP_ORDER } from './source-control/listing/source-control-group-order'
-import { DESKTOP_TERMINAL_SCROLLBACK_ROWS_DEFAULT } from './terminal/replay/terminal-scrollback-policy'
-import { NESTED_WORKER_MAX_DEPTH_DEFAULT } from './orchestration/workers/nested-worker-depth'
+} from "./left-sidebar-appearance"
+import { DEFAULT_SOURCE_CONTROL_GROUP_ORDER } from "./source-control/listing/source-control-group-order"
+import { DESKTOP_TERMINAL_SCROLLBACK_ROWS_DEFAULT } from "./terminal/replay/terminal-scrollback-policy"
+import { NESTED_WORKER_MAX_DEPTH_DEFAULT } from "./orchestration/workers/nested-worker-depth"
+import { getDefaultWorkspaceCleanupRules } from "./workspace-cleanup/workspace-cleanup-policy"
 
 export function buildDefaultSettings(args: {
   workspaceDir: string
@@ -35,6 +40,7 @@ export function buildDefaultSettings(args: {
   return {
     workspaceDir: args.workspaceDir,
     worktreeVisibilityDefaults: { external: 'hide' },
+    workspaceCleanupPolicy: getDefaultWorkspaceCleanupRules(),
     nestWorkspaces: true,
     workspaceDirHistory: [],
     refreshLocalBaseRefOnWorktreeCreate: false,
@@ -61,8 +67,10 @@ export function buildDefaultSettings(args: {
     editorAutoSave: false,
     editorFormatOnSave: false,
     editorInsertFinalNewline: false,
+    editorEndOfLine: 'auto',
     editorAutoSaveDelayMs: args.editorAutoSaveDelayMs,
     editorMinimapEnabled: false,
+    editorInlineBlame: false,
     // Why empty: the editor keeps following the terminal font unless the user opts in.
     editorFontFamily: '',
     editorWordWrap: true,
@@ -89,6 +97,7 @@ export function buildDefaultSettings(args: {
     terminalLigatures: 'auto',
     // Lazy image addon stays off the critical path and creates canvas layers only on first image; decoder setup still has overhead.
     terminalInlineImages: true,
+    terminalDroppedImagesPreview: true,
     terminalCursorStyle: 'block',
     terminalCursorStyleDefaultedToBlock: true,
     terminalCursorBlink: true,
@@ -170,6 +179,7 @@ export function buildDefaultSettings(args: {
     sourceControlViewMode: 'list',
     sourceControlGroupOrder: DEFAULT_SOURCE_CONTROL_GROUP_ORDER,
     sourceControlCompareAgainstUpstream: false,
+    prAutoRefresh: 'default',
     showTitlebarAppName: true,
     showTasksButton: true,
     showAutomationsButton: true,
@@ -180,6 +190,7 @@ export function buildDefaultSettings(args: {
     nestedWorkerMaxDepth: NESTED_WORKER_MAX_DEPTH_DEFAULT,
     nestedWorkerMaxDepthDefaultedToFour: true,
     orchestrationWorkerAutoReleaseEnabled: true,
+    orchestrationCoordinatorApprovalsEnabled: false,
     showArtifactsButton: false,
     showSkillsButton: false,
     showMobileButton: true,
@@ -214,6 +225,7 @@ export function buildDefaultSettings(args: {
     terminalSshViewParking: true,
     terminalHiddenWorktreeRetentionBudget: true,
     browserGuestWorktreeRetentionBudget: true,
+    browserMemorySaverHours: DEFAULT_BROWSER_MEMORY_SAVER_HOURS,
     terminalMainSideEffectAuthority: true,
     terminalHiddenDeliveryGate: true,
     terminalModelQueryAuthority: true,
@@ -246,6 +258,7 @@ export function buildDefaultSettings(args: {
     minimaxEndpoint: 'overseas',
     zcodePlanSite: 'zai',
     geminiCliOAuthEnabled: false,
+    claudeOAuthUsageEnabled: true,
     agentCmdOverrides: {},
     // Arguments hold only the user's own text; the permission flag comes from the choice below.
     agentDefaultArgs: {},
@@ -270,6 +283,7 @@ export function buildDefaultSettings(args: {
     terminalJISYenToBackslash: false,
     experimentalMobile: false,
     mobileEmulatorEnabled: true,
+    botsEnabled: true,
     mobileEmulatorDefaultDeviceUdid: null,
     androidSdkPath: null,
     // Why: indefinite hold — the "Restore" banner is the explicit return action, no wall-clock guess. See docs/mobile-fit-hold.md.
@@ -286,33 +300,17 @@ export function buildDefaultSettings(args: {
     experimentalTerminalAttention: false,
     experimentalAgentHibernation: false,
     agentHibernationIdleMs: 30 * 60 * 1000,
-    experimentalNewWorktreeCardStyle: false,
+    experimentalNewWorktreeCardStyle: true,
     experimentalEphemeralVms: false,
-    experimentalConnectors: false,
     experimentalWslHosts: false,
     experimentalOrchestrationPanel: false,
     compactWorktreeCards: false,
     // Why: local desktop stays the default until the user picks a saved runtime environment.
     activeRuntimeEnvironmentId: null,
     // Why: hydrate a stable empty shape so renderer optional-chained reads never hit undefined.
-    githubProjects: {
-      pinned: [],
-      recent: [],
-      lastViewByProject: {},
-      activeProject: null
-    },
+    githubProjects: { pinned: [], recent: [], lastViewByProject: {}, activeProject: null },
     // Why: keep agent/model maps empty so first use follows the default agent's model, not a frozen stale choice.
-    commitMessageAi: {
-      enabled: true,
-      agentId: null,
-      selectedModelByAgent: {},
-      discoveredModelsByAgent: {},
-      selectedModelByAgentByHost: {},
-      discoveredModelsByAgentByHost: {},
-      selectedThinkingByModel: {},
-      customPrompt: '',
-      customAgentCommand: ''
-    },
+    commitMessageAi: getDefaultCommitMessageAiSettings(),
     sourceControlAi: getDefaultSourceControlAiSettings(),
     voice: args.voice,
     voiceDictationModeDefaultedToAuto: true

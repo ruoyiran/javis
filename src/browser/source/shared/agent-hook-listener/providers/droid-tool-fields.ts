@@ -1,12 +1,12 @@
-import type { ToolSnapshot } from '../listener-event'
+import type { ToolSnapshot } from "../listener-event"
 import {
   deriveToolInputPreview,
   hasAnyOwnField,
   readString,
   toolUpdate
-} from '../tool-input-preview'
-import { extractToolResponseText } from '../interactive-tool'
-import { readLastAssistantFromTranscript } from '../transcript-lines'
+} from "../tool-input-preview"
+import { extractToolResponseText } from "../interactive-tool"
+import { readLastAssistantFromTranscript } from "../transcript-lines"
 
 export function isDroidPermissionNotification(message: string | undefined): boolean {
   if (!message) {
@@ -60,11 +60,7 @@ export function extractDroidToolFields(
   eventName: unknown,
   hookPayload: Record<string, unknown>
 ): ToolSnapshot {
-  if (
-    eventName === 'PreToolUse' ||
-    eventName === 'PostToolUse' ||
-    eventName === 'PermissionRequest'
-  ) {
+  if (eventName === 'PreToolUse' || eventName === 'PostToolUse') {
     const toolName = readString(hookPayload, 'tool_name') ?? readString(hookPayload, 'name')
     const toolInput =
       deriveToolInputPreview(toolName, hookPayload.tool_input) ??

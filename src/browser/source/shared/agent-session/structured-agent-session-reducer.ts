@@ -1,37 +1,38 @@
-import { trimStructuredAgentSessionHistory } from './structured-agent-session-history-retention'
-import type { AgentSessionCurrentRequestsMarker } from './requests/agent-session-current-requests-wire'
+import { trimStructuredAgentSessionHistory } from "./structured-agent-session-history-retention"
+import type { AgentSessionCurrentRequestsMarker } from "./requests/agent-session-current-requests-wire"
 import {
   hostClockField,
   replacePage,
   mergeItems,
   liveItemsWithinWindow
-} from './view/structured-agent-session-history-state'
+} from "./view/structured-agent-session-history-state"
 import {
   currentRequestsAfterEvent,
   currentRequestsState,
   applyCurrentRequestsMarker,
   type AgentSessionCurrentRequestsState
-} from './requests/agent-session-current-requests'
-import type { AgentJournalCursor } from './journal/agent-session-journal-identity'
+} from "./requests/agent-session-current-requests"
+import type { AgentJournalCursor } from "./journal/agent-session-journal-identity"
 import type {
   AgentJournalRenderItem,
   AgentJournalSubmission
-} from './journal/agent-session-journal-types'
+} from "./journal/agent-session-journal-types"
 import type {
   AgentSessionSlashCommand,
   AgentSessionHistoryPage,
   AgentSessionLatestTurn,
+  AgentSessionPromptSuggestion,
   AgentSessionSubscribeEvent,
   AgentSessionTurnActivity
-} from './agent-session-wire'
+} from "./agent-session-wire"
 import type {
   AgentSessionQueuedMessage,
   AgentSessionQueuePause
-} from './requests/agent-session-queued-message-wire'
-import type { AgentSessionBackgroundTaskState } from './agent-session-background-task-wire'
-import type { AgentSessionRefusalReference } from './failures/agent-session-wire-refusals'
-import { backgroundTaskStatesEqual } from './agent-session-background-task-state-equality'
-import { admitAgentSessionBackgroundTaskState } from './agent-session-background-task-state-admission'
+} from "./requests/agent-session-queued-message-wire"
+import type { AgentSessionBackgroundTaskState } from "./agent-session-background-task-wire"
+import type { AgentSessionRefusalReference } from "./failures/agent-session-wire-refusals"
+import { backgroundTaskStatesEqual } from "./agent-session-background-task-state-equality"
+import { admitAgentSessionBackgroundTaskState } from "./agent-session-background-task-state-admission"
 import {
   LIVE_TRIM_SLACK_OWN_ITEMS,
   MAX_RETAINED_ITEMS,
@@ -39,22 +40,22 @@ import {
   mergeSubmissions,
   ownItemCount,
   trimRetainedItems
-} from './view/structured-agent-session-item-retention'
-import { readAgentJournalTurn } from './lifecycle/agent-session-turn-record'
-import { agentSessionHasOlderTranscript } from './agent-session-context-clear'
-import { queuePublicationField } from './requests/structured-agent-session-queue-publication-field'
+} from "./view/structured-agent-session-item-retention"
+import { readAgentJournalTurn } from "./lifecycle/agent-session-turn-record"
+import { agentSessionHasOlderTranscript } from "./agent-session-context-clear"
+import { queuePublicationField } from "./requests/structured-agent-session-queue-publication-field"
 import {
   actionablePromptIdsAfterStructuredAgentSessionBatch,
   hostWorkingAfterStructuredAgentSessionBatch,
   latestTurnAfterStructuredAgentSessionBatch,
   restatesStructuredAgentSessionHostWork
-} from './view/structured-agent-session-live-turn'
+} from "./view/structured-agent-session-live-turn"
 import {
   foldStructuredAgentSubagentRoster,
   foldStructuredAgentSubagentRosterPage,
   NO_STRUCTURED_AGENT_SUBAGENT_ROSTER,
   type StructuredAgentSubagentRoster
-} from './view/structured-agent-session-subagent-roster'
+} from "./view/structured-agent-session-subagent-roster"
 
 /** Sample hostNow/receivedAt to convert host turn starts into client-clock anchors when attaching mid-turn. */
 export type StructuredAgentHostClock = {
@@ -87,6 +88,8 @@ export type StructuredAgentSessionState = AgentSessionCurrentRequestsState & {
   nextQueuedMessageId?: string | null
   commands?: AgentSessionSlashCommand[] | null
   activity?: AgentSessionTurnActivity | null
+  /** Off the journal, so history pages and snapshots keep it; only a batch sets it. */
+  promptSuggestion?: AgentSessionPromptSuggestion | null
   /** Absent until a frame from a host that stamps `hostNow` has been applied. */
   hostClock?: StructuredAgentHostClock
   /** Retain received roster entries by agent ID beyond the item window; absent until a page arrives. */
@@ -155,25 +158,16 @@ export function reduceStructuredAgentSession(
   }
   if (action.type === 'loading') {
     // Keep the last transcript visible while a reconnect rehydrates the stream.
-    return {
-      ...state,
-      status: 'loading',
-      error: undefined,
-      readRefusal: undefined
-    }
+    return { ...state, status: 'loading', error: undefined, readRefusal: undefined }
   }
   if (action.type === 'error') {
-    return {
-      ...state,
-      status: 'error',
-      error: action.message,
-      readRefusal: action.refusal
-    }
+    return { ...state, status: 'error', error: action.message, readRefusal: action.refusal }
   }
   if (action.type === 'history-page') {
     return {
       ...replacePage(action.page, action.page.fence ?? null, state.backgroundTasks, state.activity),
       ...currentRequestsState(state),
+      promptSuggestion: state.promptSuggestion,
       commands: state.commands,
       // Live subscription state stays authoritative over a possibly stale history answer.
       ...queuePublicationField(state, action.page),
@@ -218,6 +212,7 @@ export function reduceStructuredAgentSession(
       ...requests,
       status: 'ready',
       commands: event.commands,
+      promptSuggestion: state.promptSuggestion,
       // A snapshot omits the list when unchanged since the last frame sent to this subscriber.
       ...queuePublicationField(event, event.page, state),
       ...hostClockField(event.hostNow, receivedAt, state.hostClock)
@@ -237,6 +232,8 @@ export function reduceStructuredAgentSession(
         ? undefined
         : state.backgroundTasks
   const activity = event.activity !== undefined ? event.activity : state.activity
+  const promptSuggestion =
+    event.promptSuggestion !== undefined ? event.promptSuggestion : state.promptSuggestion
   const liveItems = liveItemsWithinWindow(state, event.batch.items)
   // Fold every roster revision even outside the window; trimmed rows retain their sequence.
   const subagentRoster = foldStructuredAgentSubagentRoster(
@@ -262,6 +259,7 @@ export function reduceStructuredAgentSession(
     restatesStructuredAgentSessionHostWork(event, state) &&
     activity?.turnId === state.activity?.turnId &&
     activity?.text === state.activity?.text &&
+    promptSuggestion?.id === state.promptSuggestion?.id &&
     state.status === 'ready' &&
     state.error === undefined &&
     requests.currentRequests === state.currentRequests &&
@@ -315,6 +313,7 @@ export function reduceStructuredAgentSession(
     ...queuePublicationField(event, state),
     backgroundTasks,
     ...(activity !== undefined ? { activity } : {}),
+    ...(promptSuggestion !== undefined ? { promptSuggestion } : {}),
     ...(lostTurnRow ? { unloadedTurnRevisions: (state.unloadedTurnRevisions ?? 0) + 1 } : {}),
     ...hostClockField(event.hostNow, receivedAt, state.hostClock)
   }

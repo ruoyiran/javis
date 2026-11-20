@@ -1,8 +1,13 @@
-import type { ToolSnapshot } from '../listener-event'
-import { isAskUserQuestionTool } from '../../agent-status/lifecycle/agent-question-answered-intent'
-import { deriveToolInputPreview, hasOwnField, readString, toolUpdate } from '../tool-input-preview'
-import { clearActiveToolFieldsUpdate, deriveInteractivePrompt } from '../interactive-tool'
-import { serializeOmpPlanReviewPrompt } from '../../omp-plan-review-prompt'
+import type { ToolSnapshot } from "../listener-event"
+import { isAskUserQuestionTool } from "../../agent-status/lifecycle/agent-question-answered-intent"
+import {
+  deriveToolInputPreview,
+  hasOwnField,
+  readString,
+  toolUpdate
+} from "../tool-input-preview"
+import { clearActiveToolFieldsUpdate, deriveInteractivePrompt } from "../interactive-tool"
+import { serializeOmpPlanReviewPrompt } from "../../omp-plan-review-prompt"
 
 /** OMP's `ask` carries the same questions/options payload as Pi's question tool. */
 function serializeQuestionPrompt(toolInput: unknown): string | undefined {

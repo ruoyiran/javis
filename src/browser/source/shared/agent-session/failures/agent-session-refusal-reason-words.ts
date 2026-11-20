@@ -1,13 +1,13 @@
 // Require wording and next steps for every new refusal reason at compile time.
 
-import type { AgentSessionFailureKind } from './agent-session-failure'
+import type { AgentSessionFailureKind } from "./agent-session-failure"
 import type {
   AgentSessionConversationOwner,
   AgentSessionRefusalReason
-} from './agent-session-refusal-details'
-import type { AgentSessionWriteNoticeSentence } from './agent-session-write-notice-copy'
-import type { AgentSessionWireRefusalCode } from './agent-session-wire-refusals'
-import type { AgentSessionWriteKind, AgentSessionWriteRefusal } from './agent-session-write-failure'
+} from "./agent-session-refusal-details"
+import type { AgentSessionWriteNoticeSentence } from "./agent-session-write-notice-copy"
+import type { AgentSessionWireRefusalCode } from "./agent-session-wire-refusals"
+import type { AgentSessionWriteKind, AgentSessionWriteRefusal } from "./agent-session-write-failure"
 
 /** What the person can do about a refusal with this reason. */
 export type AgentSessionRefusalAction =
@@ -213,6 +213,8 @@ const HELD_IN_TERMINAL: AgentSessionRefusalReasonWords = {
   action: 'actFirst'
 }
 
+const SAVED_IN_OTHER_FOLDER = causeWords('savedInOtherFolder', 'goElsewhere')
+
 /** The chat a failed start's refusal named as holding the conversation, or null when it named
  *  none; absent where the refusal's owner was not kept, so who holds it is unknown. */
 export type AgentSessionRefusalHolder = { owner?: AgentSessionConversationOwner | null }
@@ -229,6 +231,9 @@ export function agentSessionRefusalReasonWords(
     failure.owner === null
   ) {
     return HELD_IN_TERMINAL
+  }
+  if (failure.code === 'agent_session_identity_required' && failure.details?.otherFolder) {
+    return SAVED_IN_OTHER_FOLDER
   }
   const byReason: Partial<Record<string, AgentSessionRefusalReasonWords>> | undefined =
     REASON_WORDS[failure.code]

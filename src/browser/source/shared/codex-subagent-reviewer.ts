@@ -1,20 +1,17 @@
-import { extname, isAbsolute } from 'node:path'
-
-import { readJsonlCursor, type JsonRecord } from './codex-rollout-jsonl-cursor'
-import { isCodexStatusTranscriptLine } from './codex-status-transcript-line'
-import type { CodexSubagentTranscriptState } from './codex-subagent-transcript'
+import { readJsonlCursor } from "./codex-rollout-jsonl-cursor"
+import type { JsonRecord } from "./agent-hook-listener/providers/codex/codex-rollout-jsonl-format"
+import {
+  markReviewerEvidenceDeferred,
+  rolloutCursorReadDeferred
+} from "./agent-hook-listener/providers/codex/codex-rollout-prefetch-scope"
+import { normalizedTranscriptPath } from "./agent-hook-listener/providers/codex/codex-rollout-paths"
+import { isCodexStatusTranscriptLine } from "./codex-status-transcript-line"
+import type { CodexSubagentTranscriptState } from "./codex-subagent-transcript"
 
 const REVIEWER_CURSOR_MAX_PATHS = 64
 
 /** Codex's `approvals_reviewer`: `user` is a human, `auto_review` is Codex's own review agent. */
 export type CodexApprovalsReviewer = 'user' | 'auto_review'
-
-function normalizedTranscriptPath(transcriptPath: string | undefined): string | undefined {
-  const normalizedPath = transcriptPath?.trim()
-  return normalizedPath && isAbsolute(normalizedPath) && extname(normalizedPath) === '.jsonl'
-    ? normalizedPath
-    : undefined
-}
 
 function record(value: unknown): JsonRecord | undefined {
   return typeof value === 'object' && value !== null ? (value as JsonRecord) : undefined
@@ -78,6 +75,10 @@ export function reconcileCodexSubagentReviewer(
     }
     cursor = { filePath: normalizedPath, offset: 0, carry: '' }
     state.reviewerCursorsByPath.set(normalizedPath, cursor)
+  }
+  if (rolloutCursorReadDeferred(cursor)) {
+    markReviewerEvidenceDeferred()
+    return
   }
   const records = readJsonlCursor(cursor, isCodexStatusTranscriptLine)
   if (records === undefined) {

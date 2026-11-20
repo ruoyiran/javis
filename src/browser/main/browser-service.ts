@@ -1,3 +1,10 @@
+import { FLOATING_TERMINAL_WORKTREE_ID } from "../source/shared/workspace/identity/floating-workspace-id";
+import { browserSiteDisplayController } from "../source/main/browser/site-settings/display/browser-site-display-controller";
+import { actOnRuntimeBrowserInitialization, captureRuntimeBrowserInitializationAction } from "../source/main/runtime/browser/client-pages/runtime-browser-page-initialization-action";
+import { BrowserPageInitializationActionParams } from "../source/shared/browser/client-hosting/browser-page-initialization-action";
+import type { RuntimeMobileSessionTabsResult } from "../source/shared/runtime-session-contracts";
+import { reuseEqualJson } from "../source/shared/reuse-equal-json";
+import type { z } from "zod";
 import { DEFAULT_LOCAL_ORCA_PROFILE_ID } from "../source/shared/orca-profiles";
 import { runWithRequestedPageUrl } from "../source/main/browser/cdp/input/browser-expected-page-url";
 import { routeRuntimeBrowserClientAutomation } from "../source/main/runtime/browser/client-pages/runtime-browser-client-automation";
@@ -61,7 +68,6 @@ import { AnnotationQueue } from "./annotation-queue";
 import {
   getDefaultWorkspaceSession,
   getDefaultUIState,
-  FLOATING_TERMINAL_WORKTREE_ID,
 } from "../source/shared/constants";
 import { isBinaryBuffer } from "../source/shared/file-preview/binary-buffer";
 import { resolveDocPreviewUrlFilePath } from "../source/main/browser/document-preview/doc-preview-grant-registry";
@@ -84,7 +90,7 @@ import {
 import { BROWSER_CLIENT_HOST_REQUEST_CAPABILITY } from "../source/shared/browser/client-hosting/browser-client-host-request-protocol";
 import { isAbsolute } from "node:path";
 import { mkdirSync, readFileSync, writeFileSync, renameSync } from "node:fs";
-import { join, dirname } from "node:path";
+import { join, dirname, basename } from "node:path";
 import { randomUUID } from "node:crypto";
 import { browserManager } from "../source/main/browser/guest-lifecycle/manager/browser-manager";
 import { AgentBrowserBridge } from "../source/main/browser/agent-browser/agent-browser-bridge";
@@ -139,7 +145,7 @@ export async function createBrowserService(
   };
   initializeBrowserClientHostId(options.dataDirectory);
   const workspace = new BrowserWorkspaceSessions(options.dataDirectory);
-  const store = new Store();
+  const store = new Store(() => workspace.ui as import("../source/shared/persisted-ui-state-types").PersistedUIState);
   const hostBridge = new BrowserHostBridge(emit);
   setBrowserHostTransport(
     (target, method, params, timeout) =>
@@ -287,7 +293,7 @@ export async function createBrowserService(
           context === workspace.context ||
           context === FLOATING_TERMINAL_WORKTREE_ID),
       ),
-    markHeadlessBrowserSessionTabActive: (context, page) => {
+    markHeadlessBrowserSessionTabActive: async (context, page) => {
       const owner = context ?? workspace.owner(page) ?? workspace.context;
       const session = workspace.session(owner);
       const saved = findSavedBrowserPage(session, owner, page);
@@ -352,6 +358,11 @@ export async function createBrowserService(
     orcaProfileId: DEFAULT_LOCAL_ORCA_PROFILE_ID,
     profileDirectory: options.dataDirectory,
   });
+  browserSiteDisplayController.followZoomSettings({
+    getUI: () => store.getUI(),
+    onUIChanged: (listener) => workspace.onUIChanged(listener),
+  });
+  browserManager.setSiteDisplayController(browserSiteDisplayController);
   await setMainUiLanguage(store.getSettings().uiLanguage);
   browserSessionRegistry.onProfilesChanged = () => {
     window?.webContents.send("browser:session:profilesChanged");
@@ -369,7 +380,60 @@ export async function createBrowserService(
     mkdirSync(root, { recursive: true, mode: 0o700 });
     return root;
   });
+  const sessionSnapshots = new Map<string, RuntimeMobileSessionTabsResult>();
   const callerRuntime = Object.assign(Object.create(commands), host, {
+    actOnClientPageInitialization: async (params: z.infer<typeof BrowserPageInitializationActionParams>) => {
+      const current = captureRuntimeBrowserInitializationAction(pages, leases, params.page, params.expectedPlacement);
+      const selected = await host.resolveBrowserWorkspace(params.worktree);
+      const page = current();
+      if (page.workspaceId !== selected.id) throw new BrowserError("browser_page_workspace_mismatch", "Browser page belongs to another context");
+      const completion = actOnRuntimeBrowserInitialization({
+        pages, authority: leases, page, action: params.action, explicitUrl: true,
+        resolveExecutionHostKey: (id) => callerRuntime.resolveBrowserExecutionHostKeyForWorkspace(id),
+        notifyWorkspace: (id) => callerRuntime.notifyMobileSessionTabsChanged(id),
+      });
+      void completion.catch(() => {});
+    },
+    listMobileSessionTabs: async (selector: string): Promise<RuntimeMobileSessionTabsResult> => {
+      const context = browserContextId(selector.replace(/^id:/, ""));
+      const listing = await commands.browserTabList({ worktree: context });
+      const saved = workspace.session(context);
+      const browserTabs: RuntimeMobileSessionTabsResult["tabs"] = listing.tabs.map((tab) => {
+        const owned = pages.getPage(tab.browserPageId);
+        const active = tab.active;
+        return {
+          type: "browser", id: findSavedBrowserPage(saved, context, tab.browserPageId)?.tabId ?? tab.browserPageId,
+          title: tab.title, browserWorkspaceId: context, browserPageId: tab.browserPageId,
+          ...(tab.profileId ? { browserProfileId: tab.profileId } : {}),
+          ...(owned ? { placement: owned.placement, executionHostKey: owned.executionHostKey, initializationState: leases.clientPageInitializations.status(owned.browserPageId, owned.placement) } : {}),
+          url: tab.url, loading: owned?.loading ?? false, canGoBack: owned?.canGoBack ?? false,
+          canGoForward: owned?.canGoForward ?? false, isActive: active,
+          loadError: tab.loadError, certificateFailure: tab.certificateFailure,
+        };
+      });
+      const editorTabs: RuntimeMobileSessionTabsResult["tabs"] = (saved.openFilesByWorktree?.[context] ?? []).map((file) => ({
+        type: "file", id: file.filePath, title: basename(file.filePath), filePath: file.filePath,
+        relativePath: file.relativePath, language: file.language, mode: "edit",
+        isDirty: file.dirtyDraftContent !== undefined, isActive: saved.activeFileIdByWorktree?.[context] === file.filePath,
+        ...(file.runtimeEnvironmentId ? { hostRuntimeEnvironmentId: file.runtimeEnvironmentId } : {}),
+      }));
+      const tabs = [...browserTabs, ...editorTabs];
+      const ids = new Set(tabs.map((tab) => tab.id));
+      const groups = (saved.tabGroups?.[context] ?? []).map((group) => ({ ...group, tabOrder: group.tabOrder.filter((id) => ids.has(id)), activeTabId: ids.has(group.activeTabId ?? "") ? group.activeTabId : null })).filter((group) => group.tabOrder.length > 0);
+      const active = tabs.find((tab) => tab.id === saved.activeTabIdByWorktree?.[context]) ?? tabs.find((tab) => tab.isActive) ?? tabs[0];
+      const previous = sessionSnapshots.get(context);
+      const snapshot = reuseEqualJson(previous, {
+        worktree: context, publicationEpoch: runtimeId, snapshotVersion: previous?.snapshotVersion ?? 0,
+        activeGroupId: groups.find((group) => group.id === saved.activeGroupIdByWorktree?.[context])?.id ?? groups[0]?.id ?? null,
+        activeTabId: active?.id ?? null, activeTabType: active?.type ?? null,
+        tabGroups: groups, ...(groups.length === (saved.tabGroups?.[context]?.length ?? 0) ? { tabGroupLayout: saved.tabGroupLayouts?.[context] } : {}),
+        tabs: tabs.map((tab) => ({ ...tab, isActive: tab.id === active?.id })),
+      });
+      if (snapshot === previous) return previous;
+      const published = { ...snapshot, snapshotVersion: (previous?.snapshotVersion ?? 0) + 1 };
+      sessionSnapshots.set(context, published);
+      return published;
+    },
     getStartedAt: () => startedAt,
     resolveRuntimeFileTarget: async () => ({ executionHostId: "local" }),
     readFileExplorerChunk: files.readFileExplorerChunk.bind(files),
@@ -497,6 +561,7 @@ export async function createBrowserService(
     homePath: options.dataDirectory,
   });
   const call: BrowserCall = async (method, params) => {
+    if (method === "browser.workspaceSnapshot") return callerRuntime.listMobileSessionTabs(typeof params.worktree === "string" ? params.worktree : workspace.context);
     if (method === "__shutdown") {
       await shutdown();
       return { stopped: true };
@@ -691,6 +756,8 @@ export async function createBrowserService(
       return { accepted: hostBridge.invocationReply(params as any) };
     if (method === "browser.host.subscription")
       return { accepted: hostBridge.subscriptionReply(params as any) };
+    if (method === "browser.host.closed")
+      return { accepted: hostBridge.subscriptionClosed(String(params.id)) };
     if (method === "browser.host.binary")
       return { accepted: hostBridge.binary(params as any) };
     if (method === "browser.host.reply")
@@ -879,6 +946,13 @@ export async function createBrowserService(
       pages,
       leases,
       resolveWorkspace: host.resolveBrowserWorkspace,
+      resolveWorkspacePath: async (context) => {
+        const root = contextCatalog().find((entry) => entry.id === browserContextId(context))?.root;
+        if (!root) throw new BrowserError("browser_workspace_not_found", "Browser context has no workspace root");
+        return root;
+      },
+      resolveExecutionHostKey: (context) => callerRuntime.resolveBrowserExecutionHostKeyForWorkspace(context),
+      notifyWorkspace: (context) => callerRuntime.notifyMobileSessionTabsChanged(context),
     });
     if (clientRoute.handled) return clientRoute.result;
     const definition = methods.get(method);
@@ -1050,7 +1124,7 @@ export async function createBrowserService(
       );
     return catalog.prepare(args);
   });
-  ipcMain.handle("javis:browser:runtime-invoke", (event, args) => {
+  ipcMain.handle("javis:browser:runtime-invoke", async (event, args) => {
     trusted(event);
     if (args.method === "runtime.status")
       args = { ...args, method: "browser.status" };
@@ -1059,7 +1133,10 @@ export async function createBrowserService(
         "invalid_argument",
         "Unknown browser runtime method",
       );
-    return catalog.call(args.selector, args.method, args.params);
+    if (args.selector === "local") return { ok: true, result: await call(args.method, args.params ?? {}), _meta: { runtimeId } };
+    const response = await catalog.call(args.selector, args.method, args.params, args.expectedEnvironmentPairingRevision);
+    if (response.ok && (args.method === "browser.workspaceSnapshot" || args.method === "browser.clientPage.initializationAction") && typeof response.result?.publicationEpoch === "string") return { ...response, _meta: { ...response._meta, runtimeId: response.result.publicationEpoch } };
+    return response;
   });
   ipcMain.handle("javis:browser:subscribe", async (event, args) => {
     trusted(event);

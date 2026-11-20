@@ -1,9 +1,10 @@
 // Persist the default surface independently from per-agent overrides.
 
-import type { GlobalSettings } from '../global-settings-types'
-import type { TuiAgent } from '../agent-launch/catalog/tui-agent'
-import { isStructuredAgentId } from '../agent-session/lifecycle/agent-session-provider-handle-encoding'
-import type { AgentDefaultSurface } from './native-chat-appearance-settings'
+import type { GlobalSettings } from "../global-settings-types"
+import type { TuiAgent } from "../agent-launch/catalog/tui-agent"
+import { isStructuredAgentId } from "../agent-session/lifecycle/agent-session-provider-handle-encoding"
+import type { AgentDefaultSurface } from "./native-chat-appearance-settings"
+import type { NativeChatDefaultSettings } from "../structured-native-chat-launch-route"
 
 export type NativeChatProviderChoices = Partial<Record<string, boolean>>
 
@@ -56,4 +57,21 @@ export function carriedChatUiLaunchSettings(
         )
       : {}
   }
+}
+
+// Phones start agents as chats on a headless host with no choice, since nothing there can set one.
+export function hostNativeChatDefaults(
+  settings: NativeChatDefaultSettings,
+  headless: boolean
+): NativeChatDefaultSettings | null {
+  const nativeChatProviders = normalizeNativeChatProviderChoices(settings.nativeChatProviders)
+  const agentDefaultSurface = normalizeAgentDefaultSurface(settings.agentDefaultSurface)
+  if (
+    headless &&
+    agentDefaultSurface === 'terminal' &&
+    Object.keys(nativeChatProviders).length === 0
+  ) {
+    return null
+  }
+  return { agentDefaultSurface, nativeChatProviders }
 }

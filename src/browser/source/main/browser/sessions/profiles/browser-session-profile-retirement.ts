@@ -1,14 +1,14 @@
 import { session, type Session } from 'electron'
-import type { BrowserSessionProfile } from '../../../../shared/browser-workspace-types'
-import { retireProxySessionApplication } from '../../../network/proxy-settings'
+import type { BrowserSessionProfile } from "../../../../shared/browser-workspace-types"
+import { retireProxySessionApplication } from "../../../network/proxy-settings"
 import {
   clearBrowserSessionPartitionPolicies,
   forgetBrowserSessionPartitionConfiguration,
   retireBrowserSessionUserAgentPolicy
-} from '../partition-policies/browser-session-partition-policies'
-import { invalidateBrowserSessionProxyApplication } from '../proxy/browser-session-proxy'
-import { cancelBrowserWebAuthnAccountRequestsForSession } from '../../webauthn/browser-webauthn-account-picker'
-import { detachBrowserExtensionsFromProfileSession } from '../../extensions/profile-sessions/browser-extension-session-loader'
+} from "../partition-policies/browser-session-partition-policies"
+import { invalidateBrowserSessionProxyApplication } from "../proxy/browser-session-proxy"
+import { cancelBrowserWebAuthnAccountRequestsForSession } from "../../webauthn/browser-webauthn-account-picker"
+import { detachBrowserExtensionsFromProfileSession } from "../../extensions/profile-sessions/browser-extension-session-loader"
 
 export async function retireFailedBrowserSessionProfile(
   partition: string,
@@ -42,7 +42,12 @@ export async function retireDeletedBrowserSessionProfile(
 }
 
 async function clearDeletedBrowserSessionProfile(profile: BrowserSessionProfile): Promise<void> {
-  await detachBrowserExtensionsFromProfileSession(profile)
+  try {
+    await detachBrowserExtensionsFromProfileSession(profile)
+  } catch (error) {
+    // Why: the profile is already deleted, so a teardown throw must not skip the storage wipe.
+    console.warn('[browser-session] Failed to unload extensions for deleted profile', error)
+  }
   // Why: clear the partition's storage so deleting a profile doesn't leave orphaned cookies/cache behind.
   try {
     const sess = session.fromPartition(profile.partition)

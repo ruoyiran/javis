@@ -3,13 +3,13 @@ import {
   type AgentStatusState,
   type AgentWorkingMode,
   type ParsedAgentStatusPayload
-} from '../../agent-status/contracts/agent-status-types'
-import { claudeRosterToSnapshots } from '../../claude-subagent-roster'
-import { resolvePrompt, resolveToolState } from '../prompt-fields'
-import { extractToolFields, isNewTurnEvent } from '../provider-event-routing'
-import type { HookListenerState } from '../listener-state'
-import { mainAgentTurnInterrupted } from '../../agent-status/lifecycle/agent-lead-status-fold'
-import { claudeMainAgentStatusForPayload } from './claude-roster-state'
+} from "../../agent-status/contracts/agent-status-types"
+import { claudeRosterToSnapshots } from "../../claude-subagent-roster"
+import { resolvePrompt, resolveToolState } from "../prompt-fields"
+import { extractToolFields, isNewTurnEvent } from "../provider-event-routing"
+import type { HookListenerState } from "../listener-state"
+import { mainAgentTurnInterrupted } from "../../agent-status/lifecycle/agent-lead-status-fold"
+import { claudeMainAgentStatusForPayload } from "./claude-roster-state"
 
 export function buildClaudeStatusPayload(
   state: HookListenerState,
@@ -21,14 +21,17 @@ export function buildClaudeStatusPayload(
     stateName: AgentStatusState
     workingMode?: AgentWorkingMode
     updateToolSnapshot: boolean
+    /** A new prompt_id opened the turn on this event, ahead of its prompt event. */
+    opensTurn?: boolean
     sessionBoundary?: boolean
     claudeTaskWakeupPending?: ParsedAgentStatusPayload['claudeTaskWakeupPending']
   }
 ): ParsedAgentStatusPayload | null {
+  const newTurn = options.opensTurn === true || isNewTurnEvent('claude', eventName)
   // Roster refreshes read cached tool state without clearing live cards or previews.
   const snapshot = options.updateToolSnapshot
     ? resolveToolState(state, paneKey, extractToolFields('claude', eventName, hookPayload), {
-        resetOnNewTurn: isNewTurnEvent('claude', eventName)
+        resetOnNewTurn: newTurn
       })
     : (state.lastToolByPaneKey.get(paneKey) ?? {})
 
@@ -41,9 +44,10 @@ export function buildClaudeStatusPayload(
     claudeTaskWakeupPending: options.claudeTaskWakeupPending,
     // Only lead events reset prompt labels; child refreshes retain them.
     prompt: resolvePrompt(state, paneKey, promptText, {
-      resetOnNewTurn: options.updateToolSnapshot && isNewTurnEvent('claude', eventName)
+      resetOnNewTurn: options.updateToolSnapshot && newTurn
     }),
     agentType: 'claude',
+    model: mainAgentRecord?.model,
     toolName: snapshot.toolName,
     toolInput: snapshot.toolInput,
     interactivePrompt: snapshot.interactivePrompt,

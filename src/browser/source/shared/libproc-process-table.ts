@@ -1,24 +1,28 @@
-import { nameDarwinTerminalDevices } from './darwin-terminal-names'
+import { nameDarwinTerminalDevices } from "./darwin-terminal-names"
 import {
   claimDarwinTerminalNaming,
   waitForDarwinTerminalNaming
-} from './darwin-terminal-naming-single-flight'
-import { loadLibprocAddon, type LibprocProcessRow, type LibprocQuery } from './libproc-addon'
-import { DEADLINE_PASSED, beforeDeadline, monotonicNow } from './deadline-settle-notifier'
+} from "./darwin-terminal-naming-single-flight"
+import { loadLibprocAddon, type LibprocProcessRow, type LibprocQuery } from "./libproc-addon"
+import {
+  DEADLINE_PASSED,
+  beforeDeadline,
+  monotonicNow
+} from "./deadline-settle-notifier"
 import {
   isNativeReaderHealthy,
   readFreshNativeTable,
   registerNativeRequest
-} from './libproc-native-reads'
-import { completeCommands } from './libproc-argv-completion'
-import { registerPsFallbackRequest, runPsFallback } from './libproc-ps-fallback'
+} from "./libproc-native-reads"
+import { completeCommands } from "./libproc-argv-completion"
+import { registerPsFallbackRequest, runPsFallback } from "./libproc-ps-fallback"
 import {
   compareLikePs,
   formatDarwinDevice,
   formatLibprocStat,
   formatLstart,
   parsePsQuery
-} from './libproc-ps-format'
+} from "./libproc-ps-format"
 
 /** Shaped like a process-host ProcessResult so call sites can substitute it for ps's. */
 export type LibprocPsResult = {

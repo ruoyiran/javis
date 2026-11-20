@@ -6,73 +6,91 @@ import type {
   GrokAccountsApi,
   MinimaxCredentialsApi,
   ZcodePlanCredentialsApi
-} from './api/agent-account-api'
-import type { HooksApi } from './api/agent-hook-api'
-import type { SkillsApi } from './api/agent-skill-api'
-import type { AgentAwakeApi, AgentStatusApi } from './api/agent-status-api'
+} from "./api/agent-account-api"
+import type { HooksApi } from "./api/agent-hook-api"
+import type { SkillsApi } from "./api/agent-skill-api"
+import type { AgentAwakeApi, AgentStatusApi } from "./api/agent-status-api"
 import type {
   ClaudeUsageApi,
   CodexUsageApi,
   MuseUsageApi,
   OpenCodeUsageApi,
   RateLimitsApi
-} from './api/agent-usage-api'
-import type { AiVaultApi } from './api/ai-vault-api'
-import type { AppApi, E2EApi, PlatformApi } from './api/app-api'
-import type { AutomationsApi } from './api/automation-api'
-import type { BrowserApi } from './api/browser/browser-api'
-import type { CliApi } from './api/cli-install-api'
-import type { CrashReportsApi, FeedbackApi } from './api/crash-report-api'
-import type { DashboardApi, TerminalPreviewApi } from './api/dashboard-api'
-import type { DocPreviewApi } from './api/doc-preview-api'
-import type { EmulatorApi } from './api/emulator-api'
-import type { EphemeralVmApi } from './api/ephemeral-vm-api'
-import type { ExportApi, FilesystemApi } from './api/filesystem-api'
-import type { GitInspectionApi } from './api/git-inspection-api'
-import type { GitOperationApi } from './api/git-operation-api'
-import type { GithubAccountApi } from './api/github-account-api'
-import type { GithubPullRequestApi } from './api/github-pull-request-api'
-import type { GithubWorkItemApi } from './api/github-work-item-api'
-import type { GitLabApi } from './api/gitlab-api'
-import type { BitbucketApi, HostedReviewApi } from './api/hosted-review-api'
-import type { JiraApi } from './api/jira-api'
-import type { LinearApi } from './api/linear-api'
-import type { MobileApi } from './api/mobile-api'
-import type { NativeChatApi } from './api/native-chat-api'
-import type { OnboardingApi, StarNagApi } from './api/onboarding-api'
-import type { OrcaProfileApi } from './api/orca-profile-api'
+} from "./api/agent-usage-api"
+import type { AiVaultApi } from "./api/ai-vault-api"
+import type { AppApi, E2EApi, PlatformApi } from "./api/app-api"
+import type { AutomationsApi } from "./api/automation-api"
+import type { BrowserApi } from "./api/browser/browser-api"
+import type { CliApi } from "./api/cli-install-api"
+import type { OrcaUninstallApi } from "./api/orca-uninstall/orca-uninstall-api"
+import type { CrashReportsApi, FeedbackApi } from "./api/crash-report-api"
+import type { DashboardApi, TerminalPreviewApi } from "./api/dashboard-api"
+import type { DocPreviewApi } from "./api/doc-preview-api"
+import type { EmulatorApi } from "./api/emulator-api"
+import type { EphemeralVmApi } from "./api/ephemeral-vm-api"
+import type { ExportApi, FilesystemApi } from "./api/filesystem-api"
+import type { GitInspectionApi } from "./api/git-inspection-api"
+import type { GitOperationApi } from "./api/git-operation-api"
+import type { GithubAccountApi } from "./api/github-account-api"
+import type { GithubPullRequestApi } from "./api/github-pull-request-api"
+import type { GithubWorkItemApi } from "./api/github-work-item-api"
+import type { GitLabApi } from "./api/gitlab-api"
+import type { BitbucketApi, HostedReviewApi } from "./api/hosted-review-api"
+import type { JiraApi } from "./api/jira-api"
+import type { LinearApi } from "./api/linear-api"
+import type { MobileApi } from "./api/mobile-api"
+import type { NativeChatApi } from "./api/native-chat-api"
+import type { OnboardingApi, StarNagApi } from "./api/onboarding-api"
+import type { OrcaProfileApi } from "./api/orca-profile-api"
 import type {
   ComputerUsePermissionsApi,
   DeveloperPermissionsApi,
   MacosTccPromptsApi,
   NotificationsApi
-} from './api/os-permission-api'
-import type { PetApi } from './api/pet-api'
-import type { AppIconApi } from './api/app-icon-api'
-import type { BrowserPasswordsApi } from './api/browser-passwords-api'
-import type { PluginsApi } from './api/plugin-host-api'
-import type { PreflightApi } from './api/preflight-api'
-import type { PtyApi } from './api/pty-api'
-import type { ProjectGroupsApi, ProjectsApi, RepositoryApi } from './api/repository-api'
-import type { RuntimeApi } from './api/runtime-api'
-import type { WslMoveApi } from './api/wsl-move-bridge'
-import type { WslDriveProjectApi } from './api/wsl-drive-project-bridge'
-import type { WslDriveUncConversionApi } from './api/wsl-drive-unc-conversion-bridge'
-import type { KeybindingsApi, SettingsApi } from './api/settings-api'
-import type { ShellApi } from './api/shell-api'
-import type { SpeechApi } from './api/speech-api'
-import type { SshApi } from './api/ssh-api'
-import type { PlainSshTerminalApi } from './api/plain-ssh-terminal-bridge'
-import type { LegacyRelayBridgeApi } from './api/legacy-relay-bridge-api'
-import type { DiagnosticsApi, MemoryApi, StatsApi, TelemetryApi } from './api/telemetry-api'
-import type { UiCommandEventApi } from './api/ui-command-event-api'
-import type { UiWindowApi } from './api/ui-window-api'
-import type { UpdaterApi } from './api/updater-api'
-import type { WorkspaceCleanupApi, WorkspaceSpaceApi } from './api/workspace-cleanup-api'
-import type { LocalhostWorktreeLabelsApi, WorkspacePortsApi } from './api/workspace-port-api'
-import type { LinkPreviewApi } from './api/link-preview-api'
-import type { WorkspaceSessionApi } from './api/workspace-session-api'
-import type { FolderWorkspacesApi, SparsePresetsApi, WorktreeApi } from './api/worktree-api'
+} from "./api/os-permission-api"
+import type { PetApi } from "./api/pet-api"
+import type { AppIconApi } from "./api/app-icon-api"
+import type { BrowserPasswordsApi } from "./api/browser-passwords-api"
+import type { PluginsApi } from "./api/plugin-host-api"
+import type { PreflightApi } from "./api/preflight-api"
+import type { BackgroundWorkerApi } from "./api/diagnostics/background-worker-api"
+import type { PtyApi } from "./api/pty-api"
+import type { ProjectGroupsApi, ProjectsApi, RepositoryApi } from "./api/repository-api"
+import type { RuntimeApi } from "./api/runtime-api"
+import type { WslMoveApi } from "./api/wsl-move-bridge"
+import type { WslDriveProjectApi } from "./api/wsl-drive-project-bridge"
+import type { WslDriveUncConversionApi } from "./api/wsl-drive-unc-conversion-bridge"
+import type { KeybindingsApi, SettingsApi } from "./api/settings-api"
+import type { ShellApi } from "./api/shell-api"
+import type { BotChangesApi } from "./api/bot-changes-api"
+import type { GoogleSetupApi } from "./api/google-setup-api"
+import type { SlackHandOffApi } from "./api/slack-hand-off-api"
+import type { SpeechApi } from "./api/speech-api"
+import type { SshApi } from "./api/ssh-api"
+import type { PlainSshTerminalApi } from "./api/plain-ssh-terminal-bridge"
+import type { LegacyRelayBridgeApi } from "./api/legacy-relay-bridge-api"
+import type {
+  DiagnosticsApi,
+  MemoryApi,
+  StatsApi,
+  TelemetryApi
+} from "./api/telemetry-api"
+import type { UiCommandEventApi } from "./api/ui-command-event-api"
+import type { UiWindowApi } from "./api/ui-window-api"
+import type { BotLinkEventApi } from "./api/bot-link-event-api"
+import type { UpdaterApi } from "./api/updater-api"
+import type { WorkspaceCleanupApi, WorkspaceSpaceApi } from "./api/workspace-cleanup-api"
+import type {
+  LocalhostWorktreeLabelsApi,
+  WorkspacePortsApi
+} from "./api/workspace-port-api"
+import type { LinkPreviewApi } from "./api/link-preview-api"
+import type { WorkspaceSessionApi } from "./api/workspace-session-api"
+import type {
+  FolderWorkspacesApi,
+  SparsePresetsApi,
+  WorktreeApi
+} from "./api/worktree-api"
 
 // Flattens contracts that share one PreloadApi key: an intersection is not type-identical to the flat shape.
 type Merged<T> = { [K in keyof T]: T[K] }
@@ -107,6 +125,7 @@ export type PreloadApi = {
   telemetrySetOptIn: TelemetryApi['telemetrySetOptIn']
   diagnostics: DiagnosticsApi
   telemetryGetConsentState: TelemetryApi['telemetryGetConsentState']
+  telemetryAssignBrowserExtensionsBanner: TelemetryApi['telemetryAssignBrowserExtensionsBanner']
   telemetryAcknowledgeBanner: TelemetryApi['telemetryAcknowledgeBanner']
   settings: SettingsApi
   agentAwake: AgentAwakeApi
@@ -115,6 +134,7 @@ export type PreloadApi = {
   codexAccounts: CodexAccountsApi
   claudeAccounts: ClaudeAccountsApi
   cli: CliApi
+  orcaUninstall: OrcaUninstallApi
   codexConfigSync: CodexConfigSyncApi
   preflight: PreflightApi
   notifications: NotificationsApi
@@ -125,6 +145,9 @@ export type PreloadApi = {
   developerPermissions: DeveloperPermissionsApi
   computerUsePermissions: ComputerUsePermissionsApi
   shell: ShellApi
+  botChanges: BotChangesApi
+  googleSetup: GoogleSetupApi
+  slackHandOff: SlackHandOffApi
   skills: SkillsApi
   pet: PetApi
   appIcon: AppIconApi
@@ -148,7 +171,7 @@ export type PreloadApi = {
   nativeChat: NativeChatApi
   fs: FilesystemApi['fs']
   git: Merged<GitInspectionApi & GitOperationApi>
-  ui: Merged<UiCommandEventApi & UiWindowApi>
+  ui: Merged<UiCommandEventApi & UiWindowApi & BotLinkEventApi>
   runtime: RuntimeApi['runtime']
   runtimeEnvironments: RuntimeApi['runtimeEnvironments']
   rateLimits: RateLimitsApi
@@ -166,6 +189,8 @@ export type PreloadApi = {
   plainSsh?: PlainSshTerminalApi
   /** COMPAT(legacy-relay-bridge): desktop-only, revisit 2027-01-15. */
   legacyRelayBridge?: LegacyRelayBridgeApi
+  /** Desktop only: heavy background work paused after repeated crashes. */
+  backgroundWorker?: BackgroundWorkerApi
   automations: AutomationsApi
   wsl: RuntimeApi['wsl']
   wslMove: WslMoveApi
@@ -178,68 +203,6 @@ export type PreloadApi = {
   mobile: MobileApi
   speech: SpeechApi
 }
-
-export type {
-  ClaudeUsageApi,
-  CodexUsageApi,
-  MuseUsageApi,
-  OpenCodeUsageApi
-} from './api/agent-usage-api'
-export type { AiVaultApi } from './api/ai-vault-api'
-export type { AutomationsApi, ExternalAutomationManagerResult } from './api/automation-api'
-export type { AppApi } from './api/app-api'
-export type {
-  BrowserApi,
-  DetectedBrowserInfo,
-  DetectedBrowserProfileInfo
-} from './api/browser/browser-api'
-export type { EmulatorApi } from './api/emulator-api'
-export type { ExportApi } from './api/filesystem-api'
-export type {
-  NativeChatApi,
-  NativeChatAppendedMessages,
-  NativeChatAppendedPayload,
-  NativeChatReadSessionResult,
-  NativeChatSubscribeArgs,
-  NativeChatSubscriptionFrame
-} from './api/native-chat-api'
-export type {
-  PluginAutoUpdateEvent,
-  PluginHostCustomEditor,
-  PluginHostNewFile,
-  PluginHostInstallResult,
-  PluginHostInstallSource,
-  PluginHostListEntry,
-  PluginHostLogLine,
-  PluginHostPanel,
-  PluginHostStatus,
-  PluginMarketplaceHostInstallPreview,
-  PluginMarketplaceHostListing,
-  PluginMarketplaceHostSourceState
-} from './api/plugin-host-api'
-export type {
-  PreflightApi,
-  PreflightRuntimeContext,
-  PreflightStatus,
-  RefreshAgentsResult
-} from './api/preflight-api'
-export type {
-  PtyManagementApi,
-  PtyManagementDaemonCwdClass,
-  PtyManagementFolderAccessMismatch,
-  PtyManagementMacTccAttributionHealth,
-  PtyManagementSession,
-  PtyManagementSeveredDaemon,
-  PtyManagementSeveredDaemonRestartResult
-} from './api/pty-management-api'
-
-export type {
-  DiagnosticsBundlePayload,
-  DiagnosticsStatusPayload,
-  DiagnosticsUploadPayload,
-  MemoryApi,
-  StatsApi
-} from './api/telemetry-api'
 
 declare global {
   // oxlint-disable-next-line typescript-eslint/consistent-type-definitions -- declaration merging requires interface

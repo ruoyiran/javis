@@ -35,6 +35,7 @@ const runtimeEnvironments = {
   onCatalogChanged: (callback:()=>void) => on('javis:browser:event',event=>{if(event.method==='browser.runtimeCatalogChanged')callback()}),
   list: async () => (await ipcRenderer.invoke('javis:browser:bootstrap')).runtimeEnvironments,
   invoke: (args: { selector: string; method: string; params?: unknown }) => ipcRenderer.invoke('javis:browser:runtime-invoke', args),
+  call: (args: { selector: string; method: string; params?: unknown; expectedEnvironmentPairingRevision?: number; timeoutMs?: number }) => ipcRenderer.invoke('javis:browser:runtime-invoke', { ...args, method: args.method === 'session.tabs.list' ? 'browser.workspaceSnapshot' : args.method }),
   subscribe: async (args: { subscriptionId?: string; selector: string; method: string; params?: unknown }, callbacks: SubscriptionCallbacks) => {
     const id = args.subscriptionId ?? crypto.randomUUID()
     subscriptions.set(id, callbacks)

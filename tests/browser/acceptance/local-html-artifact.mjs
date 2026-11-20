@@ -1,3 +1,4 @@
+import { browserFixtureApplication, browserFixtureElectron } from './browser-fixture-distribution.mjs'
 import { writeFile } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
 import assert from "node:assert/strict";
@@ -46,9 +47,9 @@ try {
   const require = createRequire(runtime);
   const { BrowserProcess } = require(runtime);
   processHandle = new BrowserProcess({
-    executable: createRequire(resolve("package.json"))("electron"),
-    entry: resolve("dist/browser/main/main.cjs"),
-    applicationDirectory: resolve("dist/browser"),
+    executable: browserFixtureElectron,
+    entry: join(browserFixtureApplication, "main/main.cjs"),
+    applicationDirectory: browserFixtureApplication,
     dataDirectory: join(directory, "state"),
     launchArguments: [
       `--remote-debugging-port=${port}`,

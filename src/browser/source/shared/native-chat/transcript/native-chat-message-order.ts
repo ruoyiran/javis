@@ -1,10 +1,13 @@
-import type { NativeChatMessage } from '../native-chat-types'
-import { NATIVE_CHAT_STREAMING_ID } from '../native-chat-streaming'
-import { isLaunchPromptMessageId, isPendingMessageId } from './native-chat-pending-sends'
+import type { NativeChatMessage } from "../native-chat-types"
+import { NATIVE_CHAT_STREAMING_ID } from "../native-chat-streaming"
+import {
+  isLaunchPromptMessageId,
+  isPendingMessageId
+} from "./native-chat-pending-sends"
 import {
   compareNativeChatTranscriptMessages,
   orderNativeChatTranscriptEntries
-} from './native-chat-transcript-projection'
+} from "./native-chat-transcript-projection"
 
 // Clocks cannot order a null-timestamp preview against a client send or a remote transcript.
 export function nativeChatDisplaySortRank(message: NativeChatMessage): number {

@@ -17,8 +17,8 @@ import {
   type AgentChildWorkProvenance,
   type AgentChildWorkRecord,
   type AgentChildWorkState
-} from './agent-status-child-work'
-import { parseAgentStatusSubject } from '../contracts/agent-status-subject'
+} from "./agent-status-child-work"
+import { parseAgentStatusSubject } from "../contracts/agent-status-subject"
 import {
   hasOnlyKeys,
   isBoundedString,
@@ -26,9 +26,9 @@ import {
   isChildWorkTokenCount,
   isRecord,
   isTimestamp
-} from './agent-status-child-work-value-guards'
-import { parseAgentChildWorkActivityFields } from './agent-status-child-work-activity-codec'
-import { isAgentChildWorkLifecycleLegal } from './agent-status-child-work-legality'
+} from "./agent-status-child-work-value-guards"
+import { parseAgentChildWorkActivityFields } from "./agent-status-child-work-activity-codec"
+import { isAgentChildWorkLifecycleLegal } from "./agent-status-child-work-legality"
 
 const CHILD_WORK_KIND_SET: ReadonlySet<string> = new Set(AGENT_CHILD_WORK_KINDS)
 const CHILD_WORK_STATE_SET: ReadonlySet<string> = new Set(AGENT_CHILD_WORK_STATES)
@@ -162,6 +162,7 @@ export function parseAgentChildWorkInput(value: unknown): AgentChildWorkInput | 
         'description',
         'agentType',
         'model',
+        'effort',
         'totalTokens',
         'providerTiming',
         'parentChildWorkId',
@@ -204,7 +205,8 @@ export function parseAgentChildWorkInput(value: unknown): AgentChildWorkInput | 
     name: parseOptionalLabel(value.name),
     description: parseOptionalLabel(value.description, AGENT_CHILD_WORK_DESCRIPTION_MAX_LENGTH),
     agentType: parseOptionalLabel(value.agentType),
-    model: parseOptionalLabel(value.model)
+    model: parseOptionalLabel(value.model),
+    effort: parseOptionalLabel(value.effort)
   }
   const activity = parseAgentChildWorkActivityFields(value, {
     childWorkId: value.childWorkId,
@@ -268,6 +270,7 @@ export function parseAgentChildWorkInput(value: unknown): AgentChildWorkInput | 
     ...(labels.description ? { description: labels.description } : {}),
     ...(labels.agentType ? { agentType: labels.agentType } : {}),
     ...(labels.model ? { model: labels.model } : {}),
+    ...(labels.effort ? { effort: labels.effort } : {}),
     ...(typeof value.totalTokens === 'number' ? { totalTokens: value.totalTokens } : {}),
     ...(timing ? { providerTiming: timing } : {}),
     ...activity,

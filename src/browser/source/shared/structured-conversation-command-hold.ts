@@ -2,20 +2,20 @@ import {
   isAgentSessionConversationCommand,
   type AgentSessionConversationCommand,
   type AgentSessionConversationCommandResult
-} from './agent-session/agent-session-conversation-command'
+} from "./agent-session/agent-session-conversation-command"
 import {
   readWholeAgentSessionFailureFact,
   type AgentSessionFailureFact
-} from './agent-session/failures/agent-session-failure'
+} from "./agent-session/failures/agent-session-failure"
 import {
   sayAgentSessionFailureEnglish,
   type AgentSessionFailureSay
-} from './agent-session/failures/agent-session-failure-copy'
-import { agentSessionFailureSentence } from './agent-session/failures/agent-session-failure-words'
-import { agentSessionFailureStatedByRow } from './agent-session/failures/agent-session-visible-failures'
-import type { AgentSessionWriteNoticeSentence } from './agent-session/failures/agent-session-write-notice-copy'
-import { structuredAgentSessionCommandHostRefusalCause } from './agent-session/failures/structured-agent-session-command-refusal-cause'
-import type { StructuredAgentSessionCommandRefusalCause } from './agent-session/view/structured-agent-session-composer'
+} from "./agent-session/failures/agent-session-failure-copy"
+import { agentSessionFailureSentence } from "./agent-session/failures/agent-session-failure-words"
+import { agentSessionFailureStatedByRow } from "./agent-session/failures/agent-session-visible-failures"
+import type { AgentSessionWriteNoticeSentence } from "./agent-session/failures/agent-session-write-notice-copy"
+import { structuredAgentSessionCommandHostRefusalCause } from "./agent-session/failures/structured-agent-session-command-refusal-cause"
+import type { StructuredAgentSessionCommandRefusalCause } from "./agent-session/view/structured-agent-session-composer"
 
 /** Ahead leaves command text untouched behind an unanswered local send; other holds return an explicit refusal. */
 export type StructuredConversationCommandHold =
@@ -27,15 +27,19 @@ export type StructuredConversationCommandHold =
 
 /** Queued commands wait only for earlier unaccepted sends; ordinary commands wait for all in-flight agent work. */
 export function structuredConversationCommandHold(input: {
+  command: AgentSessionConversationCommand
   /** A /compact the host can hold as a card behind the turn or prompt. */
   waitsInLine: boolean
   /** A turn runs, or the chat shows the agent working on a message it has not answered. */
   agentWorking: boolean
   promptPending: boolean
+  /** Holds /clear only; the host knows whether the agent can compact beside them. */
   backgroundTasksRunning: boolean
+  /** A rewind on its way holds any command, in background work's words. */
+  rewindInFlight?: boolean
   sendPending: boolean
 }): StructuredConversationCommandHold | null {
-  if (input.backgroundTasksRunning) {
+  if (input.rewindInFlight || (input.backgroundTasksRunning && input.command === 'clear')) {
     return 'background'
   }
   if (input.waitsInLine) {

@@ -5,13 +5,13 @@ import {
   agentSessionExecutionLocationsEqual,
   isAgentSessionExecutionLocation,
   type AgentSessionExecutionLocation
-} from './lifecycle/agent-session-record'
-import type { AgentJournalCursor } from './journal/agent-session-journal-identity'
-import type { AgentSessionTurnCompletionEvent } from './view/agent-session-turn-completion-wire'
+} from "./lifecycle/agent-session-record"
+import type { AgentJournalCursor } from "./journal/agent-session-journal-identity"
+import type { AgentSessionTurnCompletionEvent } from "./view/agent-session-turn-completion-wire"
 import {
   AGENT_JOURNAL_TURN_OUTCOMES,
   type AgentJournalTurnOutcome
-} from '../agent-status/lifecycle/agent-turn-outcome'
+} from "../agent-status/lifecycle/agent-turn-outcome"
 
 /** What the host says needs the user: a settled request, or a prompt it raised. */
 export type AgentSessionAttentionEdge = Extract<
@@ -163,9 +163,13 @@ export function agentSessionAttentionNews(
   if (edge.type === 'prompt') {
     return { agentState: 'blocked' }
   }
-  const { outcome, awaitingUser } = edge.completion
+  const { outcome, awaitingUser, quiet } = edge.completion
   // ABSENT OUTCOME IS UNKNOWN: a host that predates the field must not read as any verdict.
   if (!AGENT_JOURNAL_TURN_OUTCOMES.includes(outcome)) {
+    return null
+  }
+  // A bot that ended on its quiet marker, or a failure its host already told of, is no news.
+  if (quiet === true && awaitingUser !== true) {
     return null
   }
   // A failure is news of its own even while a prompt waits; only a clean settle reads as the prompt.

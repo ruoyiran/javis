@@ -1,4 +1,7 @@
-import { addFanoutListeners, type FanoutEventSource } from '../runtime/events/event-listener-fanout'
+import {
+  addFanoutListeners,
+  type FanoutEventSource
+} from "../runtime/events/event-listener-fanout"
 
 export const RENDERER_GONE_MESSAGE = 'The window that started this upload went away'
 

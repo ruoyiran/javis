@@ -1,6 +1,10 @@
 // Share whole English translation pieces for desktop/mobile roster wording.
 
-import { englishCopyText, type CopyValues, type CountedCopy } from './counted-copy-english'
+import {
+  englishCopyText,
+  type CopyValues,
+  type CountedCopy
+} from "./counted-copy-english"
 
 export const BACKGROUND_TASK_COPY = {
   monitoring: 'Monitoring background tasks',

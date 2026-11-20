@@ -1,21 +1,24 @@
 // Share headless group moves with the runtime. Create each split group with its tab atomically; empty groups never persist.
 
-import { canonicalTabGap } from './workspace-layout-client-visibility'
-import type { TabGroupLayoutNode } from '../tab-types'
-import { buildHeadlessTabGroupMove, buildHeadlessTabGroupSplit } from './tab-group-moves'
-import { moveGroupLeafBeside, moveGroupLeafBesideBranch } from './tab-group-layout-tree'
+import { canonicalTabGap } from "./workspace-layout-client-visibility"
+import type { TabGroupLayoutNode } from "../tab-types"
+import {
+  buildHeadlessTabGroupMove,
+  buildHeadlessTabGroupSplit
+} from "./tab-group-moves"
+import { moveGroupLeafBeside, moveGroupLeafBesideBranch } from "./tab-group-layout-tree"
 import {
   applied,
   findTab,
   refuse,
   workspaceOrEmpty,
   type Applied
-} from './workspace-layout-command-steps'
-import type { CommandOf, LayoutContext } from './workspace-layout-command-types'
-import type { WorkspaceLayout, WorkspaceLayoutModel } from './workspace-layout-model'
-import { withWorkspace } from './workspace-layout-removal'
-import { groupShowsTabFile } from './workspace-layout-workspace-move'
-import { withGroupSplitRatios } from './split-ratio-intents'
+} from "./workspace-layout-command-steps"
+import type { CommandOf, LayoutContext } from "./workspace-layout-command-types"
+import type { WorkspaceLayout, WorkspaceLayoutModel } from "./workspace-layout-model"
+import { withWorkspace } from "./workspace-layout-removal"
+import { groupShowsTabFile } from "./workspace-layout-workspace-move"
+import { withGroupSplitRatios } from "./split-ratio-intents"
 
 function sourceGroupOf(workspace: WorkspaceLayout, tabId: string) {
   return findTab(workspace, tabId)
@@ -197,6 +200,7 @@ type NewGroupOpen = CommandOf<
   | 'openBrowserTab'
   | 'openAgentSessionTab'
   | 'openSimulatorTab'
+  | 'openRoomTab'
 >
 
 /** Open into the named group or create it beside the split target atomically. A group already held by main takes the open without splitting. */

@@ -8,26 +8,27 @@ import type {
   BrowserClearResult,
   BrowserSelectAllResult,
   BrowserPdfResult
-} from '../../../../shared/browser/runtime/runtime-browser-contracts'
-import { BrowserError } from '../../browser-error'
+} from "../../../../shared/browser/runtime/runtime-browser-contracts"
+import { BrowserError } from "../../browser-error"
 import {
   FILE_INPUT_FRAME_URL_FUNCTION,
   FILE_UPLOAD_TARGET_FUNCTION,
   FILL_ELEMENT_FUNCTION,
+  FOCUS_ELEMENT_FUNCTION,
   SELECT_ALL_ELEMENT_FUNCTION
-} from '../../cdp/input/browser-element-functions'
-import { assertUploadFilesExist } from '../../cdp/input/browser-upload-files'
+} from "../../cdp/input/browser-element-functions"
+import { assertUploadFilesExist } from "../../cdp/input/browser-upload-files"
 import type { WebContents } from 'electron'
-import type { CapturedElement } from '../../cdp/commands/cdp-element-capture'
-import { interceptFileChooser, type OpenedFileChooser } from '../../cdp/input/guest-file-chooser'
-import { readRecord, readString } from '../../cdp/input/guest-frame-input-sessions'
+import type { CapturedElement } from "../../cdp/commands/cdp-element-capture"
+import { interceptFileChooser, type OpenedFileChooser } from "../../cdp/input/guest-file-chooser"
+import { readRecord, readString } from "../../cdp/input/guest-frame-input-sessions"
 import {
   agentBrowserWaitArguments,
   type AgentBrowserWaitOptions
-} from '../protocol/agent-browser-wait-arguments'
-import { parseCdpKeyEvent } from '../../cdp/input/cdp-keyboard-us-layout'
-import { readRemoteCliAdmittedPage } from '../../routing/input-ownership/remote-cli-page-admission'
-import { AgentBrowserBridgeKeyCommands } from './agent-browser-bridge-key-commands'
+} from "../protocol/agent-browser-wait-arguments"
+import { parseCdpKeyEvent } from "../../cdp/input/cdp-keyboard-us-layout"
+import { readRemoteCliAdmittedPage } from "../../routing/input-ownership/remote-cli-page-admission"
+import { AgentBrowserBridgeKeyCommands } from "./agent-browser-bridge-key-commands"
 
 export abstract class AgentBrowserBridgeInteractionCommands extends AgentBrowserBridgeKeyCommands {
   async hover(
@@ -35,7 +36,7 @@ export abstract class AgentBrowserBridgeInteractionCommands extends AgentBrowser
     worktreeId?: string,
     browserPageId?: string
   ): Promise<BrowserHoverResult> {
-    return this.enqueuePageAction(
+    return this.enqueueInertAction(
       worktreeId,
       browserPageId,
       async (sessionName) => {
@@ -115,7 +116,7 @@ export abstract class AgentBrowserBridgeInteractionCommands extends AgentBrowser
           await chooser.release()
         }
       },
-      { elements: [element] }
+      { elements: [element], blockFileChooser: false }
     )
   }
 
@@ -199,7 +200,10 @@ export abstract class AgentBrowserBridgeInteractionCommands extends AgentBrowser
       worktreeId,
       browserPageId,
       async (sessionName) => {
-        return (await this.execAgentBrowser(sessionName, ['focus', element])) as BrowserFocusResult
+        await this.actOnElement(sessionName, element, 'focus', FOCUS_ELEMENT_FUNCTION, {
+          movesFocus: true
+        })
+        return { focused: element }
       },
       { elements: [element] }
     )
@@ -214,7 +218,10 @@ export abstract class AgentBrowserBridgeInteractionCommands extends AgentBrowser
       worktreeId,
       browserPageId,
       async (sessionName) => {
-        await this.actOnElement(sessionName, element, 'clear', FILL_ELEMENT_FUNCTION, [''])
+        await this.actOnElement(sessionName, element, 'clear', FILL_ELEMENT_FUNCTION, {
+          args: [''],
+          movesFocus: true
+        })
         return { cleared: element }
       },
       { requireScopedTarget: true, elements: [element] }
@@ -234,7 +241,8 @@ export abstract class AgentBrowserBridgeInteractionCommands extends AgentBrowser
           sessionName,
           element,
           'select all in',
-          SELECT_ALL_ELEMENT_FUNCTION
+          SELECT_ALL_ELEMENT_FUNCTION,
+          { movesFocus: true }
         )
         // Code editors select their whole document from the shortcut, beyond the DOM they render;
         // an element that can't take focus keeps the DOM selection instead.

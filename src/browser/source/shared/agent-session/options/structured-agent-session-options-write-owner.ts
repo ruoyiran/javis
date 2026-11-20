@@ -1,20 +1,20 @@
-import { AGENT_CHAT_PERMISSION_MODE_OPTION_ID } from '../../agent-launch/permissions/agent-chat-permission-mode'
-import type { AgentSessionWriteFailure } from '../failures/agent-session-write-failure'
+import { AGENT_CHAT_PERMISSION_MODE_OPTION_ID } from "../../agent-launch/permissions/agent-chat-permission-mode-option-id"
+import type { AgentSessionWriteFailure } from "../failures/agent-session-write-failure"
 import type {
   SessionOptionDescriptor,
   SessionOptionValue
-} from '../../native-chat/input/native-chat-session-options'
-import { encodeStructuredAgentSessionOptionValue } from './structured-agent-session-option-codec'
-import { canSetStructuredAgentSessionOption } from './structured-agent-session-option-snapshot'
+} from "../../native-chat/input/native-chat-session-options"
+import { encodeStructuredAgentSessionOptionValue } from "./structured-agent-session-option-codec"
+import { canSetStructuredAgentSessionOption } from "./structured-agent-session-option-snapshot"
 import {
   structuredAgentSessionOptionPicks,
   type StructuredAgentSessionOptionState
-} from './structured-agent-session-options'
+} from "./structured-agent-session-options"
 import type {
   SelectionOperation,
   SelectionOutcome,
   StructuredSessionSelectionController
-} from './structured-agent-session-selection-operations'
+} from "./structured-agent-session-selection-operations"
 
 type WriteContext = {
   controller: StructuredSessionSelectionController

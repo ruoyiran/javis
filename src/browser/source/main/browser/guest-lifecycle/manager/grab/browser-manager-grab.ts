@@ -1,19 +1,35 @@
 import { webContents } from 'electron'
-import { buildGuestOverlayScript } from '../../../element-grab/grab-guest-script'
-import { clampGrabPayload } from '../../../element-grab/browser-grab-payload'
-import { captureSelectionScreenshot as captureGrabSelectionScreenshot } from '../../../element-grab/browser-grab-screenshot'
+import { buildGuestOverlayScript } from "../../../element-grab/grab-guest-script"
+import { clampGrabPayload } from "../../../element-grab/browser-grab-payload"
+import { captureSelectionScreenshot as captureGrabSelectionScreenshot } from "../../../element-grab/browser-grab-screenshot"
 import {
   getWorkspaceDocPageGuest,
   readDocPreviewGuestDocumentUrl
-} from '../../../document-preview/doc-preview-guest-policy'
+} from "../../../document-preview/doc-preview-guest-policy"
 import type {
   BrowserGrabCancelReason,
   BrowserGrabResult,
   BrowserGrabRect,
   BrowserGrabPayload,
   BrowserGrabScreenshot
-} from '../../../../../shared/browser/element-grab/browser-grab-types'
-import { BrowserManagerViewport } from '../viewport/browser-manager-viewport'
+} from "../../../../../shared/browser/element-grab/browser-grab-types"
+import { BrowserManagerViewport } from "../viewport/browser-manager-viewport"
+
+// Electron's executeJavaScript waits for did-stop-loading, so a guest destroyed mid-load never settles it.
+function runOverlayScript(guest: Electron.WebContents, mode: 'arm' | 'teardown'): Promise<boolean> {
+  return new Promise((resolve) => {
+    const settle = (ran: boolean): void => {
+      guest.off('destroyed', onDestroyed)
+      resolve(ran)
+    }
+    const onDestroyed = (): void => settle(false)
+    guest.once('destroyed', onDestroyed)
+    guest.executeJavaScript(buildGuestOverlayScript(mode)).then(
+      () => settle(true),
+      () => settle(false)
+    )
+  })
+}
 
 export abstract class BrowserManagerGrab extends BrowserManagerViewport {
   /** Authorize tools for browsing and document guests; documents stay outside browsing maps. */
@@ -57,20 +73,10 @@ export abstract class BrowserManagerGrab extends BrowserManagerViewport {
       if (hadActiveGrabOp) {
         return true
       }
-      try {
-        await guest.executeJavaScript(buildGuestOverlayScript('teardown'))
-        return true
-      } catch {
-        return false
-      }
+      return runOverlayScript(guest, 'teardown')
     }
     // Arm eagerly so hover feedback appears before selection starts.
-    try {
-      await guest.executeJavaScript(buildGuestOverlayScript('arm'))
-      return true
-    } catch {
-      return false
-    }
+    return runOverlayScript(guest, 'arm')
   }
 
   awaitGrabSelection(

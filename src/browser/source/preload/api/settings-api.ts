@@ -1,13 +1,13 @@
-import type { KeybindingActionId, KeybindingFileSnapshot } from '../../shared/keybindings'
+import type { KeybindingActionId, KeybindingFileSnapshot } from "../../shared/keybindings/types"
 import type {
   WarpThemeImportPreview,
   WarpThemeImportSource
-} from '../../shared/terminal-themes/terminal-custom-themes'
-import type { GlobalSettings } from '../../shared/global-settings-types'
+} from "../../shared/terminal-themes/terminal-custom-themes"
+import type { GlobalSettings } from "../../shared/global-settings-types"
 import type {
   TerminalConfigImportPreview,
   TerminalConfigImportSource
-} from '../../shared/terminal/appearance/terminal-config-import-preview'
+} from "../../shared/terminal/appearance/terminal-config-import-preview"
 
 export type SettingsApi = {
   get: () => Promise<GlobalSettings>

@@ -1,10 +1,11 @@
 import type { WebContents } from 'electron'
+import { initializeClaimedBrowserRouteGuest } from "./browser-route-guest-initialization"
 import {
   browserRoutePageKey,
   type BrowserRouteGuestLifecycleClaim,
   type BrowserRoutePageAuthorityRetirement,
   type BrowserRoutePageGuestIdentity as GuestIdentity
-} from './browser-route-page-authority'
+} from "./browser-route-page-authority"
 import {
   closeRouteGuest,
   browserRouteRegistrationMatchesGuest,
@@ -13,33 +14,34 @@ import {
   isRouteGuestOwnedByRenderer,
   isValidBlankRouteGuest,
   isValidRoutePageRetirement
-} from './browser-route-guest-guard'
-import { claimBrowserRouteGuestLifecycle } from './browser-route-guest-lifecycle-claim'
-import { releaseBrowserRouteGuest } from './browser-route-guest-release'
+} from "./browser-route-guest-guard"
+import { claimRegisteredBrowserRouteGuestLifecycle } from "./browser-route-guest-lifecycle-claim"
+import { releaseBrowserRouteGuest } from "./browser-route-guest-release"
 import {
   grantBrowserRouteGuestNavigation,
   revokeBrowserRouteGuestNavigation
-} from './browser-route-navigation-authority'
+} from "./browser-route-navigation-authority"
 import {
   beginBrowserRouteGuestRetirement,
+  retireBrowserRouteGuestPage,
   createBrowserRouteGuestState,
   installBrowserRouteGuestQuarantine,
   isBrowserRouteGuestNavigationAllowed,
   navigateBrowserRouteGuest
-} from './browser-route-guest-lifecycle'
-import type { BrowserRouteGuestState as GuestState } from './browser-route-webcontents-state'
-import { enforceBrowserRouteWebRtcPolicy } from '../../network/egress/browser-route-webrtc-policy'
+} from "./browser-route-guest-lifecycle"
+import type { BrowserRouteGuestState as GuestState } from "./browser-route-webcontents-state"
+import { enforceBrowserRouteWebRtcPolicy } from "../../network/egress/browser-route-webrtc-policy"
 import {
   grantReconciledBrowserRouteGuestNavigation,
   rekeyBrowserRouteGuest,
   type BrowserRouteGuestLifecycleRekey
-} from './browser-route-webcontents-rekey'
-import { registerBrowserRouteGuest } from './browser-route-webcontents-registration'
+} from "./browser-route-webcontents-rekey"
+import { registerBrowserRouteGuest } from "./browser-route-webcontents-registration"
 import {
   BrowserRoutePageAvailability,
   reportBrowserRoutePageAvailabilityLoss
-} from './browser-route-page-availability'
-import type { BrowserRouteWebContentsRegistryDependencies } from './browser-route-webcontents-registry-dependencies'
+} from "./browser-route-page-availability"
+import type { BrowserRouteWebContentsRegistryDependencies } from "./browser-route-webcontents-registry-dependencies"
 
 export class BrowserRouteWebContentsRegistry {
   private readonly maxGuests: number
@@ -73,6 +75,9 @@ export class BrowserRouteWebContentsRegistry {
         getPartitionForSession: (routeSession) =>
           this.dependencies.getPartitionForSession(routeSession),
         reportBlockedPopup: (blocked) => this.dependencies.reportBlockedPopup?.(blocked),
+        popupReleased: (opener) => this.dependencies.popupReleased?.(opener),
+        openNewTabPopup: this.dependencies.openNewTabPopup,
+        releaseAgentLead: this.dependencies.releaseAgentLead,
         isPopupNavigationAllowed: (url) => this.navigationAllowed(state, url, false)
       })
     } catch {
@@ -113,15 +118,11 @@ export class BrowserRouteWebContentsRegistry {
   }
 
   claimGuestLifecycle(registration: GuestIdentity): BrowserRouteGuestLifecycleClaim | null {
-    const state = this.guests.get(registration.webContentsId)
-    return claimBrowserRouteGuestLifecycle(registration, state, () =>
-      Boolean(
-        state &&
-        (!state.registration ||
-          (browserRoutePageKey(state.registration) === browserRoutePageKey(registration) &&
-            this.hasLivePageAuthority(state))) &&
-        this.registrationMatchesGuest(state, registration)
-      )
+    return claimRegisteredBrowserRouteGuestLifecycle(
+      registration,
+      this.guests.get(registration.webContentsId),
+      (state) => this.registrationMatchesGuest(state, registration),
+      (state) => this.hasLivePageAuthority(state)
     )
   }
 
@@ -187,6 +188,21 @@ export class BrowserRouteWebContentsRegistry {
       this.hasLivePageAuthority(state)
     )
     return navigateBrowserRouteGuest(registration, rawUrl, state, () => isCurrent)
+  }
+
+  initializeGuest(
+    claim: BrowserRouteGuestLifecycleClaim,
+    url: string,
+    signal: AbortSignal
+  ): Promise<string> {
+    return initializeClaimedBrowserRouteGuest(
+      claim,
+      url,
+      signal,
+      this.guests,
+      (state) =>
+        this.registrationMatchesGuest(state, claim.registration) && this.hasLivePageAuthority(state)
+    )
   }
 
   beginGuestRetirement(claim: BrowserRouteGuestLifecycleClaim): Promise<void> | null {
@@ -287,34 +303,7 @@ export class BrowserRouteWebContentsRegistry {
   }
 
   private retireGuestPage(state: GuestState): void {
-    if (state.retirementRequested) {
-      return
-    }
-    state.retirementRequested = true
-    state.navigationGranted = false
-    // Fence popups before the logical retirement round trip.
-    state.popups?.closeAll()
-    const registration = state.registration
-    const pageAuthority = state.pageAuthority
-    if (!registration || pageAuthority === null) {
-      this.revokeGuest(state)
-      return
-    }
-    let started = false
-    try {
-      started = this.dependencies.retirePreparedPage({
-        partition: registration.partition,
-        browserPageId: registration.browserPageId,
-        pageHostGeneration: registration.pageHostGeneration,
-        rendererWebContentsId: registration.rendererWebContentsId,
-        pageAuthority
-      })
-    } catch {
-      // Exact guest stays revoked even if logical retirement cannot start.
-    }
-    if (!started) {
-      this.revokeGuest(state)
-    }
+    retireBrowserRouteGuestPage(state, this.dependencies, () => this.revokeGuest(state))
   }
 
   private releaseGuest(state: GuestState): void {

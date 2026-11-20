@@ -1,30 +1,30 @@
-import type { GhAccountBinding } from '../../shared/github/account-binding'
-import type { AppStarSource } from '../../shared/gh-star-source'
-import type { GhAuthDiagnostic } from '../../shared/github/auth-types'
-import type { TaskSourceContext } from '../../shared/work-items/task-source-context'
-import type { PRCheckDetail, PRCheckRunDetails } from '../../shared/github/check-types'
+import type { GhAccountBinding } from "../../shared/github/account-binding"
+import type { AppStarSource } from "../../shared/gh-star-source"
+import type { GhAuthDiagnostic } from "../../shared/github/auth-types"
+import type { TaskSourceContext } from "../../shared/work-items/task-source-context"
+import type { PRCheckDetail, PRCheckRunDetails } from "../../shared/github/check-types"
 import type {
   GitHubCommentResult,
   GitHubPRReviewCommentInput,
   GitHubReactionContent,
   PRComment
-} from '../../shared/github/comment-types'
+} from "../../shared/github/comment-types"
 import type {
   GitHubPRRefreshCandidate,
   GitHubPRRefreshEnqueueResult,
   GitHubPRRefreshEvent,
   GitHubPRRefreshReason,
-  PRRefreshOutcome
-} from '../../shared/github/pull-request-refresh-types'
+  PRSnapshotReply
+} from "../../shared/github/pull-request-refresh-types"
+import type { GitHubRepositoryIdentity as GitHubOwnerRepo } from "../../shared/github/repositories/repository-identity"
 import type {
-  GitHubOwnerRepo,
   GitHubPRFile,
   GitHubPRFileContents,
   GitHubViewer,
   PRInfo
-} from '../../shared/github/pull-request-types'
-import type { GetRateLimitResult } from '../../shared/github/rate-limit-types'
-import type { GitHubRepoSelectorArgs } from './github-work-item-api'
+} from "../../shared/github/pull-request-types"
+import type { GetRateLimitResult } from "../../shared/github/api/rate-limit-types"
+import type { GitHubRepoSelectorArgs } from "./github-work-item-api"
 
 export type GithubPullRequestApi = {
   viewer: () => Promise<GitHubViewer | null>
@@ -42,6 +42,7 @@ export type GithubPullRequestApi = {
     repoOwnerExecutionHostId?: string
     branch: string
     linkedPRNumber?: number | null
+    linkedPRUrl?: string
     fallbackPRNumber?: number | null
     acceptMergedFallbackPR?: boolean
     currentHeadOid?: string | null
@@ -52,7 +53,7 @@ export type GithubPullRequestApi = {
     candidate: GitHubPRRefreshCandidate
     reason?: GitHubPRRefreshReason
     userRefresh?: boolean
-  }) => Promise<PRRefreshOutcome>
+  }) => Promise<PRSnapshotReply>
   enqueuePRRefresh: (args: {
     candidate: GitHubPRRefreshCandidate
     reason: GitHubPRRefreshReason
@@ -154,6 +155,8 @@ export type GithubPullRequestApi = {
       prNumber: number
       method?: 'merge' | 'squash' | 'rebase'
       prRepo?: GitHubOwnerRepo | null
+      /** The PR head the user reviewed; the merge is refused if GitHub's head moved past it. */
+      expectedHeadSha?: string | null
     }
   ) => Promise<{ ok: true } | { ok: false; error: string }>
   setPRAutoMerge: (
