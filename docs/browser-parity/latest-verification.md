@@ -1,6 +1,6 @@
 # Latest browser and desktop CUA verification
 
-Fixed source: Orca `d3a843d032f602cf09e392613683a94089efce07`; migration ancestor `729f757b592244176420a86114c1ea23911eeeba`; Javis base `b5c1080`. Work is retained on `feat/orca-browser-cua-latest-parity` in the requested Javis checkout. Production code candidate: `d3509aa`; later documentation commits do not change that code.
+Fixed source: Orca `d3a843d032f602cf09e392613683a94089efce07`; migration ancestor `729f757b592244176420a86114c1ea23911eeeba`; Javis base `b5c1080`. Work is retained on `feat/orca-browser-cua-latest-parity` in the requested Javis checkout. Verified production code: `e4e93c7`; later documentation commits do not change that code.
 
 The [fixed inventory](orca-d3a843d-baseline.json) records all 83 browser commands, 16 desktop CUA commands, and 101 browser methods. The [command parity record](latest-command-parity.md) explains parameters and platform behavior. Browser Electron 43.8.10 and agent-browser 0.43.0 ship together; the native desktop providers remain independent. No Orca checkout is needed to install dependencies, build, or run Javis.
 
@@ -10,8 +10,8 @@ The following checks ran on macOS on 2026-11-20. Browser launches used `ORCA_BAC
 
 | Check | Result | Scope |
 | --- | --- | --- |
-| Final TypeScript gates | Core, browser node/preload, and renderer passed | Candidate `d3509aa` |
-| Final JavaScript suite | 88 files / 433 tests passed | CLI/MCP, runtime/provider contracts, browser, SSH framing, settings/mobile and lifecycle |
+| Final TypeScript gates | Core, browser node/preload, and renderer passed | Candidate `e4e93c7` |
+| Final JavaScript suite | 89 files / 443 tests passed | CLI/MCP, runtime/provider contracts, browser, SSH framing, settings/mobile and lifecycle |
 | Native macOS tests | 24 Swift tests passed | Helper unit/protocol and real image encoding |
 | Linux provider fixtures | 18 Python tests passed | Fake GI objects on macOS; not Linux GUI evidence |
 | Fixed inventory audit | 83 browser commands / 101 methods; 89 public / 12 internal; none missing | Interface inventory, separate from behavioral checks |
@@ -24,10 +24,10 @@ The following checks ran on macOS on 2026-11-20. Browser launches used `ORCA_BAC
 | Final framed/mobile fixtures | 5/5 passed | Copied distribution, device/frame/ACK isolation, granted file channel and actual JPEG in paired phone viewport |
 | Local HTML artifact | Passed, zero renderer errors | Loaded artifact reads granted; unopened files refused; hidden real guest |
 | Owner lifecycle | Passed | Controlled protocol peer shutdown/fallback/ownership, no replay or surviving owned peer |
-| Cold independent source copy | Passed; all stages exit 0, including 433 tests and hidden startup with zero renderer errors | Fresh public npm cache, no sibling/build/dependency artifacts, all TS/tests/build/notices/hidden startup |
+| Cold independent source copy | Passed on `e4e93c7`; all stages exit 0, including 443 tests and hidden startup with zero renderer errors | Fresh public npm cache, no sibling/build/dependency artifacts, all TS/tests/build/notices/hidden startup |
 | Dependency/source audit | All HTTPS tarballs public; 9 updated package integrities matched official registry; no production `@orca/*` imports or sibling paths | Source/build/native scan; Orca tree remained clean at fixed reference |
 
-Native, renderer, browser integration and core adapters received independent scoped reviews. The native reviews led to provider-derived subtree/PID/window validation and valid Windows non-main window handling. Renderer review led to initialization transport and stranded-draft checkpoint fixes. Core review led to end-to-end passive read deadlines and unpublished wait observations. Final whole-branch review: pending candidate review after these completed verification gates.
+Native, renderer, browser integration and core adapters received independent scoped reviews. The native reviews led to provider-derived subtree/PID/window validation and valid Windows non-main window handling. Renderer review led to initialization transport and stranded-draft checkpoint fixes. Core review led to end-to-end passive read deadlines and unpublished wait observations. The whole-branch review found captured/generic renderer calls dropping pairing revisions before main-process guards. Fix `e4e93c7` preserves the original revision through compatibility probes and final IPC delivery; ten owning replacement/cancellation/stable-host cases cover the actual wrappers, HostCatalog and HostBridge. The same wave corrected the operations pin and screen-lock product name. Its single scoped re-review approved all three fixes, with no new findings; no reviewed defect remains open.
 
 ## Wait delivery and authority
 
