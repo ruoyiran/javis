@@ -32,17 +32,22 @@ export async function readSubtreeSnapshot(
   const root = elementParam(base, rootElementIndex)
   if (!root || runtimeIdKey(root) === null) throw new RuntimeClientError('element_not_found', 'The observed subtree root has no resolvable handle')
   if (!Number.isSafeInteger(base.app.pid) || base.app.pid <= 0) throw new RuntimeClientError('provider_incompatible', 'The cached observation has no valid app process identity')
-  const current = await callBridge({ tool: 'list_windows', app })
+  const hasWindowId = base.windowId != null
+  const current = await callBridge(hasWindowId
+    ? { tool: 'get_app_state', app, windowId: base.windowId!, noScreenshot: true }
+    : { tool: 'list_windows', app })
   const requestedWindowIndex = optionalNumberParam(params, 'windowIndex')
-  const selectedWindow = base.windowId != null
-    ? current.windows?.find(window => window.id === base.windowId)
+  const selectedWindow = hasWindowId && current.snapshot
+    ? { app: current.snapshot.app, id: current.snapshot.windowId, index: current.snapshot.windowIndex }
     : current.windows?.find(window => window.index === (optionalNumberParam(params, 'windowIndex') ?? base.windowIndex))
+  const currentApp = hasWindowId ? current.snapshot?.app : current.app
   if (
-    current.app?.pid !== base.app.pid ||
+    currentApp?.pid !== base.app.pid ||
     !selectedWindow ||
     selectedWindow.app?.pid !== base.app.pid ||
-    (base.windowIndex != null && selectedWindow.index !== base.windowIndex) ||
-    (requestedWindowIndex !== undefined && selectedWindow.index !== requestedWindowIndex)
+    (hasWindowId
+      ? selectedWindow.id !== base.windowId
+      : (base.windowIndex != null && selectedWindow.index !== base.windowIndex) || (requestedWindowIndex !== undefined && selectedWindow.index !== requestedWindowIndex))
   ) {
     throw new RuntimeClientError('window_stale', 'The requested app process or window no longer matches its observation')
   }
@@ -51,7 +56,7 @@ export async function readSubtreeSnapshot(
     app: `pid:${base.app.pid}`,
     root,
     windowId: base.windowId ?? undefined,
-    ...(base.windowId == null ? { windowIndex: selectedWindow.index } : {}),
+    ...(base.windowId == null ? { windowIndex: selectedWindow.index ?? undefined } : {}),
     ...screenshotRequestParams(params),
     restoreWindow: params.restoreWindow === true
   })
@@ -62,7 +67,7 @@ export async function readSubtreeSnapshot(
   if (
     subtree.app?.pid !== base.app.pid ||
     (base.windowId != null ? subtree.windowId !== base.windowId : subtree.windowIndex !== selectedWindow.index) ||
-    (subtree.windowIndex != null && subtree.windowIndex !== selectedWindow.index)
+    (!hasWindowId && subtree.windowIndex != null && subtree.windowIndex !== selectedWindow.index)
   ) {
     throw new RuntimeClientError('window_stale', 'The subtree reply belongs to a different app process or window')
   }
