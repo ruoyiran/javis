@@ -3,8 +3,8 @@ import {
   createSettleNotifier,
   monotonicNow,
   type Settled
-} from './deadline-settle-notifier'
-import type { LibprocAddon, LibprocProcessRow, LibprocQuery } from './libproc-addon'
+} from "./deadline-settle-notifier"
+import type { LibprocAddon, LibprocProcessRow, LibprocQuery } from "./libproc-addon"
 
 type NativeRead = {
   /** Creation order; once submitted, a read serves only callers registered before it was created. */
@@ -157,10 +157,6 @@ export async function readFreshNativeTable(
     }
     return settled.value
   }
-}
-
-export function nativeReadWaitersForTests(): number {
-  return slotWaiters.size
 }
 
 export function resetNativeReadsForTests(): void {

@@ -1,23 +1,23 @@
 import { useCallback, type Dispatch, type SetStateAction } from 'react'
-import { translate } from '@/i18n/i18n'
-import { mayHoldAgentReferences } from '../../../../../../shared/orchestration/mailbox/orchestration-agent-reference'
-import type { NativeChatPickerItem } from '../../../../../../shared/native-chat/input/native-chat-picker-items'
-import type { SlashCommandSuggestion } from '../../../../../../shared/native-chat/input/native-chat-slash-commands'
+import { translate } from "../../../../i18n/i18n"
+import { mayHoldAgentReferences } from "../../../../../../shared/orchestration/mailbox/orchestration-agent-reference"
+import type { NativeChatPickerItem } from "../../../../../../shared/native-chat/input/native-chat-picker-items"
+import type { SlashCommandSuggestion } from "../../../../../../shared/native-chat/input/native-chat-slash-commands"
 import {
   isNativeChatSideChatCommand,
   parseNativeChatSideChatDraft,
   withNativeChatSideChatCommands
-} from '../../../../../../shared/native-chat/input/native-chat-side-chat-command'
-import type { NativeChatStructuredComposerTransport } from '../submit/native-chat-structured-composer-transport'
-import type { NativeChatPickerState } from './use-native-chat-picker-state'
-import { nativeChatPendingAttachmentSnapshot } from '../../attachments/chips/native-chat-pending-attachment-cache'
-import { NATIVE_CHAT_PASTED_TEXT_TOKEN } from '../../paste/native-chat-pasted-text-reference'
+} from "../../../../../../shared/native-chat/input/native-chat-side-chat-command"
+import type { NativeChatStructuredComposerTransport } from "../submit/native-chat-structured-composer-transport"
+import type { NativeChatPickerState } from "./use-native-chat-picker-state"
+import { nativeChatPendingAttachmentSnapshot } from "../../attachments/chips/native-chat-pending-attachment-cache"
+import { NATIVE_CHAT_PASTED_TEXT_TOKEN } from "../../paste/native-chat-pasted-text-reference"
 import {
   clearNativeChatComposerDraftIfUnchanged,
   readNativeChatComposerDraft
-} from '../../drafts/native-chat-composer-draft-store'
-import { structuredAgentSessionDraftScopeKey } from '../../drafts/native-chat-draft-scope'
-import { promptHasAttachmentReferences } from '../editor/native-chat-prompt-document'
+} from "../../drafts/native-chat-composer-draft-store"
+import { structuredAgentSessionDraftScopeKey } from "../../drafts/native-chat-draft-scope"
+import { promptHasAttachmentReferences } from "../editor/native-chat-prompt-document"
 
 export function withNativeChatSideChatRows(
   commands: readonly SlashCommandSuggestion[],
@@ -120,7 +120,7 @@ export function useNativeChatSideChatCommand(args: {
         const leading = autocomplete.mode === 'slash' && autocomplete.dispatchable === true
         const name = item.kind === 'command' && item.orcaOwned ? item.name : null
         if (leading && sideChat && isNativeChatSideChatCommand(name)) {
-          // An unavailable row says why; picking it does nothing, as the common pattern does.
+          // An unavailable row says why; picking it does nothing.
           if (sideChat.notReadyReason === null) {
             completeItem(item)
           }

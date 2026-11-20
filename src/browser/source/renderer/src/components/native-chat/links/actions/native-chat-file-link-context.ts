@@ -1,15 +1,15 @@
-import { runtimeEnvironmentIdOrLocalUnlessTwin } from '../../../../lib/workspace/ownership/worktree-runtime-owner'
-import type { AppState } from '../../../../store/types'
-import type { WorktreeRuntimeOwnerState } from '../../../../lib/workspace/ownership/worktree-runtime-owner-state'
+import { runtimeEnvironmentIdOrLocalUnlessTwin } from "../../../../lib/workspace/ownership/worktree-runtime-owner"
+import type { AppState } from "../../../../store/types"
+import type { WorktreeRuntimeOwnerState } from "../../../../lib/workspace/ownership/worktree-runtime-owner-state"
 import {
   resolveNativeChatTabDirectory,
   type NativeChatTabDirectoryState
-} from '../../pane/routing/native-chat-tab-directory'
+} from "../../pane/routing/native-chat-tab-directory"
 
 import {
   findNativeChatTabOwnerWorktreeId,
   createNativeChatTabOwnerSelector
-} from '../../pane/ownership/native-chat-tab-owner'
+} from "../../pane/ownership/native-chat-tab-owner"
 
 export type NativeChatFileLinkContext = {
   worktreeId: string
@@ -17,6 +17,8 @@ export type NativeChatFileLinkContext = {
   runtimeEnvironmentId: string | null
   /** The chat's own tab (terminal or agent-session); editor opens place beside its group. */
   sourceTabId?: string
+  /** Where relative paths resolve when not worktreePath: a group member's own folder. Opens stay in worktreeId. */
+  pathBase?: string
 }
 
 export type NativeChatFileLinkState = Pick<

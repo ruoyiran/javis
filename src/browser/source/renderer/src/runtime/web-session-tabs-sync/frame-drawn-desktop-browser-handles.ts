@@ -1,9 +1,11 @@
-import type { RuntimeMobileSessionTabsResult } from '../../../../shared/runtime-types'
-import { markWebSessionBrowserPlacementAdopted } from '../browser/placement/web-session-browser-placement'
-import { findBrowserWorkspaceForRemotePage } from './mirrored-browser-tabs'
-import type { WebSessionTabsBatchContext, WebSessionTabsSyncState } from './state'
-import { writableWebSessionTabsRecord } from './state-equality-core'
-import { isReadyBrowserTab } from './terminal-surfaces'
+import { annotateBrowserPageHandles } from "../../store/slices/browser/hosts/browser-initialization-presentation-ownership"
+import { browserInitializationReceiptStale } from "./tab-projection/browser-initialization-presentation"
+import type { RuntimeMobileSessionTabsResult } from "../../../../shared/runtime-session-contracts"
+import { markWebSessionBrowserPlacementAdopted } from "../browser/placement/web-session-browser-placement"
+import { findBrowserWorkspaceForRemotePage } from "./mirrored-browser-tabs"
+import type { WebSessionTabsBatchContext, WebSessionTabsSyncState } from "./state"
+import { writableWebSessionTabsRecord } from "./state-equality-core"
+import { isReadyBrowserTab } from "./terminal-surfaces"
 
 /** Client-hosted pages never enter server layout. Adopt only their staged handles from session.tabs as landing proof; frames retain tab ownership (L282). */
 export function adoptFrameDrawnClientHostedBrowserHandles(
@@ -13,6 +15,9 @@ export function adoptFrameDrawnClientHostedBrowserHandles(
   worktreeId: string,
   batchContext?: WebSessionTabsBatchContext
 ): Partial<WebSessionTabsSyncState> {
+  if (browserInitializationReceiptStale(snapshot)) {
+    return {}
+  }
   let handles = state.remoteBrowserPageHandlesByPageId
   for (const tab of snapshot.tabs) {
     if (!isReadyBrowserTab(tab) || tab.placement?.kind !== 'client') {
@@ -34,7 +39,10 @@ export function adoptFrameDrawnClientHostedBrowserHandles(
         batchContext
       )
     }
+    annotateBrowserPageHandles(handles, [existing.page.id])
     handles[existing.page.id] = {
+      ...handles[existing.page.id],
+      staged: undefined,
       environmentId,
       remotePageId: tab.browserPageId,
       placement: tab.placement

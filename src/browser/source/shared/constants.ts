@@ -1,72 +1,43 @@
-import type { GlobalSettings } from './global-settings-types'
-import type { RepoHookSettings } from './orca-yaml-hook-types'
-import type { PersistedState } from './persisted-state-types'
-import type { PersistedUIState } from './persisted-ui-state-types'
-import type { AgentActivityDisplayMode } from './ui-chrome-types'
-import type { WorkspaceSessionState } from './workspace-session/workspace-session-state-types'
-import { EMPTY_CODEX_RESET_CREDIT_ATTEMPT_LEDGER } from './codex-reset-credit-attempt-ledger'
-import { DEFAULT_STATUS_BAR_ITEMS } from './status-bar-defaults'
-import type { VoiceSettings } from './speech-types'
-import { DICTATION_LANGUAGE_AUTO } from './dictation-language'
-import { DEFAULT_UNLOAD_MODEL_AFTER_MINUTES } from './voice-model-unload'
-import { cloneDefaultWorkspaceStatuses } from './workspace-statuses'
-import { DEFAULT_WORKTREE_CARD_PROPERTIES } from './worktree/card-properties'
-import { DEFAULT_AGENTS_GROUP_BY, DEFAULT_AGENTS_READ_FILTER } from './agents-view-thread-filters'
-import { DEFAULT_USAGE_PERCENTAGE_DISPLAY } from './usage-percentage-display'
-import { DEFAULT_STATUS_BAR_USAGE_MODE } from './status-bar-usage-mode'
-import { DEFAULT_STATUS_BAR_USAGE_FORMAT } from './status-bar-usage-format'
-import { buildDefaultSettings } from './default-global-settings'
-import { DEFAULT_SETUP_AGENT_STARTUP_POLICY } from './agent-launch/startup/setup-agent-startup-policy'
-import { DEFAULT_BROWSER_PAGE_ZOOM_LEVEL } from './browser-page-zoom'
-import { getDefaultNotificationSettings } from './notification-settings-defaults'
-import { getDefaultOnboardingState } from './onboarding-defaults'
+import { DEFAULT_APP_FONT_FAMILY } from "./app-lifecycle/appearance/app-font-family"
+import { DEFAULT_EDITOR_AUTO_SAVE_DELAY_MS } from "./editor/saving/editor-auto-save-delay"
+import { DEFAULT_TERMINAL_INACTIVE_PANE_OPACITY } from "./terminal/appearance/terminal-pane-opacity"
+import {
+  DEFAULT_SHOW_SLEEPING_WORKSPACES,
+  DEFAULT_HIDE_SLEEPING_WORKSPACES
+} from "./workspace-view/sleeping-workspace-visibility"
+import { DEFAULT_AGENT_ACTIVITY_DISPLAY_MODE } from "./agent-status/presentation/agent-activity-display-mode"
+import type { GlobalSettings } from "./global-settings-types"
+import type { PersistedState } from "./persisted-state-types"
+import type { PersistedUIState } from "./persisted-ui-state-types"
+
+import type { WorkspaceSessionState } from "./workspace-session/workspace-session-state-types"
+import { EMPTY_CODEX_RESET_CREDIT_ATTEMPT_LEDGER } from "./codex-reset-credit-attempt-ledger"
+import { DEFAULT_STATUS_BAR_ITEMS } from "./status-bar-defaults"
+import type { VoiceSettings } from "./speech-types"
+import { DICTATION_LANGUAGE_AUTO } from "./dictation-language"
+import { DEFAULT_UNLOAD_MODEL_AFTER_MINUTES } from "./voice-model-unload"
+import { cloneDefaultWorkspaceStatuses } from "./workspace-statuses"
+import { DEFAULT_WORKTREE_CARD_PROPERTIES } from "./worktree/card-properties"
+import { DEFAULT_BOT_SIDEBAR_VIEW } from "./bots/bot-sidebar-view"
+import {
+  DEFAULT_AGENTS_GROUP_BY,
+  DEFAULT_AGENTS_READ_FILTER
+} from "./agents-view-thread-filters"
+import { DEFAULT_USAGE_PERCENTAGE_DISPLAY } from "./usage-percentage-display"
+import { DEFAULT_STATUS_BAR_USAGE_MODE } from "./status-bar-usage-mode"
+import { DEFAULT_STATUS_BAR_USAGE_FORMAT } from "./status-bar-usage-format"
+import { buildDefaultSettings } from "./default-global-settings"
+import { DEFAULT_BROWSER_PAGE_ZOOM_LEVEL } from "./browser-page-zoom"
+import { getDefaultNotificationSettings } from "./notification-settings-defaults"
+import { getDefaultOnboardingState } from "./onboarding-defaults"
 import {
   defaultTerminalFontFamily,
   defaultTerminalFontWeight,
   getDefaultPrimarySelectionMiddleClickPaste,
   getDefaultTerminalRightClickToPaste
-} from './terminal/appearance/terminal-platform-defaults'
-
-export { DEFAULT_STATUS_BAR_ITEMS } from './status-bar-defaults'
-export {
-  COMPACT_WORKTREE_CARD_PROPERTIES,
-  DEFAULT_WORKTREE_CARD_PROPERTIES,
-  TASK_WORKTREE_CARD_PROPERTIES,
-  getWorktreeCardModeProperties,
-  getWorktreeCardModeUpdates,
-  isCurrentCompactWorktreeCardProperties,
-  isDefaultedCompactWorktreeCardProperties,
-  normalizeWorktreeCardProperties
-} from './worktree/card-properties'
+} from "./terminal/appearance/terminal-platform-defaults"
 
 export const SCHEMA_VERSION = 1
-export const DEFAULT_APP_FONT_FAMILY = 'Geist'
-export const DEFAULT_SHOW_SLEEPING_WORKSPACES = true
-export const DEFAULT_HIDE_SLEEPING_WORKSPACES = false
-export const DEFAULT_AGENT_ACTIVITY_DISPLAY_MODE: AgentActivityDisplayMode = 'compact'
-export const DEFAULT_TERMINAL_INACTIVE_PANE_OPACITY = 0.9
-
-export function normalizeAgentActivityDisplayMode(value: unknown): AgentActivityDisplayMode {
-  return value === 'full' || value === 'compact' ? value : DEFAULT_AGENT_ACTIVITY_DISPLAY_MODE
-}
-
-/** ProseMirror mounts whole documents. M-series Electron measurements at 300/450/600KB: longest tasks 0.66/1.02/1.41s; 600KB typing p95 39ms (#17134/#17147/#17158). Use cheap pre-parse byte guard, then source mode with Open anyway. */
-export const RICH_MARKDOWN_MAX_SIZE_BYTES = 600 * 1024
-
-export const DEFAULT_EDITOR_AUTO_SAVE_DELAY_MS = 1000
-export const MIN_EDITOR_AUTO_SAVE_DELAY_MS = 250
-export const MAX_EDITOR_AUTO_SAVE_DELAY_MS = 10_000
-
-// Why: first-time seed only — doubles on each dismissal without starring; later thresholds live in starNagNextThreshold.
-export const STAR_NAG_INITIAL_THRESHOLD = 35
-
-/** Synthetic worktree id for PTYs not tied to any worktree; shared so main and renderer agree on the sentinel. */
-export const ORPHAN_WORKTREE_ID = '__orphan__'
-
-// Why: synthetic local workspace; persistence pruning must classify it without the repo catalog.
-export const FLOATING_TERMINAL_WORKTREE_ID = 'global-floating-terminal'
-
-export { DEFAULT_REPO_BADGE_COLOR, REPO_COLORS } from './repo-badge-color'
 
 /** Expose the stock root so callers can distinguish an untouched default from a user-selected directory. */
 export function getDefaultWorkspaceDir(homeDir: string): string {
@@ -110,18 +81,6 @@ export function getDefaultVoiceSettings(): VoiceSettings {
     microphoneDeviceId: null,
     microphoneDeviceLabel: null,
     unloadModelAfterMinutes: DEFAULT_UNLOAD_MODEL_AFTER_MINUTES
-  }
-}
-
-export function getDefaultRepoHookSettings(): RepoHookSettings {
-  return {
-    mode: 'auto',
-    setupRunPolicy: 'run-by-default',
-    setupAgentStartupPolicy: DEFAULT_SETUP_AGENT_STARTUP_POLICY,
-    scripts: {
-      setup: '',
-      archive: ''
-    }
   }
 }
 
@@ -170,6 +129,7 @@ export function getDefaultUIState(): PersistedUIState {
     rightSidebarTab: 'explorer',
     rightSidebarExplorerView: 'files',
     rightSidebarWidth: 350,
+    activityBarPosition: 'top',
     markdownTocPanelWidth: 240,
     combinedDiffFileTreeWidth: 256,
     groupBy: 'repo',
@@ -192,12 +152,15 @@ export function getDefaultUIState(): PersistedUIState {
     _explorerDisplayRootMigrated: true,
     explorerDisplayRootByWorktree: {},
     showDotfilesByWorktree: {},
+    notificationsMutedByWorktree: {},
     filterRepoIds: [],
     agentsVisibleHostIds: null,
     agentsFilterRepoIds: [],
     agentsHideWorkspacesFromOtherDevices: false,
     agentsHideAutomationGeneratedWorkspaces: false,
     agentsHideCliCreatedWorkspaces: false,
+    hideBotCreatedWorkspaces: true,
+    botSidebarView: DEFAULT_BOT_SIDEBAR_VIEW,
     agentsShowChildAgents: false,
     agentsCompactMode: true,
     agentsShowSearch: true,

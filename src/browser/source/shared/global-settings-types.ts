@@ -1,36 +1,35 @@
-import type { AgentLaunchChoices } from './agent-launch/choices/agent-launch-choices'
-import type { TelemetrySettings } from './telemetry-settings-types'
-import type { BrowserProfileScope } from './browser/profiles/browser-profile-scope'
-import type { GlobalSettingsBase } from './global-settings-base'
-import type { ExecutionHostId } from './execution-host'
-import type { OrcaWorkspaceLayout } from './orca-workspace-layout'
-import type { GitHubProjectSettings } from './github/project-types'
-import type { VoiceSettings } from './speech-types'
-import type { AiVaultSearchSettings } from './ai-vault/search/ai-vault-search-settings'
-import type { GitLabProjectSettings } from './gitlab-types'
-import type { TaskProvider } from './work-items/task-providers'
-import type { AppIconId } from './app-icon'
-import type { SourceControlAiSettings } from './source-control/ai/settings/source-control-ai-settings-types'
-import type { ClaudeAgentTeamsMode } from './claude-agent-teams-tmux-compat'
-import type { TerminalCustomTheme } from './terminal-themes/terminal-custom-themes'
-import type { UiLanguage } from './ui-language'
-import type { GlobalWindowsRuntimeDefault } from './execution-host/project-runtime-preference'
-import type { PersistedNativeChatSessionOptions } from './native-chat/input/native-chat-session-options'
-import type { AgentChatPermissionMode } from './agent-launch/permissions/agent-chat-permission-mode'
-import type { ComputerAwakeMode } from './computer-awake-mode'
-import type { CommitMessageAiSettings } from './source-control/ai/generation/commit-message-ai-types'
-import type { HostSettingOverrides } from './host-setting-overrides'
+import type { AgentLaunchChoices } from "./agent-launch/choices/agent-launch-choices"
+import type { TelemetrySettings } from "./telemetry-settings-types"
+import type { BrowserProfileScope } from "./browser/profiles/browser-profile-scope"
+import type { GlobalSettingsBase } from "./global-settings-base"
+import type { ExecutionHostId } from "./execution-host"
+import type { OrcaWorkspaceLayout } from "./orca-workspace-layout"
+import type { GitHubProjectSettings } from "./github/projects/project-types"
+import type { VoiceSettings } from "./speech-types"
+import type { AiVaultSearchSettings } from "./ai-vault/search/ai-vault-search-settings"
+import type { GitLabProjectSettings } from "./gitlab-types"
+import type { TaskProvider } from "./work-items/task-providers"
+import type { AppIconId } from "./app-icon"
+import type { SourceControlAiSettings } from "./source-control/ai/settings/source-control-ai-settings-types"
+import type { ClaudeAgentTeamsMode } from "./claude-agent-teams-tmux-compat"
+import type { TerminalCustomTheme } from "./terminal-themes/terminal-custom-themes"
+import type { GlobalWindowsRuntimeDefault } from "./execution-host/project-runtime-preference"
+import type { PersistedNativeChatSessionOptions } from "./native-chat/input/native-chat-session-options"
+import type { AgentChatPermissionMode } from "./agent-launch/permissions/agent-chat-permission-mode"
+import type { ComputerAwakeMode } from "./computer-awake-mode"
+import type { CommitMessageAiSettings } from "./source-control/ai/generation/commit-message-ai-types"
+import type { HostSettingOverrides } from "./host-setting-overrides"
 import type {
   ClaudeManagedAccount,
   ClaudeManagedAccountRuntimeSelection,
   CodexManagedAccount,
   CodexManagedAccountRuntimeSelection
-} from './managed-account-types'
-import type { NotificationSettings } from './notification-settings-types'
-import type { CtrlTabOrderMode } from './tab-types'
-import type { TerminalQuickCommand } from './terminal/quick-commands/terminal-quick-command-types'
-import type { TuiAgent } from './agent-launch/catalog/tui-agent'
-import type { ZcodePlanSite } from './zcode-plan-sites'
+} from "./managed-account-types"
+import type { NotificationSettings } from "./notification-settings-types"
+import type { CtrlTabOrderMode } from "./tab-types"
+import type { TerminalQuickCommand } from "./terminal/quick-commands/terminal-quick-command-types"
+import type { TuiAgent } from "./agent-launch/catalog/tui-agent"
+import type { ZcodePlanSite } from "./zcode-plan-sites"
 import type {
   AgentDashboardMode,
   BranchPrefixStrategy,
@@ -41,10 +40,8 @@ import type {
   SourceControlGroupOrder,
   SourceControlViewMode,
   TaskViewPresetId
-} from './ui-chrome-types'
-import type { WorktreeVisibilityDefaults } from './repo-types'
-
-export type { WorktreeVisibilityDefaults } from './repo-types'
+} from "./ui-chrome-types"
+import type { WorktreeVisibilityDefaults } from "./repo-types"
 
 /** MiniMax account region used to select the quota endpoint. */
 export type MiniMaxEndpoint = 'overseas' | 'cn'
@@ -75,15 +72,16 @@ export type GlobalSettings = GlobalSettingsBase & {
   leftSidebarAppearanceMode: LeftSidebarAppearanceMode
   leftSidebarTintColor?: string
   leftSidebarTintOpacity?: number
-  uiLanguage: UiLanguage
-  uiLanguagePortugueseMigrationApplied?: boolean
   appIcon: AppIconId
   appFontFamily: string
   editorAutoSave: boolean
   /** Days a release must be public before Orca offers it; absent/0 offers releases immediately. */
   updateDelayDays?: number
+  automaticUpdates?: boolean
   editorAutoSaveDelayMs: number
   editorMinimapEnabled: boolean
+  /** Inline git blame after the cursor line; the status-bar item is separate. */
+  editorInlineBlame: boolean
   /** Defaults on for profiles saved before file-editor wrapping became configurable. */
   editorWordWrap?: boolean
   /** Persisted opt-out for browser spellcheck noise in rich Markdown editing surfaces. */
@@ -119,6 +117,7 @@ export type GlobalSettings = GlobalSettingsBase & {
   terminalLigatures: 'auto' | 'on' | 'off'
   /** Enable SIXEL/iTerm2/Kitty via lazy @xterm/addon-image; image canvas/storage allocates only after a pane receives an image. */
   terminalInlineImages: boolean
+  terminalDroppedImagesPreview?: boolean
   terminalCursorStyle: 'bar' | 'block' | 'underline'
   /** One-shot migration guard for moving inherited cursor defaults to block. */
   terminalCursorStyleDefaultedToBlock?: boolean
@@ -221,6 +220,8 @@ export type GlobalSettings = GlobalSettingsBase & {
   nativeChatInlineVisuals?: boolean
   /** Hovering a web link in chat fetches the page to preview it; absent means on. GitHub cards ignore this. */
   nativeChatLinkPreviews?: boolean
+  /** Spellcheck and autocorrect (system text replacement) in the chat composer; absent means on. */
+  nativeChatComposerSpellcheck?: boolean
   /** A card under a chat turn that opened a pull request; absent means on. */
   nativeChatOpenedPullRequests?: boolean
   /** Structured Codex/Claude chats inherit the login-shell env; off limits it to nativeChatShellEnvironmentVariables plus PATH/locale. */
@@ -258,6 +259,8 @@ export type GlobalSettings = GlobalSettingsBase & {
   /** Escalate native-chat worker turn errors to the dispatching Run; absent means on. Renderer-only so workers cannot silence failures via CLI. */
   /** Close a finished worker's terminal or chat after a grace period; absent means on. The coordinator's runtime decides. */
   orchestrationWorkerAutoReleaseEnabled?: boolean
+  /** Coordinator agents may allow workers' permission prompts on this machine; absent means off. Not in any agent-writable settings RPC. */
+  orchestrationCoordinatorApprovalsEnabled?: boolean
   /** Only toggles the sidebar shortcut; Artifacts stay reachable from Settings. */
   showArtifactsButton?: boolean
   /** Only toggles the sidebar shortcut; Skills stay reachable from Settings. */
@@ -323,8 +326,6 @@ export type GlobalSettings = GlobalSettingsBase & {
   terminalSshViewParking?: boolean
   /** Kill switch for the hidden-worktree retention budget (C1): force-parks the least-recently-hidden un-parkable worktrees beyond a count budget or TTL. */
   terminalHiddenWorktreeRetentionBudget?: boolean
-  /** Kill switch for the browser-guest worktree retention budget: destroys the least-recently-activated hidden worktrees' webview guests beyond an LRU count budget. */
-  browserGuestWorktreeRetentionBudget?: boolean
   /** Kill switch for main-process PTY side-effect authority; on (default) = title/bell/agent facts via pty:sideEffect channel, not renderer byte parsing. */
   terminalMainSideEffectAuthority?: boolean
   /** Kill switch for main's hidden-delivery gate (Phase 4): drops PTY bytes to hidden views after model ingestion; requires terminalMainSideEffectAuthority. */
@@ -373,11 +374,15 @@ export type GlobalSettings = GlobalSettingsBase & {
   zcodePlanSite?: ZcodePlanSite
   /** Extract OAuth credentials from the local Gemini CLI for rate-limit fetching. Off by default (explicit opt-in). */
   geminiCliOAuthEnabled: boolean
+  /** Poll Claude usage with existing CLI credentials. Off uses live terminal readings only. */
+  claudeOAuthUsageEnabled: boolean
   /** Per-agent CLI command overrides. A missing key means use the catalog default binary name. */
   agentCmdOverrides: Partial<Record<TuiAgent, string>>
   /** Off keeps each Codex home's history to itself: Orca links no sessions between accounts or
    *  into ~/.codex, and removes nothing already linked (#24511). Absent means on (#10770). */
   codexShareHistoryAcrossAccounts?: boolean
+  /** Workspace cleanup also deletes agent chat history whose Orca workspace folder is gone. Absent means off. */
+  deleteChatHistoryWithWorkspace?: boolean
   /** Custom CODEX_HOME for Codex session-history discovery (defaults to ~/.codex).
    *  History-only: does not change which account/config/hooks Orca uses. */
   codexSessionSourceHome?: {
@@ -498,5 +503,3 @@ export type GlobalSettings = GlobalSettingsBase & {
   /** Transcript full-text search consent + retention. Absent means off; nothing indexes until the user opts in. */
   aiVaultSearch?: AiVaultSearchSettings
 }
-
-export type { OrcaWorkspaceLayout } from './orca-workspace-layout'

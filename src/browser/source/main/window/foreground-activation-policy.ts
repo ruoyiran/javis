@@ -1,4 +1,4 @@
-import { app as electronApp, type BrowserWindow } from 'electron'
+import { app as electronApp, BaseWindow, type BrowserWindow } from 'electron'
 
 /** Automation must not steal OS foreground. Background/sidecar requests override E2E_FOREGROUND; the hosted-Xvfb benchmark may present explicitly after startup (tests/AGENTS.md), while automatic reveals stay suppressed. */
 
@@ -68,7 +68,10 @@ export function applyBackgroundActivationPolicy(options: ActivationPolicyOptions
 
 /** Gives a serve process its Dock tile and menu bar back while it hosts a desktop window. */
 export function applyServeDesktopWindowActivationPolicy(
-  options: Omit<ActivationPolicyOptions, 'serveWithoutDesktopWindow'> = {}
+  options: Omit<ActivationPolicyOptions, 'serveWithoutDesktopWindow'> & {
+    /** The window opens behind the user's app: take the Dock tile without dock.show()'s activation. */
+    background?: boolean
+  } = {}
 ): boolean {
   const platform = options.platform ?? process.platform
   // dock.show() activates the app, so automated launches keep the accessory policy.
@@ -78,9 +81,11 @@ export function applyServeDesktopWindowActivationPolicy(
   try {
     const app = options.app ?? electronApp
     app.setActivationPolicy('regular')
-    void app.dock?.show?.().catch((error: unknown) => {
-      options.warn?.('[window] Failed to show the Dock icon', error)
-    })
+    if (options.background !== true) {
+      void app.dock?.show?.().catch((error: unknown) => {
+        options.warn?.('[window] Failed to show the Dock icon', error)
+      })
+    }
     return true
   } catch (error) {
     options.warn?.('[window] Failed to apply foreground activation policy', error)
@@ -107,4 +112,49 @@ export function showWindowWithoutStealingFocus(
     return
   }
   window.show()
+}
+
+// Popups waiting for the user to come back share one pair of app listeners.
+const windowsAwaitingAppActive = new Set<BaseWindow>()
+
+function stopAwaitingAppActive(): void {
+  electronApp.off('browser-window-focus', revealWindowsAwaitingAppActive)
+  electronApp.off('did-become-active', revealWindowsAwaitingAppActive)
+}
+
+/** The user is back in Orca. Origin-bar popups (plain BaseWindows) call this on focus, since only BrowserWindows raise `browser-window-focus`. */
+export function revealWindowsAwaitingAppActive(): void {
+  if (windowsAwaitingAppActive.size === 0) {
+    return
+  }
+  stopAwaitingAppActive()
+  for (const window of windowsAwaitingAppActive) {
+    if (!window.isDestroyed()) {
+      window.showInactive()
+    }
+  }
+  windowsAwaitingAppActive.clear()
+}
+
+/** Shows a window an agent opened without activating Orca: now if Orca is in front, else once the user returns to it. */
+export function showWhenAppActive(window: BaseWindow, env: PolicyEnv = process.env): void {
+  if (window.isDestroyed() || isWindowlessLaunch(env)) {
+    return
+  }
+  // Any Orca window counts, including origin-bar popups (plain BaseWindows).
+  if (BaseWindow.getFocusedWindow()) {
+    window.showInactive()
+    return
+  }
+  if (windowsAwaitingAppActive.size === 0) {
+    // macOS reports the app's return through any window; elsewhere BrowserWindows and origin-bar popups report focus.
+    electronApp.on('browser-window-focus', revealWindowsAwaitingAppActive)
+    electronApp.on('did-become-active', revealWindowsAwaitingAppActive)
+  }
+  windowsAwaitingAppActive.add(window)
+  window.once('closed', () => {
+    if (windowsAwaitingAppActive.delete(window) && windowsAwaitingAppActive.size === 0) {
+      stopAwaitingAppActive()
+    }
+  })
 }

@@ -1,20 +1,20 @@
-import { z } from 'zod'
-import { WorkspaceAttachmentsSchema } from '../workspace-attachments/workspace-attachment-schema'
-import { WorkspaceLinkedItemSchema } from '../workspace-attachments/workspace-linked-item-schema'
-import { TaskSourceContextSchema } from '../work-items/task-source-context-schema'
-import { workspaceSourceSchema } from '../telemetry-events'
-import { RUNTIME_NAVIGATION_TARGETS } from '../runtime-navigation'
-import { sleepingAgentLaunchConfigSchema } from '../workspace-session/workspace-session-sleeping-agents'
-import { isTuiAgent } from '../agent-launch/catalog/tui-agent-config'
-import { AgentArgs, LaunchPreferences } from './agent-session-params'
-import { LaunchSourceParam } from './launch-source-param'
-import { CrossStoreParentRefSchema } from './cross-store-parent-params'
+import * as z from 'zod'
+import { WorkspaceAttachmentsSchema } from "../workspace-attachments/workspace-attachment-schema"
+import { WorkspaceLinkedItemSchema } from "../workspace-attachments/workspace-linked-item-schema"
+import { TaskSourceContextSchema } from "../work-items/task-source-context-schema"
+import { workspaceSourceSchema } from "../telemetry-property-schemas"
+import { RUNTIME_NAVIGATION_TARGETS } from "../runtime-navigation"
+import { sleepingAgentLaunchConfigSchema } from "../workspace-session/workspace-session-sleeping-agents"
+import { isTuiAgent } from "../agent-launch/catalog/tui-agent-config"
+import { AgentArgs, LaunchPreferences } from "./agent-session-params"
+import { LaunchSourceParam } from "./launch-source-param"
+import { CrossStoreParentRefSchema } from "./cross-store-parent-params"
 import {
   OptionalBoolean,
   OptionalFiniteNumber,
   OptionalString,
   TriStateLinkedIssue
-} from './rpc-param-primitives'
+} from "./rpc-param-primitives"
 import {
   AutomationWorkspaceProvenanceRequest,
   CliWorkspaceProvenanceRequest,
@@ -22,7 +22,7 @@ import {
   OptionalExecutionHostId,
   OptionalTuiAgent,
   assertLinkedWorkItemSourceContextMatch
-} from './worktree-params'
+} from "./worktree-params"
 
 export const WorktreeCreate = z
   .object({
@@ -106,6 +106,8 @@ export const WorktreeCreate = z
     cwdParentAmbiguous: z.literal(true).optional(),
     noParent: OptionalBoolean,
     callerTerminalHandle: OptionalString,
+    // Older hosts strip it; a paired route's claim names a session on another host and is dropped.
+    callerAgentSessionId: OptionalString,
     orchestrationContext: z
       .object({
         parentWorktreeId: OptionalString,

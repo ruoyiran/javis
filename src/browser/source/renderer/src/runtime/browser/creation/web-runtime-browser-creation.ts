@@ -1,15 +1,15 @@
-import { translate } from '../../../i18n/i18n'
-import { useAppStore } from '../../../store/index'
-import { hasRuntimeRpcErrorCode } from '../../../../../shared/runtime-rpc-error-code'
-import { unwrapRuntimeRpcResult } from '../../rpc/calls/runtime-rpc-result'
-import { toRuntimeWorktreeSelector } from '../../rpc/targets/runtime-worktree-selector'
-import { hasMaterializedWebRuntimeBrowserPage } from './web-runtime-browser-materialization'
-import { waitForWebRuntimeBrowserPageMaterialization } from './web-runtime-browser-materialization-wait'
+import { translate } from "../../../i18n/i18n"
+import { useAppStore } from "../../../store/index"
+import { hasRuntimeRpcErrorCode } from "../../../../../shared/runtime-rpc-error-code"
+import { unwrapRuntimeRpcResult } from "../../rpc/calls/runtime-rpc-result"
+import { toRuntimeWorktreeSelector } from "../../rpc/targets/runtime-worktree-selector"
+import { hasMaterializedWebRuntimeBrowserPage } from "./web-runtime-browser-materialization"
+import { waitForWebRuntimeBrowserPageMaterialization } from "./web-runtime-browser-materialization-wait"
 import {
   isStagedWebRuntimeBrowserTabLive,
   resolveStagedWebRuntimeBrowserTabGroupId,
   StagedWebRuntimeBrowserTabCancelledError
-} from './web-runtime-browser-tab-staging'
+} from "./web-runtime-browser-tab-staging"
 import {
   completeWebRuntimeBrowserCreation,
   createWebRuntimeBrowserCreationContext,
@@ -17,26 +17,26 @@ import {
   resolveWebRuntimeBrowserClientTargetGroupId,
   restageWebRuntimeBrowserCreation,
   stageWebRuntimeBrowserCreation
-} from './web-runtime-browser-creation-context'
-import type { CreateWebRuntimeSessionBrowserTabArgs } from './web-runtime-browser-creation-context'
+} from "./web-runtime-browser-creation-context"
+import type { CreateWebRuntimeSessionBrowserTabArgs } from "./web-runtime-browser-creation-context"
 import {
   finishWebRuntimeBrowserCreationFailure,
   prepareWebRuntimeBrowserCreationFailure
-} from './web-runtime-browser-creation-failure'
+} from "./web-runtime-browser-creation-failure"
 import {
   pauseAfterE2eWebRuntimeBrowserCreate,
   pauseDuringE2eWebRuntimeBrowserClientHostPreparation
-} from './testing/web-runtime-browser-creation-e2e-fault'
-import { isWebRuntimeSessionActive } from '../../web-session-tabs-sync/identity/web-runtime-session-environment'
-import { refreshWebRuntimeSessionTabsSnapshot } from '../../web-session-tabs-sync/inventory/web-runtime-session-snapshot'
-import { registerPairedBrowserTabCreator } from '../../../store/slices/browser/tabs/paired-browser-tab-creator'
+} from "./testing/web-runtime-browser-creation-e2e-fault"
+import { isWebRuntimeSessionActive } from "../../web-session-tabs-sync/identity/web-runtime-session-environment"
+import { refreshWebRuntimeSessionTabsSnapshot } from "../../web-session-tabs-sync/inventory/web-runtime-session-snapshot"
+import { registerPairedBrowserTabCreator } from "../../../store/slices/browser/tabs/paired-browser-tab-creator"
 import {
   forgetStagedBrowserTabHandover,
   wasStagedBrowserTabHandedToFrames
-} from '@/runtime/browser/creation/staged-browser-frame-handover'
-import type { BrowserPageCreationPlacement } from '../../../../../shared/browser/client-hosting/browser-client-host-placement'
-import type { RuntimeRpcResponse } from '../../../../../shared/runtime-rpc-envelope'
-import type { BrowserTabCreateResult } from '../../../../../shared/browser/runtime/runtime-browser-contracts'
+} from "./staged-browser-frame-handover"
+import type { BrowserPageCreationPlacement } from "../../../../../shared/browser/client-hosting/browser-client-host-placement"
+import type { RuntimeRpcResponse } from "../../../../../shared/runtime-rpc-envelope"
+import type { BrowserTabCreateResult } from "../../../../../shared/browser/runtime/runtime-browser-contracts"
 
 export async function createWebRuntimeSessionBrowserTab(
   args: CreateWebRuntimeSessionBrowserTabArgs
@@ -45,7 +45,15 @@ export async function createWebRuntimeSessionBrowserTab(
     args.environmentId?.trim() ??
     useAppStore.getState().settings?.activeRuntimeEnvironmentId?.trim() ??
     null
-  if (!environmentId || !isWebRuntimeSessionActive(environmentId)) {
+  return environmentId ? createWebRuntimeSessionBrowserTabOnHost(args, environmentId) : false
+}
+
+/** Creates the tab on the named runtime, for callers that already route by the page's owner. */
+export async function createWebRuntimeSessionBrowserTabOnHost(
+  args: CreateWebRuntimeSessionBrowserTabArgs,
+  environmentId: string
+): Promise<boolean> {
+  if (!isWebRuntimeSessionActive(environmentId)) {
     return false
   }
   const context = createWebRuntimeBrowserCreationContext(args, environmentId)

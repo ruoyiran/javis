@@ -1,10 +1,10 @@
 import type {
   RuntimeMobileSessionTabGroup,
   RuntimeMobileSessionTabsResult
-} from '../../../../shared/runtime-types'
-import type { TabGroupLayoutNode } from '../../../../shared/tab-types'
-import { WEB_SESSION_GROUP_PREFIX, type WebSessionTabsSyncState } from './state'
-import { sanitizeRecentTabIds } from './state-equality-core'
+} from "../../../../shared/runtime-session-contracts"
+import type { TabGroupLayoutNode } from "../../../../shared/tab-types"
+import { WEB_SESSION_GROUP_PREFIX, type WebSessionTabsSyncState } from "./state"
+import { sanitizeRecentTabIds } from "./state-equality-core"
 
 export function chooseTargetGroupId(
   state: WebSessionTabsSyncState,

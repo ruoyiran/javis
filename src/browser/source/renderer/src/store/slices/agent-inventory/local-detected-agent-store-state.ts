@@ -1,12 +1,12 @@
-import type { AppState } from '../../types'
+import type { AppState } from "../../types"
 import type {
   PathSource,
   ShellHydrationFailureReason
-} from '../../../../../shared/shell/launch/shell-path-hydration-types'
-import type { TuiAgent } from '../../../../../shared/agent-launch/catalog/tui-agent'
+} from "../../../../../shared/shell/launch/shell-path-hydration-types"
+import type { TuiAgent } from "../../../../../shared/agent-launch/catalog/tui-agent"
 
 /** `wakeWslDistro`: a user act (a click, a runtime choice) that may start a stopped WSL distro. */
-export type LocalAgentRefreshOptions = { wakeWslDistro?: boolean }
+export type LocalAgentRefreshOptions = { wakeWslDistro?: boolean; userInitiated?: boolean }
 
 export type LocalDetectedAgentState = {
   readLocalAgentInventory: (worktreeId?: string | null) => {

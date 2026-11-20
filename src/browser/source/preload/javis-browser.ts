@@ -6,6 +6,7 @@ import { uiApi } from './api/ui-bridge'
 import { browserApi } from './api/browser/browser-bridge'
 import { browserPasswordsApi } from './api/browser-passwords-bridge'
 import { installBrowserFindListener } from './preload-runtime-support'
+import type { RuntimeApi } from './api/runtime-api'
 
 const on = (channel: string, callback: (...args: any[]) => void) => {
   const listener = (_event: Electron.IpcRendererEvent, ...args: any[]) => callback(...args)
@@ -34,7 +35,8 @@ const runtimeEnvironments = {
   refresh: () => call('browser.catalog.refresh'),
   onCatalogChanged: (callback:()=>void) => on('javis:browser:event',event=>{if(event.method==='browser.runtimeCatalogChanged')callback()}),
   list: async () => (await ipcRenderer.invoke('javis:browser:bootstrap')).runtimeEnvironments,
-  invoke: (args: { selector: string; method: string; params?: unknown }) => ipcRenderer.invoke('javis:browser:runtime-invoke', args),
+  invoke: (args: Parameters<RuntimeApi['runtimeEnvironments']['call']>[0]) => ipcRenderer.invoke('javis:browser:runtime-invoke', args),
+  call: (args: Parameters<RuntimeApi['runtimeEnvironments']['call']>[0]) => ipcRenderer.invoke('javis:browser:runtime-invoke', { ...args, method: args.method === 'session.tabs.list' ? 'browser.workspaceSnapshot' : args.method }),
   subscribe: async (args: { subscriptionId?: string; selector: string; method: string; params?: unknown }, callbacks: SubscriptionCallbacks) => {
     const id = args.subscriptionId ?? crypto.randomUUID()
     subscriptions.set(id, callbacks)

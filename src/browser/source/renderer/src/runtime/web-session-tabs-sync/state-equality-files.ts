@@ -1,8 +1,12 @@
-import type { Tab, TabGroup } from '../../../../shared/tab-types'
-import type { OpenFile } from '../../store/slices/editor/types/open-file'
-import type { WebSessionTabsBatchContext, WebSessionTabsSyncState } from './state'
-import { sameStringArray } from './state-equality-core'
-import { sameAiVaultSessionTitle } from '../../../../shared/ai-vault/contracts/ai-vault-session-title'
+import {
+  toVisibleTabType as toContentVisibleTabType,
+  type Tab,
+  type TabGroup
+} from "../../../../shared/tab-types"
+import type { OpenFile } from "../../store/slices/editor/types/open-file"
+import type { WebSessionTabsBatchContext, WebSessionTabsSyncState } from "./state"
+import { sameStringArray } from "./state-equality-core"
+import { sameAiVaultSessionTitle } from "../../../../shared/ai-vault/contracts/ai-vault-session-title"
 
 export function openFileEqual(a: OpenFile, b: OpenFile): boolean {
   return (
@@ -128,7 +132,7 @@ export function sameGroups(
 }
 
 export function toVisibleTabType(tab: Tab): WebSessionTabsSyncState['activeTabType'] {
-  if (tab.contentType === 'agent-session') {
+  if (toContentVisibleTabType(tab.contentType) === 'agent-session') {
     return 'agent-session'
   }
   if (tab.contentType === 'browser' || tab.contentType === 'terminal') {

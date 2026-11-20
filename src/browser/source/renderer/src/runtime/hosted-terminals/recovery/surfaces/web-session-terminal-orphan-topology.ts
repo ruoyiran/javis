@@ -1,11 +1,14 @@
-import type { RuntimeTerminalOrphanTopology } from '../../../../../../shared/runtime-terminal-contracts'
-import type { TabGroup, TabGroupLayoutNode } from '../../../../../../shared/tab-types'
+import type { RuntimeTerminalOrphanTopology } from "../../../../../../shared/runtime-terminal-contracts"
+import type {
+  TabGroup,
+  TabGroupLayoutNode
+} from "../../../../../../shared/tab-types"
 import type {
   TerminalLayoutSnapshot,
   TerminalPaneLayoutNode,
   TerminalTab
-} from '../../../../../../shared/workspace-layout/terminal-tab-types'
-import { toHostSessionTabId } from '../../../../../../shared/workspace-layout/terminal-surface-id'
+} from "../../../../../../shared/workspace-layout/terminal-tab-types"
+import { toHostSessionTabId } from "../../../../../../shared/workspace-layout/terminal-surface-id"
 
 export type WebTerminalOrphanTopologyState = {
   terminalLayoutsByTabId: Record<string, TerminalLayoutSnapshot>

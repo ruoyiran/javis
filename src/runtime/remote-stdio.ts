@@ -12,6 +12,7 @@ import {
   type JavisDaemonMethod,
 } from "./daemon-dispatch.js";
 import { runtimeErrorDetails } from "./error.js";
+import { computerReadEnvelope, isComputerRead, validateComputerReadOptions, type ComputerReadOptions } from './computer-read-options.js'
 
 export type RemoteMethod =
   | JavisMethod
@@ -19,6 +20,7 @@ export type RemoteMethod =
   | BrowserMethod
   | "browser.open"
   | "browser.status"
+  | "browser.workspaceSnapshot"
   | "browser.catalog.context"
   | "browser.catalog.list"
   | "browser.catalog.register"
@@ -29,6 +31,7 @@ const REMOTE_DEADLINE_MS = 60_000;
 const RPC_METHODS: ReadonlySet<string> = new Set<RemoteMethod>([
   "capabilities",
   "listApps",
+  "launchApp",
   "listWindows",
   "getAppState",
   "click",
@@ -44,6 +47,7 @@ const RPC_METHODS: ReadonlySet<string> = new Set<RemoteMethod>([
   ...publicBrowserMethods,
   "browser.open",
   "browser.status",
+  "browser.workspaceSnapshot",
   "browser.catalog.context",
   "browser.catalog.list",
   "browser.catalog.register",
@@ -51,7 +55,7 @@ const RPC_METHODS: ReadonlySet<string> = new Set<RemoteMethod>([
   "browser.catalog.refresh",
 ]);
 
-export type RemoteStdioOptions = {
+export type RemoteStdioOptions = ComputerReadOptions & {
   sshExecutable?: string;
   sshPrefixArgs?: string[];
   timeoutMs?: number;
@@ -95,7 +99,7 @@ export async function callRemoteJavis(
   }
   let request: string;
   try {
-    request = JSON.stringify({ id: 1, method, params }) + "\n";
+    request = JSON.stringify({ id: 1, method, params, ...computerReadEnvelope(method, params, options) }) + "\n";
   } catch {
     throw new JavisError(
       "invalid_argument",
@@ -250,6 +254,7 @@ export async function runJavisStdioRpc(
   callLocal: (
     method: JavisDaemonMethod,
     params: Record<string, unknown>,
+    options?: ComputerReadOptions,
   ) => Promise<unknown> = callJavis,
   permissionStatus: () => Promise<unknown> = () =>
     callJavis("permissionsStatus", {}),
@@ -282,6 +287,9 @@ export async function runJavisStdioRpc(
     if (!params || typeof params !== "object" || Array.isArray(params)) {
       throw new JavisError("invalid_argument", "RPC params must be an object");
     }
+    const options = { timeoutMs: request.timeoutMs, observation: request.observation } as ComputerReadOptions
+    validateComputerReadOptions(request.method, params as Record<string, unknown>, options)
+    if (request.timeoutMs !== undefined && !isComputerRead(request.method, params as Record<string, unknown>)) throw new JavisError('invalid_argument', 'Only passive computer reads accept an envelope timeout')
     deliveredToDaemon = true;
     const result =
       request.method === "permissionsStatus"
@@ -289,6 +297,7 @@ export async function runJavisStdioRpc(
         : await callLocal(
             request.method as JavisDaemonMethod,
             params as Record<string, unknown>,
+            ...(request.timeoutMs !== undefined || request.observation !== undefined ? [options] : []),
           );
     reply = { id, ok: true, result };
   } catch (error) {
@@ -358,10 +367,12 @@ export async function runBrowserRemoteStdioBridge(
     "../browser/remote/framed-channel.js"
   );
   const { browserMethods } = await import("../browser/contract/index.js");
+  const { browserDaemonParams } = await import("./daemon-dispatch.js");
   const allowed = new Set<string>([
     ...browserMethods,
     "browser.status",
     "browser.clientHost.pageStatus",
+    "browser.workspaceSnapshot",
   ]);
   let connection:
     | import("../browser/remote/framed-channel.js").BrowserStream
@@ -466,7 +477,7 @@ export async function runBrowserRemoteStdioBridge(
             "Browser stream method is not allowed",
           );
         const operation = connection
-          .call(frame.method, frame.params as Record<string, unknown>)
+          .call(frame.method, frame.method === "browser.workspaceSnapshot" ? browserDaemonParams(frame.method, frame.params as Record<string, unknown>) : frame.params as Record<string, unknown>)
           .then(
             (result) => {
               writeBrowserFrame(output, { id: frame.id, ok: true, result });

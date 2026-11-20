@@ -1,18 +1,18 @@
-import '../input/runtime-terminal-input-recording'
-import { callRuntimeRpc } from '../../rpc/calls/runtime-rpc-call'
+import "../input/runtime-terminal-input-recording"
+import { callRuntimeRpc } from "../../rpc/calls/runtime-rpc-call"
 import {
   getRemoteRuntimePtyEnvironmentId,
   getRemoteRuntimePtyOwner
-} from '../identity/remote-runtime-pty-owner'
-import { parseAppSshPtyId } from '../../../../../shared/ssh-pty-id'
-import { isRemoteRuntimePtyId } from '../../../../../shared/remote-runtime/remote-runtime-pty-id'
+} from "../identity/remote-runtime-pty-owner"
+import { parseAppSshPtyId } from "../../../../../shared/ssh-pty-id"
+import { isRemoteRuntimePtyId } from "../../../../../shared/remote-runtime/remote-runtime-pty-id"
 import {
   clientOnlyUnverifiableInspection,
   isClientOnlyUnverifiableInspection,
   type TerminalProcessInspection,
   type TerminalProcessInspection as RuntimeTerminalProcessInspection,
   classifyTerminalProcessInspectionFailure
-} from '../../../../../shared/terminal/pty/lifecycle/terminal-process-inspection'
+} from "../../../../../shared/terminal/pty/lifecycle/terminal-process-inspection"
 
 function isRemoteInspectionPtyId(ptyId: string): boolean {
   return getRemoteRuntimePtyEnvironmentId(ptyId) !== null || parseAppSshPtyId(ptyId) !== null
@@ -49,7 +49,12 @@ function normalizeInspectionResult(
 
 export async function inspectRuntimeTerminalProcess(
   ptyId: string,
-  options?: { expectedIncarnationId?: string; scanChildProcesses?: boolean; steadyState?: boolean }
+  options?: {
+    expectedIncarnationId?: string
+    scanChildProcesses?: boolean
+    steadyState?: boolean
+    jobMembershipOnly?: boolean
+  }
 ): Promise<RuntimeTerminalProcessInspection> {
   const owner = getRemoteRuntimePtyOwner(ptyId)
   const remote = isRemoteInspectionPtyId(ptyId)

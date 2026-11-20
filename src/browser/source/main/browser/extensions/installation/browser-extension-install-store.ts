@@ -4,8 +4,8 @@ import { mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs'
 import { rm } from 'node:fs/promises'
 import { isAbsolute, join, relative, resolve } from 'node:path'
 import { z } from 'zod'
-import { isChromeExtensionId } from '../../../../shared/browser/extensions/browser-extension-url'
-import type { InstalledBrowserExtension } from '../../../../shared/browser/extensions/browser-extension-types'
+import { isChromeExtensionId } from "../../../../shared/browser/extensions/browser-extension-url"
+import type { InstalledBrowserExtension } from "../../../../shared/browser/extensions/browser-extension-types"
 
 const INSTALLED_FILE_NAME = 'installed.json'
 const REMOVALS_FILE_NAME = 'uninstalled.json'
@@ -62,6 +62,14 @@ export class BrowserExtensionInstallStore {
 
   /** Monotonic uninstall markers survive reinstall and are shared by every Orca profile. */
   removalGenerations(): ReadonlyMap<string, number> {
+    return new Map(this.loadRemovals())
+  }
+
+  removalGeneration(extensionId: string): number {
+    return this.loadRemovals().get(extensionId) ?? 0
+  }
+
+  private loadRemovals(): Map<string, number> {
     if (!this.removals) {
       const entries = new Map<string, number>()
       try {
@@ -81,7 +89,7 @@ export class BrowserExtensionInstallStore {
       }
       this.removals = entries
     }
-    return new Map(this.removals)
+    return this.removals
   }
 
   save(extension: InstalledBrowserExtension, updated = false): InstalledBrowserExtension {

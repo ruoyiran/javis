@@ -1,11 +1,11 @@
-import type { RuntimeMobileSessionTabsResult } from '../../../../shared/runtime-types'
+import type { RuntimeMobileSessionTabsResult } from "../../../../shared/runtime-session-contracts"
 import type {
   TerminalLayoutSnapshot,
   TerminalTab
-} from '../../../../shared/workspace-layout/terminal-tab-types'
-import { toRemoteRuntimePtyId } from '../../../../shared/remote-runtime/remote-runtime-pty-id'
-import { terminalLayoutLeafIds } from '../hosted-terminals/recovery/surfaces/web-session-terminal-orphan-recovery-surface-index'
-import { isMirroredTerminalSurfaceId } from './terminal-surfaces'
+} from "../../../../shared/workspace-layout/terminal-tab-types"
+import { toRemoteRuntimePtyId } from "../../../../shared/remote-runtime/remote-runtime-pty-id"
+import { terminalLayoutLeafIds } from "../hosted-terminals/recovery/surfaces/web-session-terminal-orphan-recovery-surface-index"
+import { isMirroredTerminalSurfaceId } from "./terminal-surfaces"
 
 type RetiredSurface = NonNullable<RuntimeMobileSessionTabsResult['retiredTerminalSurfaces']>[number]
 

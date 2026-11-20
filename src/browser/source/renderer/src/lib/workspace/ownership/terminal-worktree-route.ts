@@ -1,22 +1,22 @@
-import { FLOATING_TERMINAL_WORKTREE_ID } from '../../../../../shared/constants'
-import { isEphemeralSetupTerminalWorktreeId } from '../../../../../shared/ephemeral-setup-terminal-worktree-id'
-import { parseExecutionHostId } from '../../../../../shared/execution-host'
-import { parseWorkspaceKey } from '../../../../../shared/workspace-scope'
-import type { AppState } from '@/store/types'
-import { resolveOwnerOrLocal } from './worktree-runtime-owner'
-import { namedHostForOwnerRef, runtimeEnvironmentIdUnlessTwin } from './resolve-owner'
-import type { WorktreeRuntimeOwnerState } from './worktree-runtime-owner-state'
+import { FLOATING_TERMINAL_WORKTREE_ID } from "../../../../../shared/workspace/identity/floating-workspace-id"
+import { isEphemeralSetupTerminalWorktreeId } from "../../../../../shared/ephemeral-setup-terminal-worktree-id"
+import { parseExecutionHostId } from "../../../../../shared/execution-host"
+import { parseWorkspaceKey } from "../../../../../shared/workspace-scope"
+import type { AppState } from "../../../store/types"
+import { resolveOwnerOrLocal } from "./worktree-runtime-owner"
+import { namedHostForOwnerRef, runtimeEnvironmentIdUnlessTwin } from "./resolve-owner"
+import type { WorktreeRuntimeOwnerState } from "./worktree-runtime-owner-state"
 import {
   resolveWorktreeOperationRouteResultForHost,
   resolveWorktreeOperationRouteResult,
   type WorktreeOperationRouteResolution
-} from './worktree-operation-route'
-import { getSingleFocusedRuntimeEnvironmentId } from './single-runtime-legacy-owner'
+} from "./worktree-operation-route"
+import { getSingleFocusedRuntimeEnvironmentId } from "./single-runtime-legacy-owner"
 import {
   hasIndexedDetectedWorktree,
   resolveIndexedWorktreeOwner
-} from './worktree-runtime-owner-index'
-import { resolveIndexedRepoOwner } from './repo-owner-index'
+} from "./worktree-runtime-owner-index"
+import { resolveIndexedRepoOwner } from "./repo-owner-index"
 
 export type TerminalWorktreeRoute = {
   runtimeEnvironmentId: string | null

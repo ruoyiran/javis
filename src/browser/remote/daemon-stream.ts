@@ -12,6 +12,7 @@ import {
   subscribeBrowserEvents,
 } from "../runtime/browser-process.js";
 import { runtimeErrorDetails, JavisError } from "../../runtime/error.js";
+import { browserDaemonParams } from "../../runtime/daemon-dispatch.js";
 import {
   BrowserFrameDecoder,
   writeBrowserFrame,
@@ -22,6 +23,7 @@ const allowed = new Set<string>([
   ...browserMethods,
   "browser.status",
   "browser.clientHost.pageStatus",
+  "browser.workspaceSnapshot",
 ]);
 
 export function serveBrowserDaemonStream(
@@ -249,7 +251,7 @@ export function serveBrowserDaemonStream(
           );
         const method = frame.method;
         if (
-          ["__browserHost", "__browserNetwork", "__browserAuthority"].includes(
+          ["__browserHost", "__browserNetwork", "__browserAuthority", "browser.workspaceSnapshot"].includes(
             method,
           ) &&
           identity.clientKind !== "runtime"
@@ -268,7 +270,9 @@ export function serveBrowserDaemonStream(
             "Browser stream parameters must be an object",
           );
         const params =
-          method.startsWith("__browser") ||
+          method === "browser.workspaceSnapshot"
+            ? browserDaemonParams(method, frame.params as Record<string, unknown>)
+            : method.startsWith("__browser") ||
           method === "browser.status" ||
           method === "browser.clientHost.pageStatus"
             ? (frame.params as Record<string, unknown>)

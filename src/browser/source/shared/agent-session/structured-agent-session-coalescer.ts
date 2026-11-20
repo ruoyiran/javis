@@ -1,9 +1,9 @@
-import type { AgentSessionSubscribeEvent } from './agent-session-wire'
+import type { AgentSessionSubscribeEvent } from "./agent-session-wire"
 import {
   actionablePromptIdsAfterStructuredAgentSessionBatch,
   hostWorkingAfterStructuredAgentSessionBatch,
   latestTurnAfterStructuredAgentSessionBatch
-} from './view/structured-agent-session-live-turn'
+} from "./view/structured-agent-session-live-turn"
 
 export const STRUCTURED_AGENT_SESSION_CLIENT_COALESCE_MS = 48
 
@@ -65,6 +65,14 @@ function mergeBatch(
       : {}),
     ...(right.activity !== undefined || left.activity !== undefined
       ? { activity: right.activity !== undefined ? right.activity : (left.activity ?? null) }
+      : {}),
+    ...(right.promptSuggestion !== undefined || left.promptSuggestion !== undefined
+      ? {
+          promptSuggestion:
+            right.promptSuggestion !== undefined
+              ? right.promptSuggestion
+              : (left.promptSuggestion ?? null)
+        }
       : {}),
     ...(latestTurn !== undefined ? { latestTurn } : {}),
     ...(actionablePromptIds !== undefined ? { actionablePromptIds } : {}),

@@ -1,8 +1,11 @@
-import { useAppStore } from '../../../store/index'
-import { getTerminalQuickCommandHostPromptMaxLength } from '@/lib/terminal/quick-commands/terminal-quick-command-host-prompt-limit'
-import { getRepoExecutionHostId, type ExecutionHostId } from '../../../../../shared/execution-host'
-import type { TerminalQuickCommand } from '../../../../../shared/terminal/quick-commands/terminal-quick-command-types'
-import { TerminalQuickCommandDialog } from '@/components/terminal-quick-commands/TerminalQuickCommandDialog'
+import { useAppStore } from "../../../store/index"
+import { getTerminalQuickCommandHostPromptMaxLength } from "../../../lib/terminal/quick-commands/terminal-quick-command-host-prompt-limit"
+import {
+  getRepoExecutionHostId,
+  type ExecutionHostId
+} from "../../../../../shared/execution-host"
+import type { TerminalQuickCommand } from "../../../../../shared/terminal/quick-commands/terminal-quick-command-types"
+import { TerminalQuickCommandDialog } from "../../terminal-quick-commands/TerminalQuickCommandDialog"
 
 export function TerminalQuickCommandEditorDialog({
   command,

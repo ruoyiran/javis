@@ -1,42 +1,48 @@
+import { readBrowserGuestMetadata } from "../../browser/guest-lifecycle/navigation/browser-guest-metadata"
 import { ipcMain, webContents } from 'electron'
 import {
   browserCertificateTrustController,
   browserManager
-} from '../../browser/guest-lifecycle/manager/browser-manager'
-import type { AgentBrowserBridge } from '../../browser/agent-browser/agent-browser-bridge'
-import { isWorkspaceDocPageId } from '../../browser/document-preview/doc-preview-guest-policy'
-import { isTrustedBrowserRenderer } from './browser-renderer-trust'
+} from "../../browser/guest-lifecycle/manager/browser-manager"
+import type { AgentBrowserBridge } from "../../browser/agent-browser/agent-browser-bridge"
+import { isWorkspaceDocPageId } from "../../browser/document-preview/doc-preview-guest-policy"
+import { isTrustedBrowserRenderer } from "./browser-renderer-trust"
 import {
   isLiveBrowserWebContentsId,
   resolveTabRegistrationWaiters
-} from './browser-tab-registration-wait'
-import { registerBrowserGuestViewHandlers } from './browser-guest-view-ipc'
-import { registerBrowserDictationHandlers } from './browser-dictation-ipc'
+} from "./browser-tab-registration-wait"
+import { registerBrowserGuestViewHandlers } from "./browser-guest-view-ipc"
+import { registerBrowserGuestDiscardHandlers } from "./browser-guest-discard-ipc"
+import {
+  syncBrowserMemorySaverPolicy,
+  type BrowserMemorySaverSettingsSource
+} from "../../browser/guest-lifecycle/browser-page-idle-discard"
+import { registerBrowserDictationHandlers } from "./browser-dictation-ipc"
 import {
   disposeGrabModeStateForPage,
   registerBrowserGrabHandlers,
   resetGrabModeState
-} from './browser-grab-ipc'
-import { registerBrowserSessionProfileHandlers } from './browser-session-profile-ipc'
-import type { BrowserCertificateProceedResult } from '../../../shared/browser-workspace-types'
+} from "./browser-grab-ipc"
+import { registerBrowserSessionProfileHandlers } from "./browser-session-profile-ipc"
+import type { BrowserCertificateProceedResult } from "../../../shared/browser-workspace-types"
 import {
   cancelBrowserWebAuthnAccountRequests,
   respondToBrowserWebAuthnAccountRequest
-} from '../../browser/webauthn/browser-webauthn-account-picker'
-import type { BrowserWebAuthnAccountResponse } from '../../../shared/browser-webauthn-account'
+} from "../../browser/webauthn/browser-webauthn-account-picker"
+import type { BrowserWebAuthnAccountResponse } from "../../../shared/browser-webauthn-account"
 import type {
   BrowserPagePromptResponse,
   BrowserPagePromptResult
-} from '../../../shared/browser/prompts/browser-page-prompt'
-import { respondToBrowserPagePrompt } from '../../browser/guest-lifecycle/prompts/browser-page-prompts'
-import { recordActiveBrowserPage } from '../../browser/extensions/tabs-and-windows/browser-extension-tab-model'
-import { announceRegisteredBrowserExtensionTab } from '../../browser/extensions/tabs-and-windows/browser-extension-tab-lifecycle'
-import { registerBrowserExtensionHandlers } from './browser-extensions'
-import { registerBrowserExtensionContextMenuHandlers } from './browser-extension-context-menu'
+} from "../../../shared/browser/prompts/browser-page-prompt"
+import { respondToBrowserPagePrompt } from "../../browser/guest-lifecycle/prompts/browser-page-prompts"
+import { recordActiveBrowserPage } from "../../browser/extensions/tabs-and-windows/browser-extension-tab-model"
+import { announceRegisteredBrowserExtensionTab } from "../../browser/extensions/tabs-and-windows/browser-extension-tab-lifecycle"
+import { registerBrowserExtensionHandlers } from "./browser-extensions"
+import { registerBrowserExtensionContextMenuHandlers } from "./browser-extension-context-menu"
 import {
   registerBrowserPasswordsHandlers,
   type BrowserPasswordsSettingsSource
-} from './browser-passwords-ipc'
+} from "./browser-passwords-ipc"
 
 let agentBrowserBridgeRef: AgentBrowserBridge | null = null
 
@@ -52,10 +58,13 @@ export function setAgentBrowserBridgeRef(bridge: AgentBrowserBridge | null): voi
   agentBrowserBridgeRef = bridge
 }
 
-export function registerBrowserHandlers(store: BrowserPasswordsSettingsSource): void {
+export function registerBrowserHandlers(
+  store: BrowserPasswordsSettingsSource & BrowserMemorySaverSettingsSource
+): void {
   resetGrabModeState()
   ipcMain.removeHandler('browser:registerGuest')
   ipcMain.removeHandler('browser:isGuestRegistered')
+  ipcMain.removeHandler('browser:getGuestMetadata')
   ipcMain.removeHandler('browser:repairGuestRegistration')
   ipcMain.removeHandler('browser:unregisterGuest')
   ipcMain.removeHandler('browser:activeTabChanged')
@@ -113,6 +122,30 @@ export function registerBrowserHandlers(store: BrowserPasswordsSettingsSource): 
     registerGuest(event, args, false)
   )
 
+  ipcMain.handle(
+    'browser:getGuestMetadata',
+    (event, args: { browserPageId: string; webContentsId: number }) => {
+      if (
+        !isTrustedBrowserRenderer(event.sender) ||
+        typeof args?.webContentsId !== 'number' ||
+        typeof args.browserPageId !== 'string'
+      ) {
+        return undefined
+      }
+      const guest = webContents.fromId(args.webContentsId)
+      if (!guest || guest.isDestroyed()) {
+        return null
+      }
+      if (
+        guest.hostWebContents?.id !== event.sender.id ||
+        browserManager.getGuestWebContentsId(args.browserPageId) !== guest.id
+      ) {
+        return undefined
+      }
+      return readBrowserGuestMetadata(guest)
+    }
+  )
+
   // Block SSH webview mounting until its proxy-verified partition is ready.
   ipcMain.handle(
     'browser:prepareSshWorkspacePartition',
@@ -132,15 +165,15 @@ export function registerBrowserHandlers(store: BrowserPasswordsSettingsSource): 
       if (typeof args?.targetId !== 'string' || args.targetId.length === 0) {
         throw new Error('browser_local_route_target_invalid')
       }
-      const { getSshConnectionStore } = await import('../ssh/ssh')
+      const { getSshConnectionStore } = await import("../ssh/ssh")
       const { requireLocalSshBrowserRouteTarget } =
-        await import('../../browser/routing/local-host-partitions/local-ssh-browser-route')
+        await import("../../browser/routing/local-host-partitions/local-ssh-browser-route")
       requireLocalSshBrowserRouteTarget(
         getSshConnectionStore()?.getTarget(args.targetId),
         args.expectedSshTargetGeneration
       )
       const { prepareLocalSshBrowserPartition } =
-        await import('../../browser/routing/local-host-partitions/local-ssh-browser-partitions')
+        await import("../../browser/routing/local-host-partitions/local-ssh-browser-partitions")
       return prepareLocalSshBrowserPartition({
         targetId: args.targetId,
         browserProfileId:
@@ -173,24 +206,44 @@ export function registerBrowserHandlers(store: BrowserPasswordsSettingsSource): 
     }
   )
 
-  ipcMain.handle('browser:unregisterGuest', (event, args: { browserPageId: string }) => {
-    if (!isTrustedBrowserRenderer(event.sender)) {
-      return false
+  ipcMain.handle(
+    'browser:unregisterGuest',
+    (event, args: { browserPageId: string; webContentsId?: number; replacement?: boolean }) => {
+      if (!isTrustedBrowserRenderer(event.sender)) {
+        return false
+      }
+      // Documents withdraw by grant revocation; dropping their intent here could silently settle an unarmed grab.
+      if (typeof args?.browserPageId !== 'string' || isWorkspaceDocPageId(args.browserPageId)) {
+        return false
+      }
+      const currentId = browserManager.getGuestWebContentsId(args.browserPageId)
+      if (
+        args.replacement &&
+        args.webContentsId !== undefined &&
+        currentId !== args.webContentsId
+      ) {
+        return false
+      }
+      // Destroy bridge sessions before unregistering clears the guest mapping.
+      const wcId = browserManager.getGuestWebContentsId(args.browserPageId)
+      if (wcId !== null && agentBrowserBridgeRef) {
+        if (args.replacement) {
+          void agentBrowserBridgeRef.onProcessSwap(args.browserPageId, wcId).catch(() => {})
+        } else {
+          agentBrowserBridgeRef.onTabClosed(wcId)
+        }
+      } else if (!args.replacement && agentBrowserBridgeRef) {
+        void agentBrowserBridgeRef.onPageClosed(args.browserPageId).catch(() => {})
+      }
+      cancelBrowserWebAuthnAccountRequests(args.browserPageId)
+      browserManager.unregisterGuest(
+        args.browserPageId,
+        args.replacement ? 'guest-destroyed' : 'page-closed'
+      )
+      disposeGrabModeStateForPage(args.browserPageId)
+      return true
     }
-    // Documents withdraw by grant revocation; dropping their intent here could silently settle an unarmed grab.
-    if (typeof args?.browserPageId !== 'string' || isWorkspaceDocPageId(args.browserPageId)) {
-      return false
-    }
-    // Destroy bridge sessions before unregistering clears the guest mapping.
-    const wcId = browserManager.getGuestWebContentsId(args.browserPageId)
-    if (wcId !== null && agentBrowserBridgeRef) {
-      agentBrowserBridgeRef.onTabClosed(wcId)
-    }
-    cancelBrowserWebAuthnAccountRequests(args.browserPageId)
-    browserManager.unregisterGuest(args.browserPageId)
-    disposeGrabModeStateForPage(args.browserPageId)
-    return true
-  })
+  )
 
   ipcMain.handle(
     'browser:respondWebAuthnAccount',
@@ -251,6 +304,8 @@ export function registerBrowserHandlers(store: BrowserPasswordsSettingsSource): 
   })
 
   registerBrowserGuestViewHandlers()
+  registerBrowserGuestDiscardHandlers()
+  syncBrowserMemorySaverPolicy(store)
   registerBrowserDictationHandlers()
 
   registerBrowserGrabHandlers()

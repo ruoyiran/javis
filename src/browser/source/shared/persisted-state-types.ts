@@ -1,38 +1,39 @@
-import type { ExecutionHostId } from './execution-host'
+import type { ExecutionHostId } from "./execution-host"
 import type {
   RemovedSshTargetTombstone,
   SshPtyConsumerRecovery,
   SshRemotePtyLease,
   SshTarget
-} from './ssh-types'
-import type { Automation } from './automations/automation-definition'
-import type { AutomationRun } from './automations/history/automation-run'
-import type { MigrationUnsupportedPtyEntry } from './agent-status/contracts/agent-status-ipc-payload'
-import type { FeatureInteractionTelemetryBucketState } from './feature-interactions'
-import type { CodexResetCreditAttemptLedger } from './codex-reset-credit-attempt-ledger'
-import type { ChatUiLaunchTipAudience } from './native-chat/chat-ui-launch-tip-audience'
-import type { DiffComment } from './diff-comment-types'
-import type { FolderWorkspace } from './folder-workspaces/folder-workspace-types'
-import type { WorkspaceKey } from './workspace-scope'
-import type { GlobalSettings } from './global-settings-types'
-import type { IssueInfo, PRInfo } from './github/pull-request-types'
-import type { OnboardingState } from './onboarding-state-types'
-import type { PersistedUIState } from './persisted-ui-state-types'
-import type { ProjectGroup } from './project-group-types'
-import type { RemoteLayoutSnapshot } from './remote-layout-snapshot'
-import type { HostRepoCatalogSnapshot } from './host-repo-catalog-snapshot'
-import type { Project, ProjectHostSetup } from './project-types'
-import type { Repo } from './repo-types'
-import type { SparsePreset } from './worktree/create-types'
-import type { RetiredNameRegistry } from './worktree/retired-name-registry'
-import type { WorkspaceLineage, WorktreeLineage } from './worktree/lineage-types'
-import type { WorktreeMeta } from './worktree/meta-types'
-import type { WorkspaceSessionState } from './workspace-session/workspace-session-state-types'
-import type { OrcadMigrationEvictedReceipt } from './orcad-migration/orcad-migration-evicted-receipts'
+} from "./ssh-types"
+import type { Automation } from "./automations/automation-definition"
+import type { AutomationRun } from "./automations/history/automation-run"
+import type { Bot } from "./bot-types"
+import type { MigrationUnsupportedPtyEntry } from "./agent-status/contracts/agent-status-ipc-payload"
+import type { FeatureInteractionTelemetryBucketState } from "./feature-interactions"
+import type { CodexResetCreditAttemptLedger } from "./codex-reset-credit-attempt-ledger"
+import type { ChatUiLaunchTipAudience } from "./native-chat/chat-ui-launch-tip-audience"
+import type { DiffComment } from "./diff-comment-types"
+import type { FolderWorkspace } from "./folder-workspaces/folder-workspace-types"
+import type { WorkspaceKey } from "./workspace-scope"
+import type { GlobalSettings } from "./global-settings-types"
+import type { IssueInfo, PRInfo } from "./github/pull-request-types"
+import type { OnboardingState } from "./onboarding-state-types"
+import type { PersistedUIState } from "./persisted-ui-state-types"
+import type { ProjectGroup } from "./project-group-types"
+import type { RemoteLayoutSnapshot } from "./remote-layout-snapshot"
+import type { HostRepoCatalogSnapshot } from "./host-repo-catalog-snapshot"
+import type { Project, ProjectHostSetup } from "./project/project-types"
+import type { Repo } from "./repo-types"
+import type { SparsePreset } from "./worktree/create-types"
+import type { RetiredNameRegistry } from "./worktree/retired-name-registry"
+import type { WorkspaceLineage, WorktreeLineage } from "./worktree/lineage-types"
+import type { WorktreeMeta } from "./worktree/meta-types"
+import type { WorkspaceSessionState } from "./workspace-session/workspace-session-state-types"
+import type { OrcadMigrationEvictedReceipt } from "./orcad-migration/orcad-migration-evicted-receipts"
 import type {
   OrcadMigrationImportReceipt,
   OrcadMigrationStagedCatalog
-} from './orcad-migration/orcad-migration-manifest'
+} from "./orcad-migration/orcad-migration-manifest"
 
 export type LegacyPaneKeyAliasEntry = {
   ptyId: string
@@ -117,6 +118,10 @@ export type PersistedState = {
   legacyPaneKeyAliasEntries: LegacyPaneKeyAliasEntry[]
   automations: Automation[]
   automationRuns: AutomationRun[]
+  /** Absent until the first bot is created, so profiles without bots save unchanged. */
+  bots?: Bot[]
+  /** Legacy forced 'ask' defaults have been removed; preserve later explicit overrides. */
+  botsPermissionDefaultMigrated?: true
   /** Catalogs an orcad imported, so a retried commit returns the same receipt. */
   orcadMigrationImportReceipts?: OrcadMigrationImportReceipt[]
   /** Commits whose full receipt aged out of the list above; still answered as committed. */

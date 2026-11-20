@@ -1,25 +1,25 @@
-import { useAppStore } from '@/store'
-import { projectSelectedSourceControlActionLaunch } from '../../../../../../shared/source-control/ai/recipes/source-control-action-launch-preferences'
-import type { SelectedSourceControlActionRecipe } from '../../../../../../shared/source-control/ai/recipes/source-control-action-selection'
-import type { AgentLaunchPreferences } from '@/runtime/agent-launch-settings/host-agent-launch-preferences-resource'
+import { useAppStore } from "../../../../store/index"
+import { projectSelectedSourceControlActionLaunch } from "../../../../../../shared/source-control/ai/recipes/source-control-action-launch-preferences"
+import type { SelectedSourceControlActionRecipe } from "../../../../../../shared/source-control/ai/recipes/source-control-action-selection"
+import type { AgentLaunchPreferences } from "../../../../runtime/agent-launch-settings/host-agent-launch-preferences-resource"
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { RuntimeGitContext } from '@/runtime/source-control/git/runtime-git-client-context'
-import type { LaunchSource } from '../../../../../../shared/telemetry-events'
+import type { RuntimeGitContext } from "../../../../runtime/source-control/git/runtime-git-client-context"
+import type { LaunchSource } from "../../../../../../shared/telemetry-property-schemas"
 import type {
   SourceControlLaunchActionId,
   SourceControlActionRecipe
-} from '../../../../../../shared/source-control/ai/recipes/source-control-ai-actions'
-import type { SourceControlAiWriteTarget } from '../../../../../../shared/source-control/ai/settings/source-control-ai-recipe-save'
-import type { Repo } from '../../../../../../shared/repo-types'
-import type { TuiAgent } from '../../../../../../shared/agent-launch/catalog/tui-agent'
-import type { AgentLaunchChoice } from '@/lib/agent-session/launch/routing/agent-menu-selection'
-import { buildSourceControlAgentDeliveryPlan } from './buildSourceControlAgentDeliveryPlan'
-import type { SourceControlAgentActionDeliveryPlanState } from './SourceControlAgentActionDialogForm'
+} from "../../../../../../shared/source-control/ai/recipes/source-control-ai-actions"
+import type { SourceControlAiWriteTarget } from "../../../../../../shared/source-control/ai/settings/source-control-ai-recipe-save"
+import type { Repo } from "../../../../../../shared/repo-types"
+import type { TuiAgent } from "../../../../../../shared/agent-launch/catalog/tui-agent"
+import type { AgentLaunchChoice } from "../../../../lib/agent-session/launch/routing/agent-menu-selection"
+import { buildSourceControlAgentDeliveryPlan } from "./buildSourceControlAgentDeliveryPlan"
+import type { SourceControlAgentActionDeliveryPlanState } from "./SourceControlAgentActionDialogForm"
 import {
   runSourceControlAgentActionStart,
   type RunSourceControlAgentActionStartArgs
-} from './runSourceControlAgentActionStart'
-import { buildSourceControlAgentConnectionErrorPlan } from './source-control-agent-action-dialog-support'
+} from "./runSourceControlAgentActionStart"
+import { buildSourceControlAgentConnectionErrorPlan } from "./source-control-agent-action-dialog-support"
 
 type UseSourceControlAgentActionStartArgs = {
   open: boolean

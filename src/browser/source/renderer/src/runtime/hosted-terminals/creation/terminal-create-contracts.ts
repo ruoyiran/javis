@@ -1,19 +1,20 @@
 import type {
   AgentProviderSessionMetadata,
   SleepingAgentLaunchConfig
-} from '../../../../../shared/agent-session/lifecycle/agent-session-resume'
+} from "../../../../../shared/agent-session/lifecycle/agent-session-resume"
 import type {
   AgentLaunchPreferences,
   AgentPromptDelivery
-} from '../../../../../shared/agent-session/agent-session-host-authority'
-import type { StartupCommandDelivery } from '../../../../../shared/agent-launch/startup/codex-startup-delivery'
-import type { RuntimeTerminalCreate } from '../../../../../shared/runtime-terminal-create-contract'
-import type { TuiAgent } from '../../../../../shared/agent-launch/catalog/tui-agent'
-import type { SessionOptionValue } from '../../../../../shared/native-chat/input/native-chat-session-options'
-import type { RuntimeCapability } from '../../../../../shared/protocol-version'
+} from "../../../../../shared/agent-session/agent-session-host-authority"
+import type { StartupCommandDelivery } from "../../../../../shared/agent-launch/startup/codex-startup-delivery"
+import type { RuntimeTerminalCreate } from "../../../../../shared/runtime-terminal-create-contract"
+import type { TuiAgent } from "../../../../../shared/agent-launch/catalog/tui-agent"
+import type { SessionOptionValue } from "../../../../../shared/native-chat/input/native-chat-session-options"
+import type { RuntimeCapability } from "../../../../../shared/protocol-version"
 
+/** `mirroredTabId`: this client's id for a created tab, when the host named it. */
 export type WebRuntimeTerminalCreateOutcome =
-  | { status: 'created' }
+  | { status: 'created'; mirroredTabId?: string }
   | { status: 'failed'; message: string }
 
 export type CreateWebRuntimeSessionTerminalArgs = {

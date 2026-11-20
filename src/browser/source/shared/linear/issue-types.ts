@@ -1,4 +1,4 @@
-import type { LinearProjectSummary } from './project-types'
+import type { LinearProjectSummary } from "./project-types"
 
 export type LinearIssue = {
   id: string
@@ -40,6 +40,7 @@ export type LinearIssueChildSummary = {
   identifier: string
   title: string
   url: string
+  state?: LinearIssue['state']
 }
 
 export type LinearComment = {

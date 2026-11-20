@@ -1,10 +1,10 @@
 import { ipcMain } from 'electron'
 import { z } from 'zod'
-import { isChromeExtensionId } from '../../../shared/browser/extensions/browser-extension-url'
+import { isChromeExtensionId } from "../../../shared/browser/extensions/browser-extension-url"
 import type {
   BrowserExtensionActionResult,
   BrowserExtensionListResult
-} from '../../../shared/browser/extensions/browser-extension-types'
+} from "../../../shared/browser/extensions/browser-extension-types"
 import {
   addUnpackedBrowserExtension,
   listBrowserExtensionsForProfile,
@@ -13,10 +13,11 @@ import {
   removeBrowserExtension,
   reviewBrowserExtensionUpdate,
   setBrowserExtensionEnabled
-} from '../../browser/extensions/browser-extension-management'
-import { isTrustedBrowserRenderer } from './browser-renderer-trust'
-import { registerBrowserExtensionToolbarHandlers } from './browser-extension-toolbar'
-import { registerBrowserExtensionWebStoreHandlers } from './browser-extension-webstore'
+} from "../../browser/extensions/browser-extension-management"
+import { isTrustedBrowserRenderer } from "./browser-renderer-trust"
+import { registerBrowserExtensionToolbarHandlers } from "./browser-extension-toolbar"
+import { registerBrowserExtensionSidePanelHandlers } from "./browser-extension-side-panels"
+import { registerBrowserExtensionWebStoreHandlers } from "./browser-extension-webstore"
 
 const profileArgs = z.object({ profileId: z.string().min(1) })
 const extensionArgs = profileArgs.extend({ extensionId: z.string().refine(isChromeExtensionId) })
@@ -38,6 +39,7 @@ export function registerBrowserExtensionHandlers(): void {
     ipcMain.removeHandler(channel)
   }
   registerBrowserExtensionToolbarHandlers()
+  registerBrowserExtensionSidePanelHandlers()
   registerBrowserExtensionWebStoreHandlers()
   ipcMain.handle(
     'browserExtensions:list',

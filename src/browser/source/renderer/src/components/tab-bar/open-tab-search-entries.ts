@@ -1,25 +1,25 @@
-import type { Repo } from '../../../../shared/repo-types'
-import type { Worktree } from '../../../../shared/worktree/types'
-import { buildSearchableBrowserPages } from '@/lib/browser/palette/browser-palette-page-entries'
-import type { SearchableBrowserPage } from '@/lib/browser/palette/browser-palette-search'
-import { buildSearchableSimulatorTabs } from '@/lib/simulator/search/simulator-palette-search'
-import type { SearchableSimulatorTab } from '@/lib/simulator/search/simulator-palette-search-types'
-import '@/lib/workspace/search/tabs/workspace-tab-search-types'
-import { buildSearchableWorkspaceTabEntries } from '@/lib/workspace/search/tabs/workspace-tab-palette-entry-builder'
-import type { SearchableWorkspaceTab } from '@/lib/workspace/search/tabs/workspace-tab-search-types'
-import type { AppState } from '@/store/types'
+import type { Repo } from "../../../../shared/repo-types"
+import type { Worktree } from "../../../../shared/worktree/types"
+import { buildSearchableBrowserPages } from "../../lib/browser/palette/browser-palette-page-entries"
+import type { SearchableBrowserPage } from "../../lib/browser/palette/browser-palette-search"
+import { buildSearchableSimulatorTabs } from "../../lib/simulator/search/simulator-palette-search"
+import type { SearchableSimulatorTab } from "../../lib/simulator/search/simulator-palette-search-types"
+import "../../lib/workspace/search/tabs/workspace-tab-search-types"
+import { buildSearchableWorkspaceTabEntries } from "../../lib/workspace/search/tabs/workspace-tab-palette-entry-builder"
+import type { SearchableWorkspaceTab } from "../../lib/workspace/search/tabs/workspace-tab-search-types"
+import type { AppState } from "../../store/types"
 import {
   selectFolderWorkspaces,
   selectWorktreesByRepo
-} from '@/store/workspaces/catalog/workspace-record-fields'
+} from "../../store/workspaces/catalog/workspace-record-fields"
 import {
   getRepoExecutionHostId,
   getWorktreeExecutionHostId,
   type ExecutionHostId
-} from '../../../../shared/execution-host'
-import { getPaletteOwnershipWorktreeIds } from '@/lib/workspace/ownership/unified-tab-host-ownership'
-import type { StructuredChatTabNames } from '@/runtime/native-chat/naming/structured-chat-tab-name'
-import type { Translate } from '@/i18n/use-translate'
+} from "../../../../shared/execution-host"
+import { getPaletteOwnershipWorktreeIds } from "../../lib/workspace/ownership/unified-tab-host-ownership"
+import type { StructuredChatTabNames } from "../../runtime/native-chat/naming/structured-chat-tab-name"
+import type { Translate } from "../../i18n/use-translate"
 
 export type OpenTabSearchEntries = {
   workspaceTabs: readonly SearchableWorkspaceTab[]
@@ -109,12 +109,10 @@ export type OpenTabSearchAgentState = Pick<
   AppState,
   | 'agentStatusByPaneKey'
   | 'paneForegroundAgentByPaneKey'
-  | 'retainedAgentsByPaneKey'
   | 'sleepingAgentSessionsByPaneKey'
   | 'terminalLayoutsByTabId'
 >
 
-// Offer every workspace tab across groups, including the active one, to match Cmd+J.
 export function selectOpenTabSearchEntryState(
   state: AppState,
   worktreeId: string
@@ -167,7 +165,6 @@ export function selectOpenTabSearchAgentState(state: AppState): OpenTabSearchAge
   return {
     agentStatusByPaneKey: state.agentStatusByPaneKey,
     paneForegroundAgentByPaneKey: state.paneForegroundAgentByPaneKey,
-    retainedAgentsByPaneKey: state.retainedAgentsByPaneKey,
     sleepingAgentSessionsByPaneKey: state.sleepingAgentSessionsByPaneKey,
     terminalLayoutsByTabId: state.terminalLayoutsByTabId
   }
@@ -206,18 +203,21 @@ export function buildOpenTabSearchEntries(
   state: OpenTabSearchEntryState,
   agentState: OpenTabSearchAgentState,
   chatNames: StructuredChatTabNames,
+  excludedTabId: string | null = null,
   t?: Translate
 ): OpenTabSearchEntries {
   const scope = openTabSearchScope(state)
+  const excludedTab = state.unifiedTabsByWorktree[state.worktree.id]?.find(
+    (tab) => tab.id === excludedTabId
+  )
 
-  return {
+  const entries = {
     workspaceTabs: buildSearchableWorkspaceTabEntries({
       ...scope,
       unifiedTabsByWorktree: state.unifiedTabsByWorktree,
       tabsByWorktree: state.tabsByWorktree,
       openFiles: state.openFiles,
       agentStatusByPaneKey: agentState.agentStatusByPaneKey,
-      retainedAgentsByPaneKey: agentState.retainedAgentsByPaneKey,
       sleepingAgentSessionsByPaneKey: agentState.sleepingAgentSessionsByPaneKey,
       terminalLayoutsByTabId: agentState.terminalLayoutsByTabId,
       paneForegroundAgentByPaneKey: agentState.paneForegroundAgentByPaneKey,
@@ -245,5 +245,17 @@ export function buildOpenTabSearchEntries(
       },
       t
     )
+  }
+  return {
+    workspaceTabs: entries.workspaceTabs.filter((entry) => entry.tab.id !== excludedTabId),
+    browserPages: entries.browserPages.filter(
+      (entry) =>
+        !(
+          excludedTab?.contentType === 'browser' &&
+          entry.workspace.id === excludedTab.entityId &&
+          entry.workspace.activePageId === entry.page.id
+        )
+    ),
+    simulatorTabs: entries.simulatorTabs.filter((entry) => entry.tab.id !== excludedTabId)
   }
 }

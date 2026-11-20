@@ -1,11 +1,10 @@
-import { webTerminalPlacementParentTabId } from '../placement/web-session-terminal-placement'
-import type { TuiAgent } from '../../../../../shared/agent-launch/catalog/tui-agent'
+import { webTerminalMirroredTabId } from "../placement/web-session-terminal-placement"
+import type { TuiAgent } from "../../../../../shared/agent-launch/catalog/tui-agent"
 import {
   deliverLaunchPromptToAgentTab,
   seedNativeChatLaunchDraftForAgentTab
-} from '../../../lib/agent-session/launch/prompt/agent-launch-prompt-delivery'
-import { toWebTerminalSurfaceTabId } from '../../../../../shared/workspace-layout/terminal-surface-id'
-import type { CreatedWebRuntimeSessionTerminal } from './terminal-create-contracts'
+} from "../../../lib/agent-session/launch/prompt/agent-launch-prompt-delivery"
+import type { CreatedWebRuntimeSessionTerminal } from "./terminal-create-contracts"
 
 /** Deliver only after the selected create route has settled its startup recipe. */
 export async function deliverCreatedWebRuntimeAgentSessionPrompt(
@@ -26,9 +25,7 @@ export async function deliverCreatedWebRuntimeAgentSessionPrompt(
   }
   const tabId =
     args.rendererTabId ??
-    (created.hostTabId
-      ? toWebTerminalSurfaceTabId(webTerminalPlacementParentTabId(created.hostTabId))
-      : undefined)
+    (created.hostTabId ? webTerminalMirroredTabId(created.hostTabId) : undefined)
   if (args.promptAfterReady !== undefined) {
     if (!tabId) {
       return false

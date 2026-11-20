@@ -1,6 +1,8 @@
-import { BrowserExtensionProfileDocumentStore } from './browser-extension-profile-document-store'
-import { app } from 'electron'
-import { getBrowserExtensionProfileDataDirectory } from './browser-extension-profile-data-directory'
+import {
+  BrowserExtensionProfileDocumentStore,
+  closeBrowserExtensionProfileDocumentStoreOnQuit
+} from "./browser-extension-profile-document-store"
+import { getBrowserExtensionProfileDataDirectory } from "./browser-extension-profile-data-directory"
 
 let syncStorageStore: BrowserExtensionProfileDocumentStore | null = null
 
@@ -14,7 +16,7 @@ export function getBrowserExtensionSyncStorageStore(): BrowserExtensionProfileDo
     const store = new BrowserExtensionProfileDocumentStore(
       getBrowserExtensionProfileDataDirectory()
     )
-    app.on('will-quit', () => store.flush())
+    closeBrowserExtensionProfileDocumentStoreOnQuit(store)
     syncStorageStore = store
   }
   return syncStorageStore

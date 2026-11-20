@@ -1,8 +1,8 @@
 import { z } from 'zod'
-import { getBrowserExtensionContextSignal } from './browser-extension-context-lifetime'
-import { getHostSessionState } from './browser-extension-contexts'
-import { runBrowserExtensionNativePage } from './browser-extension-native-page'
-import { getBrowserExtensionProfileStateStore } from '../profile-storage/browser-extension-profile-state-store'
+import { getBrowserExtensionContextSignal } from "./browser-extension-context-lifetime"
+import { getHostSessionState } from "./browser-extension-contexts"
+import { runBrowserExtensionNativePage } from "./browser-extension-native-page"
+import { getBrowserExtensionProfileStateStore } from "../profile-storage/browser-extension-profile-state-store"
 
 export type ContentScriptMethod =
   | 'registerContentScripts'
@@ -147,10 +147,14 @@ function enqueue(
     if (!reply.ok) {
       throw new Error(reply.error)
     }
-    store.update(profileId, extension.id, (stored) => ({
-      ...stored,
-      contentScripts: reply.scripts.filter((script) => script.persistAcrossSessions !== false)
-    }))
+    const contentScripts = reply.scripts.filter((script) => script.persistAcrossSessions !== false)
+    // Why compare: a restore after reattach returns what was saved, and each write rewrites every profile.
+    if (
+      JSON.stringify(contentScripts) !==
+      JSON.stringify(store.read(profileId, extension.id).contentScripts)
+    ) {
+      store.update(profileId, extension.id, (stored) => ({ ...stored, contentScripts }))
+    }
     return reply.value
   })
   state.queue = run.catch(() => undefined)

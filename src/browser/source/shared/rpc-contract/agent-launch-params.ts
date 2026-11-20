@@ -1,21 +1,20 @@
 /** Shared agent.launch schema lets remote clients use typed RpcSendParams.
  * The host honors an explicit surface or refuses it; migrated worktree.create startup-agent fields are stripped. */
 
-import { AGENT_LAUNCH_SURFACES } from '../agent-launch/contracts/agent-launch-surface'
+import { AGENT_LAUNCH_SURFACES } from "../agent-launch/contracts/agent-launch-surface"
 import { z } from 'zod'
-import { isAgentSessionOptions } from '../agent-session/lifecycle/agent-session-record'
-import { parseAgentSessionOperationTimestamp } from '../agent-session/agent-session-host-authority'
-import { parsePaneKey } from '../workspace-layout/stable-pane-id'
-import { isValidHostTerminalTabId } from '../workspace-layout/terminal-tab-id'
-import { isTuiAgent } from '../agent-launch/catalog/tui-agent-config'
-import type { TuiAgent } from '../agent-launch/catalog/tui-agent'
-import { WorktreeCreate } from './worktree-create-params'
-import { FolderWorkspaceCreate } from './folder-workspace-params'
-import { LaunchSourceParam } from './launch-source-param'
-import { TerminalTabIdParam } from './agent-session-params'
-import { SessionId } from './structured-agent-session-params'
-import { isStructuredAgentSessionIdFor } from '../agent-session/structured-agent-session-create'
-import { AgentLaunchAccountEnv } from '../agent-launch/startup/agent-launch-account-env'
+import { isAgentSessionOptions } from "../agent-session/lifecycle/agent-session-record"
+import { parseAgentSessionOperationTimestamp } from "../agent-session/agent-session-host-authority"
+import { parsePaneKey } from "../workspace-layout/stable-pane-id"
+import { isValidHostTerminalTabId } from "../workspace-layout/terminal-tab-id"
+import { isTuiAgent } from "../agent-launch/catalog/tui-agent-config"
+import type { TuiAgent } from "../agent-launch/catalog/tui-agent"
+import { WorktreeCreate } from "./worktree-create-params"
+import { FolderWorkspaceCreate } from "./folder-workspace-params"
+import { LaunchSourceParam } from "./launch-source-param"
+import { TerminalTabIdParam } from "./agent-session-params"
+import { SessionId } from "./structured-agent-session-identifiers"
+import { AgentLaunchAccountEnv } from "../agent-launch/startup/agent-launch-account-env"
 
 const LaunchAgent = z.custom<TuiAgent>(isTuiAgent, { message: 'Unknown TUI agent' })
 
@@ -25,7 +24,7 @@ const tolerantTabLayoutId = z
   .transform((value): string | undefined => (typeof value === 'string' ? value : undefined))
   .optional()
 
-export const AgentLaunchFields = z.object({
+export const AgentLaunch = z.object({
   agent: LaunchAgent,
   /** Caller-minted retry identity; optional forever for shipped clients. Never mint after an ambiguous launch:
    * a fresh ID on retry would create another operation instead of replaying. */
@@ -111,25 +110,7 @@ export const AgentLaunchFields = z.object({
   surface: z.enum(AGENT_LAUNCH_SURFACES).optional()
 })
 
-/** Caller IDs must retain the agent lane encoded by host-minted IDs. */
-function refuseSessionIdForAnotherAgent(
-  launch: { agent: string; sessionId?: string | undefined },
-  ctx: z.RefinementCtx
-): void {
-  if (launch.sessionId && !isStructuredAgentSessionIdFor(launch.agent, launch.sessionId)) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      path: ['sessionId'],
-      message: 'Launch session id must be named for its agent'
-    })
-  }
-}
-
-export const AgentLaunch = AgentLaunchFields.superRefine(refuseSessionIdForAnotherAgent)
-
 export type AgentLaunchParams = z.infer<typeof AgentLaunch>
 
 // A distinct method prevents an older receiver from silently dropping the replay requirement.
-export const AgentLaunchReplay = AgentLaunchFields.required({ operationId: true }).superRefine(
-  refuseSessionIdForAnotherAgent
-)
+export const AgentLaunchReplay = AgentLaunch.required({ operationId: true })

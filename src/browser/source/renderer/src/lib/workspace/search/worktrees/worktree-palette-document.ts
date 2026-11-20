@@ -1,13 +1,14 @@
 import {
   getRepoExecutionHostId,
   LOCAL_EXECUTION_HOST_ID
-} from '../../../../../../shared/execution-host'
-import { issueCacheKey as getIssueCacheKey } from '@/store/github/cache/cache-identity'
+} from "../../../../../../shared/execution-host"
+import { issueCacheKey as getIssueCacheKey } from "../../../../store/github/cache/cache-identity"
+import { getWorktreeGitHubIssueRepository } from "../../../../../../shared/worktree/github-issue-repository"
 import {
   buildPaletteDocument,
   type PaletteDocument
-} from '../../../../../../shared/palette-match/palette-document'
-import type { PaletteComposedEvidence } from '../../../../../../shared/palette-match/evidence-composer'
+} from "../../../../../../shared/palette-match/palette-document"
+import type { PaletteComposedEvidence } from "../../../../../../shared/palette-match/evidence-composer"
 import {
   buildWorktreeAttachmentEvidence,
   buildWorktreeAutomationEvidence,
@@ -17,21 +18,21 @@ import {
   buildWorktreePortEvidence,
   buildWorktreeReviewEvidence,
   type WorktreePaletteReviewSource
-} from './worktree-palette-evidence'
+} from "./worktree-palette-evidence"
 import {
   resolveWorktreeBranchLabel,
   resolveWorktreeDisplayName
-} from '../../display/worktree-default-display-name'
-import type { HostedReviewInfo } from '../../../../../../shared/source-control/hosted-review/hosted-review-contracts'
-import type { Repo } from '../../../../../../shared/repo-types'
-import { getWorkspaceAttachments } from '../../../../../../shared/workspace-attachments/workspace-attachments'
-import { getWorkspaceAttachmentKey } from '../../../../../../shared/workspace-attachments/workspace-attachment-normalization'
-import type { Worktree } from '../../../../../../shared/worktree/types'
-import { isGitHubPRSuppressed } from '../../../../../../shared/worktree/github-pr-suppression'
+} from "../../display/worktree-default-display-name"
+import type { HostedReviewInfo } from "../../../../../../shared/source-control/hosted-review/hosted-review-contracts"
+import type { Repo } from "../../../../../../shared/repo-types"
+import { getWorkspaceAttachments } from "../../../../../../shared/workspace-attachments/workspace-attachments"
+import { getWorkspaceAttachmentKey } from "../../../../../../shared/workspace-attachments/workspace-attachment-normalization"
+import type { Worktree } from "../../../../../../shared/worktree/types"
+import { isGitHubPRSuppressed } from "../../../../../../shared/worktree/github-pr-suppression"
 import {
   getPaletteWorktreeIdentity,
   resolvePaletteRepoForWorktree
-} from '../palette-repo-resolution'
+} from "../palette-repo-resolution"
 
 export const WORKTREE_PALETTE_NAME_FIELD_ID = 'name'
 export const WORKTREE_PALETTE_BRANCH_FIELD_ID = 'branch'
@@ -111,7 +112,9 @@ function resolveIssueTitle(
     worktree.linkedIssue,
     undefined,
     repo.connectionId,
-    repo.executionHostId
+    repo.executionHostId,
+    false,
+    getWorktreeGitHubIssueRepository(worktree)
   )
   return sources.issueCache[key]?.data?.title ?? ''
 }

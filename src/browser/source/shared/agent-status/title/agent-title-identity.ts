@@ -1,25 +1,26 @@
-import { isQoderTerminalTitle } from './providers/qoder-terminal-title'
-import { getPiStateTitleBrand } from './providers/pi-state-title-marker'
+import { isQoderTerminalTitle } from "./providers/qoder-terminal-title"
+import { isJcodeIdentityTerminalTitle } from "./providers/jcode-terminal-title"
+import { getPiStateTitleBrand } from "./providers/pi-state-title-marker"
 import {
   AGY_AGENT_NAME_RE,
   DROID_AGENT_NAME_RE,
   HERMES_AGENT_NAME_RE,
   titleHasAgentName
-} from './agent-name-token-match'
-import { CLAUDE_IDLE, containsAgentSpinnerGlyph } from './agent-title-glyphs'
+} from "./agent-name-token-match"
+import { CLAUDE_IDLE, containsAgentSpinnerGlyph } from "./agent-title-glyphs"
 import {
   isClaudeManagementTitle,
   isCursorAgentTitle,
   isGeminiTerminalTitle,
   isPiAgentTitle
-} from './agent-title-core'
-import { isDeepSeekBuildTerminalTitle } from './providers/dsb-terminal-title'
-import { isOpenCodeNativeTitle } from './providers/opencode-terminal-title'
+} from "./agent-title-core"
+import { isDeepSeekBuildTerminalTitle } from "./providers/dsb-terminal-title"
+import { isOpenCodeNativeTitle } from "./providers/opencode-terminal-title"
 import {
   getPiCompatibleSyntheticAgentLabel,
   getPiCompatibleTitleBrand
-} from './providers/pi-compatible-synthetic-title'
-import { memoizeTitleClassification } from './terminal-title-classification-memo'
+} from "./providers/pi-compatible-synthetic-title"
+import { memoizeTitleClassification } from "./terminal-title-classification-memo"
 
 /** Scope prompt-cache timers to Claude title conventions. */
 function computeIsClaudeAgent(title: string): boolean {
@@ -110,7 +111,7 @@ function computeAgentLabel(title: string): string | null {
   if (titleHasAgentName(title, 'devin')) {
     return 'Devin'
   }
-  if (titleHasAgentName(title, 'jcode')) {
+  if (titleHasAgentName(title, 'jcode') || isJcodeIdentityTerminalTitle(title)) {
     return 'Jcode'
   }
   if (titleHasAgentName(title, 'antigravity') || AGY_AGENT_NAME_RE.test(title)) {

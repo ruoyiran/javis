@@ -1,4 +1,4 @@
-import type { BrowserClientHostedPageInventory } from '../../../../shared/browser/client-hosting/browser-client-host-protocol'
+import type { BrowserClientHostedPageInventory } from "../../../../shared/browser/client-hosting/browser-client-host-protocol"
 
 const DEFAULT_MAX_PAGES = 256
 const MAX_GENERATION = 0xffff_ffff
@@ -20,6 +20,7 @@ export type BrowserHostRuntimePageIntent = BrowserHostPageAuthority &
     executionHostKey: string
     /** Round-tripped to the client so the page's inventory keeps naming its workspace. */
     workspaceId?: string
+    url?: string
     reclaimFrom?: BrowserHostPageAuthority & Readonly<{ pairedDeviceId: string }>
   }>
 
@@ -61,11 +62,15 @@ export function planBrowserHostPageReconciliation(
       continue
     }
     consumedPageIds.add(page.browserPageId)
-    if (page.state === 'active' && sameCurrentPage(intent, page)) {
+    if (page.state === 'active' && page.currentUrl !== undefined && sameCurrentPage(intent, page)) {
       retain.push(Object.freeze({ intent, page }))
       continue
     }
-    if (page.state === 'active' && canReclaimPage(intent, page, options.inventoryPairedDeviceId)) {
+    if (
+      page.state === 'active' &&
+      page.currentUrl !== undefined &&
+      canReclaimPage(intent, page, options.inventoryPairedDeviceId)
+    ) {
       reclaim.push(Object.freeze({ intent, page }))
       continue
     }

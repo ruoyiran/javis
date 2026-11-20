@@ -1,5 +1,5 @@
-import type { AgentSessionRewindSupport } from '../agent-session/lifecycle/agent-session-rewind'
-import type { NativeChatMessage } from './native-chat-types'
+import type { AgentSessionRewindSupport } from "../agent-session/lifecycle/agent-session-rewind"
+import type { NativeChatMessage } from "./native-chat-types"
 
 /** Keep in-doubt rewind support available; the live status latch resolves it, not this cached read. */
 export function nativeChatRewindOffered(support: AgentSessionRewindSupport | undefined): boolean {
@@ -21,6 +21,8 @@ export function nativeChatRowOffersRewind(
     message.command === undefined &&
     message.sentAs === undefined &&
     message.from === undefined &&
+    message.asker === undefined &&
+    message.automationRun === undefined &&
     message.blocks.every((block) => block.type !== 'image-ref' || Boolean(block.path))
   )
 }

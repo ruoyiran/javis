@@ -1,25 +1,25 @@
-import { RELEASE_SYNCHRONIZED_OUTPUT } from '../../../../../shared/terminal/protocol/input-modes/terminal-mode-reset-profiles'
+import { RELEASE_SYNCHRONIZED_OUTPUT } from "../../../../../shared/terminal/protocol/input-modes/terminal-mode-reset-profiles"
 import {
   TerminalStreamOpcode,
   decodeTerminalStreamText,
   type TerminalStreamFrame
-} from '../../../../../shared/terminal/stream/terminal-stream-protocol'
-import { TERMINAL_MULTIPLEX_STREAM_LIMIT_ERROR } from '../../../../../shared/terminal/stream/terminal-multiplex-flow-control'
-import { recordE2eRemoteTerminalInitialSnapshotTruncated } from '../streams/diagnostics/remote-runtime-terminal-e2e-control'
-import { RemoteRuntimeTerminalResponseController } from '../streams/frames/remote-runtime-terminal-response-controller'
+} from "../../../../../shared/terminal/stream/terminal-stream-protocol"
+import { TERMINAL_MULTIPLEX_STREAM_LIMIT_ERROR } from "../../../../../shared/terminal/stream/terminal-multiplex-flow-control"
+import { recordE2eRemoteTerminalInitialSnapshotTruncated } from "../streams/diagnostics/remote-runtime-terminal-e2e-control"
+import { RemoteRuntimeTerminalResponseController } from "../streams/frames/remote-runtime-terminal-response-controller"
 import {
   MAX_REMOTE_TERMINAL_SNAPSHOT_BYTES,
   REMOTE_TERMINAL_SNAPSHOT_TOO_LARGE
-} from './remote-terminal-snapshot-policy'
-import { classifySnapshotAvailability } from './remote-terminal-snapshot-outcome'
+} from "./remote-terminal-snapshot-policy"
+import { classifySnapshotAvailability } from "./remote-terminal-snapshot-outcome"
 import {
   clearPendingSnapshotRequest,
   clearResyncTimer,
   clearSnapshot
-} from './remote-terminal-snapshot-lifecycle'
-import { concatBytes, decodeSnapshotInfo } from './remote-terminal-snapshot-decode'
-import type { RemoteRuntimeMultiplexedTerminalCallbacks } from '../streams/remote-terminal-stream-contracts'
-import type { RemoteRuntimeMultiplexedTerminalState } from '../streams/remote-terminal-stream-state'
+} from "./remote-terminal-snapshot-lifecycle"
+import { concatBytes, decodeSnapshotInfo } from "./remote-terminal-snapshot-decode"
+import type { RemoteRuntimeMultiplexedTerminalCallbacks } from "../streams/remote-terminal-stream-contracts"
+import type { RemoteRuntimeMultiplexedTerminalState } from "../streams/remote-terminal-stream-state"
 
 export abstract class RemoteRuntimeTerminalBinarySnapshots extends RemoteRuntimeTerminalResponseController {
   protected handleSnapshotOrErrorFrame(
@@ -133,6 +133,9 @@ export abstract class RemoteRuntimeTerminalBinarySnapshots extends RemoteRuntime
         } else if (target === 'initial') {
           stream.callbacks.onSnapshot(data ?? '', pushedMeta)
         } else if (target === 'recovery') {
+          if (info !== null) {
+            stream.callbacks.onOutputGapRecovered?.()
+          }
           // Pushed recovery replaces screen/scrollback, including empty images, because dropped output leaves an unsafe splice gap (P2-5). RELEASE_SYNCHRONIZED_OUTPUT clears mode 2026: erase-screen alone leaves its latch blocking paint.
           stream.callbacks.onSnapshot(
             `${RELEASE_SYNCHRONIZED_OUTPUT}\x1b[2J\x1b[3J\x1b[H${data ?? ''}`,

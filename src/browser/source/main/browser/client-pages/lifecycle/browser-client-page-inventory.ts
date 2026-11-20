@@ -6,11 +6,11 @@ import {
   browserClientHostedPageInventoryByteLength,
   type BrowserClientHostedPageInventory,
   type BrowserClientHostCommandEvent
-} from '../../../../shared/browser/client-hosting/browser-client-host-protocol'
-import { BrowserClientPageMetadataParams } from '../../../../shared/browser/client-hosting/browser-client-page-metadata-protocol'
-import type { BrowserClientPageRenderer } from '../renderer/browser-client-page-renderer-contract'
-import { BrowserClientPageCommandError } from '../execution/browser-client-page-command-failure'
-import type { BrowserRouteGuestLifecycleClaim } from '../../routing/guest-authority/browser-route-page-authority'
+} from "../../../../shared/browser/client-hosting/browser-client-host-protocol"
+import { BrowserClientPageMetadataParams } from "../../../../shared/browser/client-hosting/browser-client-page-metadata-protocol"
+import type { BrowserClientPageRenderer } from "../renderer/browser-client-page-renderer-contract"
+import { BrowserClientPageCommandError } from "../execution/browser-client-page-command-failure"
+import type { BrowserRouteGuestLifecycleClaim } from "../../routing/guest-authority/browser-route-page-authority"
 
 export function createBrowserClientPageInventory(
   event: BrowserClientHostCommandEvent,
@@ -29,6 +29,10 @@ export function createBrowserClientPageInventory(
     browserProfileId: event.command.browserProfileId,
     executionHostKey: event.command.executionHostKey,
     state,
+    ...(event.command.initialUrl === undefined ||
+    event.command.initialUrl.length > BROWSER_CLIENT_HOST_PAGE_INVENTORY_URL_MAX_LENGTH
+      ? {}
+      : { currentUrl: event.command.initialUrl }),
     ...(event.command.workspaceId ? { workspaceId: event.command.workspaceId } : {})
   })
 }

@@ -1,9 +1,9 @@
-import { defineMethod } from '../../core'
-import { assertRpcClipboardTextWriteWithinLimit } from '../../rpc-clipboard-text-validation'
+import { defineMethod } from "../../core"
+import { assertRpcClipboardTextWriteWithinLimit } from "../../rpc-clipboard-text-validation"
 import {
   BrowserTarget,
   ExpectUrlBrowserTarget
-} from '../../../../../shared/rpc-contract/rpc-param-primitives'
+} from "../../../../../shared/rpc-contract/rpc-param-primitives"
 import {
   ClipboardWrite,
   CookieDelete,
@@ -23,8 +23,9 @@ import {
   StorageKey,
   StorageKeyValue,
   Viewport
-} from '../../../../../shared/rpc-contract/browser-params'
-import { MouseClick } from '../../../../../shared/rpc-contract/browser-extras-params'
+} from "../../../../../shared/rpc-contract/browser-params"
+import { MouseClick } from "../../../../../shared/rpc-contract/browser-extras-params"
+import { PageZoom } from "../../../../../shared/rpc-contract/browser-core-params"
 
 export const BROWSER_EXTRA_METHODS = [
   defineMethod({
@@ -98,6 +99,12 @@ export const BROWSER_EXTRA_METHODS = [
     permission: 'workspace',
     params: MouseButton,
     handler: async (params, { runtime }) => runtime.browserMouseUp(params)
+  }),
+  defineMethod({
+    name: 'browser.zoom',
+    permission: 'workspace',
+    params: PageZoom,
+    handler: async (params, { runtime }) => runtime.browserZoom(params)
   }),
   defineMethod({
     name: 'browser.mouseWheel',

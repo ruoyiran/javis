@@ -4,18 +4,11 @@ import { homedir } from 'node:os'
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from 'node:path'
 import { blake3 } from '@noble/hashes/blake3'
 import { bytesToHex } from '@noble/hashes/utils'
-import { resolveAbsoluteDirOverride } from './absolute-dir-override'
+import { resolveAbsoluteDirOverride } from "./absolute-dir-override"
 import {
   GrokSessionPathLookupQueue,
   type GrokSessionPathScanner
-} from './grok-session-path-lookup-queue'
-
-export {
-  GROK_SESSION_PATH_CACHE_MAX_ENTRIES,
-  GROK_SESSION_SCAN_ACTIVE_ROOT_MAX,
-  GROK_SESSION_SCAN_QUEUE_MAX_ENTRIES,
-  type GrokSessionPathScanner
-} from './grok-session-path-lookup-queue'
+} from "./grok-session-path-lookup-queue"
 
 export const GROK_CHAT_HISTORY_FILE = 'chat_history.jsonl'
 // Grok switches encoded cwd names above 255 bytes to slug+hash groups.

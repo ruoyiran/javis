@@ -3,14 +3,10 @@
  * the entry is not one. Same stores and key shapes as the WSL move's renderer rewrite
  * (renderer/src/lib/wsl-move-renderer-store-keys.ts), but the project stays on this computer.
  */
-import { normalizeRuntimePathForComparison } from './cross-platform-path'
-import { LOCAL_EXECUTION_HOST_ID } from './execution-host'
-import type { PythonEnvironment } from './notebook-kernel-types'
-import { wslUncDrivePathToWindows } from './wsl-paths'
-import { WSL_MOVE_RENDERER_REWRITE_STORE_IDS } from './wsl-move/wsl-move-renderer-rewrite-types'
-
-/** The move's renderer stores, rewritten in place of copied to a host. */
-export const WSL_DRIVE_UNC_RENDERER_STORE_IDS = WSL_MOVE_RENDERER_REWRITE_STORE_IDS
+import { normalizeRuntimePathForComparison } from "./cross-platform-path"
+import { LOCAL_EXECUTION_HOST_ID } from "./execution-host"
+import type { PythonEnvironment } from "./notebook-kernel-types"
+import { wslUncDrivePathToWindows } from "./wsl-paths"
 
 /** A converted conversion's renderer half, as main lists it. */
 export type WslDriveUncPendingRendererRewrite = {

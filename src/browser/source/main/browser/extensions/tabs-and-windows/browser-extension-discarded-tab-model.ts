@@ -1,18 +1,15 @@
 /// <reference types="chrome" />
-import { activateBrowserTabInRenderer } from '../../../runtime/browser/tabs/browser-tab-renderer-activate'
-import { closeBrowserTabInRenderer } from '../../../runtime/browser/tabs/browser-tab-renderer-close'
-import { BrowserExtensionApiError } from '../api-runtime/browser-extension-namespace-registry'
+import { activateBrowserTabInRenderer } from "../../../runtime/browser/tabs/browser-tab-renderer-activate"
+import { closeBrowserTabInRenderer } from "../../../runtime/browser/tabs/browser-tab-renderer-close"
+import { BrowserExtensionApiError } from "../api-runtime/browser-extension-namespace-registry"
 import {
   FIRST_DISCARDED_BROWSER_TAB_ID,
   listDiscardedBrowserTabs,
   type DiscardedBrowserTab
-} from './browser-extension-discarded-tabs'
-import {
-  canExtensionSeeTabUrl,
-  getActiveBrowserTabId,
-  mainWindowTabIds
-} from './browser-extension-tab-model'
-import { getBrowserExtensionMainWindow } from './browser-extension-window-model'
+} from "./browser-extension-discarded-tabs"
+import { getActiveBrowserTabId, mainWindowTabIds } from "./browser-extension-tab-model"
+import { canExtensionSeeTabUrl } from "../permissions/browser-extension-tab-url-access"
+import { getBrowserExtensionMainWindow } from "./browser-extension-window-model"
 
 /** A discarded tab sits in the main window after every loaded one. */
 export type BrowserExtensionDiscardedTabEntry = {

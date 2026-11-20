@@ -1,36 +1,36 @@
-import { readNativeChatComposerDraft } from '../../drafts/native-chat-composer-draft-store'
-import { serializeNativeChatAgentReferences } from '../pickers/native-chat-agent-reference-send'
+import { readNativeChatComposerDraft } from "../../drafts/native-chat-composer-draft-store"
+import { serializeNativeChatAgentReferences } from "../pickers/native-chat-agent-reference-send"
 import {
   admitNativeChatPastedText,
   resolveNativeChatPastedText
-} from '../../paste/native-chat-composer-pasted-text-references'
+} from "../../paste/native-chat-composer-pasted-text-references"
 import { useCallback, type Dispatch, type SetStateAction } from 'react'
-import type { AgentType } from '../../../../../../shared/agent-status/contracts/agent-status-types'
-import type { NativeChatLaunchDraft } from '@/components/native-chat/drafts/native-chat-launch-prompt'
-import { translate } from '@/i18n/i18n'
-import { useAppStore } from '../../../../store/index'
-import { emitNativeChatMessageSent } from '@/components/native-chat/telemetry/native-chat-telemetry'
+import type { AgentType } from "../../../../../../shared/agent-status/contracts/agent-status-types"
+import type { NativeChatLaunchDraft } from "../../drafts/native-chat-launch-prompt"
+import { translate } from "../../../../i18n/i18n"
+import { useAppStore } from "../../../../store/index"
+import { emitNativeChatMessageSent } from "../../telemetry/native-chat-telemetry"
 import {
   sendNativeChatMessage,
   sendNativeChatTypedCommand,
   submitNativeChatPrompt,
   type NativeChatSendHandle
-} from '../../session/terminal/send/native-chat-runtime-send'
-import { sendNativeChatMessageWithImageAttachments } from '../../session/terminal/send/native-chat-runtime-image-send'
-import { resolveNativeChatLaunchDraftSend } from '../../drafts/native-chat-launch-draft-send'
+} from "../../session/terminal/send/native-chat-runtime-send"
+import { sendNativeChatMessageWithImageAttachments } from "../../session/terminal/send/native-chat-runtime-image-send"
+import { resolveNativeChatLaunchDraftSend } from "../../drafts/native-chat-launch-draft-send"
 import {
   nativeChatComposerTargetIsRemote,
   type NativeChatResolvedTarget
-} from './native-chat-composer-target'
-import { isSlashCommandDraft } from '../../../../../../shared/native-chat/input/native-chat-slash-commands'
-import type { NativeChatPickerState } from '../pickers/use-native-chat-picker-state'
-import type { NativeChatSendLifecycle } from '../../session/terminal/send/use-native-chat-send-lifecycle'
-import type { NativeChatPtySessionOptionsSurface } from '../../../../../../shared/native-chat/input/native-chat-pty-session-options'
-import type { NativeChatOptimisticSendOutcome } from '../../session/terminal/delivery/native-chat-optimistic-send-outcome'
+} from "./native-chat-composer-target"
+import { isSlashCommandDraft } from "../../../../../../shared/native-chat/input/native-chat-slash-commands"
+import type { NativeChatPickerState } from "../pickers/use-native-chat-picker-state"
+import type { NativeChatSendLifecycle } from "../../session/terminal/send/use-native-chat-send-lifecycle"
+import type { NativeChatPtySessionOptionsSurface } from "../../../../../../shared/native-chat/input/native-chat-pty-session-options"
+import type { NativeChatOptimisticSendOutcome } from "../../session/terminal/delivery/native-chat-optimistic-send-outcome"
 import {
   answerNativeChatCommandInComposer,
   type NativeChatLocalCommandAnswer
-} from '../../session/options/terminal/use-native-chat-local-command-answer'
+} from "../../session/options/terminal/use-native-chat-local-command-answer"
 
 export function useNativeChatPtyComposerSend(args: {
   agent: AgentType
@@ -47,6 +47,7 @@ export function useNativeChatPtyComposerSend(args: {
   onOptimisticSend?: (text: string, imagePaths?: string[], recovery?: boolean) => string | undefined
   optimisticSendOutcome?: NativeChatOptimisticSendOutcome
   onSlashCommand?: (command: string, output?: string) => void
+  onCommandSent?: (command: string, delivery: NativeChatSendHandle) => void
   answerCommandLocally?: NativeChatLocalCommandAnswer
   onSubmitted?: () => void
   sessionOptionsSurface: NativeChatPtySessionOptionsSurface | null
@@ -140,6 +141,9 @@ export function useNativeChatPtyComposerSend(args: {
         if (classification === 'command') {
           args.onSlashCommand?.(text.trim())
           args.sessionOptionsSurface?.recordOutgoingCommand(text.trim())
+          if (pendingHandle) {
+            args.onCommandSent?.(text.trim(), pendingHandle)
+          }
         }
       } else {
         pendingId = args.onOptimisticSend?.(text, imagePaths, retry !== undefined)

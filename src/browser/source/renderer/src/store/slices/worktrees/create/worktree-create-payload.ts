@@ -1,21 +1,21 @@
-import type { WorktreeStartupLaunch } from '../../../../../../shared/worktree/launch-types'
-import type { agentPickerLaunchInputs } from '../../../../../../shared/agent-launch/picker/agent-launch-picker'
-import { toAgentLaunchPreferences } from '../../../../../../shared/agent-launch/choices/agent-launch-preferences'
-import { pickApprovedSetupHashes } from '../../../../../../shared/worktree/approved-setup-hashes'
-import type { TuiAgent } from '../../../../../../shared/agent-launch/catalog/tui-agent'
-import { ORCA_SIDEBAR_INPUTS_IS_MAIN } from '../../../../../../shared/sidebar-inputs-switch'
+import type { WorktreeStartupLaunch } from "../../../../../../shared/worktree/launch-types"
+import type { agentPickerLaunchInputs } from "../../../../../../shared/agent-launch/picker/agent-launch-picker"
+import { toAgentLaunchPreferences } from "../../../../../../shared/agent-launch/choices/agent-launch-preferences"
+import { pickApprovedSetupHashes } from "../../../../../../shared/worktree/approved-setup-hashes"
+import type { TuiAgent } from "../../../../../../shared/agent-launch/catalog/tui-agent"
+import { ORCA_SIDEBAR_INPUTS_IS_MAIN } from "../../../../../../shared/sidebar-inputs-switch"
 import type {
   CreateWorktreeArgs,
   CreateWorktreeResult
-} from '../../../../../../shared/worktree/create-types'
-import type { ExecutionHostId } from '../../../../../../shared/execution-host'
-import type { WorkspaceKey } from '../../../../../../shared/workspace-scope'
+} from "../../../../../../shared/worktree/create-types"
+import type { ExecutionHostId } from "../../../../../../shared/execution-host"
+import type { WorkspaceKey } from "../../../../../../shared/workspace-scope"
 import type {
   CrossStoreInferredSource,
   CrossStoreParentRef
-} from '../../../../../../shared/worktree/lineage-types'
-import type { TaskSourceContext } from '../../../../../../shared/work-items/task-source-context'
-import type { WorkspaceLinkedItem } from '../../../../../../shared/worktree/types'
+} from "../../../../../../shared/worktree/lineage-types"
+import type { TaskSourceContext } from "../../../../../../shared/work-items/task-source-context"
+import type { WorkspaceLinkedItem } from "../../../../../../shared/worktree/types"
 
 /** Trailing bag for `createWorktree` args that outgrew its positional list. */
 export type CreateWorktreeCallOptions = {
@@ -34,6 +34,7 @@ export type CreateWorktreeCallOptions = {
   }
   legacyStartup?: () => WorktreeStartupLaunch | undefined
   setupOnly?: boolean
+  hookTrustContext?: 'vm'
   /** Hash of the confirmed setup content; see CreateWorktreeArgs. */
   approvedSetupHash?: string
   approvedSetupHashes?: string[]

@@ -1,16 +1,16 @@
 import { useEffect, useState } from 'react'
-import { useTerminalQuickCommandHosts } from '@/hooks/use-terminal-quick-command-hosts'
-import { useVisibleTerminalQuickCommandHosts } from '@/hooks/use-visible-terminal-quick-command-hosts'
-import { useAppStore } from '@/store/index'
-import { getIndexedReposById } from '@/store/repos/repository-catalog-index'
-import { getRepoIdFromWorktreeId } from '../../../../../../shared/worktree/id'
-import type { ExecutionHostId } from '../../../../../../shared/execution-host'
-import { FLOATING_TERMINAL_WORKTREE_ID } from '../../../../../../shared/constants'
-import type { TerminalQuickCommand } from '../../../../../../shared/terminal/quick-commands/terminal-quick-command-types'
-import { runQuickCommandInNewTab } from '@/lib/terminal/quick-commands/run-quick-command-in-new-tab'
-import { TerminalQuickCommandsSubmenu } from '../../../terminal-pane/quick-commands/TerminalQuickCommandsSubmenu'
-import { TerminalQuickCommandEditorDialog } from '../../../terminal-pane/quick-commands/TerminalQuickCommandEditorDialog'
-import { createTerminalQuickCommandDraft } from '../../../terminal-quick-commands/TerminalQuickCommandDialog'
+import { useTerminalQuickCommandHosts } from "../../../../hooks/use-terminal-quick-command-hosts"
+import { useVisibleTerminalQuickCommandHosts } from "../../../../hooks/use-visible-terminal-quick-command-hosts"
+import { useAppStore } from "../../../../store/index"
+import { getIndexedReposById } from "../../../../store/repos/repository-catalog-index"
+import { getRepoIdFromWorktreeId } from "../../../../../../shared/worktree/id"
+import type { ExecutionHostId } from "../../../../../../shared/execution-host"
+import { FLOATING_TERMINAL_WORKTREE_ID } from "../../../../../../shared/workspace/identity/floating-workspace-id"
+import type { TerminalQuickCommand } from "../../../../../../shared/terminal/quick-commands/terminal-quick-command-types"
+import { runQuickCommandInNewTab } from "../../../../lib/terminal/quick-commands/run-quick-command-in-new-tab"
+import { TerminalQuickCommandsSubmenu } from "../../../terminal-pane/quick-commands/TerminalQuickCommandsSubmenu"
+import { TerminalQuickCommandEditorDialog } from "../../../terminal-pane/quick-commands/TerminalQuickCommandEditorDialog"
+import { createTerminalQuickCommandDraft } from "../../../terminal-quick-commands/TerminalQuickCommandDialog"
 
 type QuickCommandEditor = { hostId: ExecutionHostId; command: TerminalQuickCommand }
 type QuickCommandPane = { worktreeId: string; groupId: string }

@@ -1,5 +1,5 @@
-import type { LinearConcreteWorkspaceId } from './linear/workspace-types'
-import type { LinearCustomViewModel } from './linear/project-types'
+import type { LinearConcreteWorkspaceId } from "./linear/workspace-types"
+import type { LinearCustomViewModel } from "./linear/project-types"
 
 export type TaskViewPresetId = 'all' | 'issues' | 'review' | 'my-issues' | 'my-prs' | 'prs'
 
@@ -56,9 +56,6 @@ export type WorktreeCardMode = 'Default' | 'Compact'
 
 export type AgentActivityDisplayMode = 'compact' | 'full'
 
-// Keep existing chrome imports compatible; normalizers own these value domains.
-export type { ActivityGroupBy, ThreadReadFilter } from './agents-view-thread-filters'
-
 export type StatusBarItem =
   | 'claude'
   | 'codex'
@@ -74,6 +71,7 @@ export type StatusBarItem =
   | 'ssh'
   | 'resource-usage'
   | 'ports'
+  | 'git-blame'
 export type FloatingTerminalTriggerLocation = 'floating-button' | 'status-bar'
 
 export type TaskResumeState = {
@@ -94,19 +92,28 @@ export type TaskResumeState = {
   jiraQuery?: string
 }
 
+export const STATIC_RIGHT_SIDEBAR_TABS = [
+  'explorer',
+  'search',
+  'vault',
+  'workspaces',
+  'pr-checks',
+  'source-control',
+  'checks',
+  'ports',
+  'bot-activity',
+  'bot-automations',
+  'bot-connectors',
+  'bot-chats'
+] as const
+export type StaticRightSidebarTab = (typeof STATIC_RIGHT_SIDEBAR_TABS)[number]
 export type RightSidebarTab =
-  | 'explorer'
-  | 'search'
-  | 'vault'
-  | 'workspaces'
-  | 'pr-checks'
-  | 'source-control'
-  | 'checks'
-  | 'ports'
+  | StaticRightSidebarTab
   // Plugin IDs encode their dynamic panel namespace without opening the static tab union.
   | `plugin:${string}`
 export type ActiveRightSidebarTab = Exclude<RightSidebarTab, 'search'>
 export type RightSidebarExplorerView = 'files' | 'search'
+export type ActivityBarPosition = 'top' | 'side'
 
 export type ProjectOrderBy = 'manual' | 'recent'
 export type WorkspaceHostScope = 'all' | 'local' | `ssh:${string}` | `runtime:${string}`

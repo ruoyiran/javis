@@ -1,4 +1,4 @@
-import { AGENT_SESSION_PERMISSION_OWN_RUNTIME_CAPABILITY } from './agent-session-permission-modes-capability'
+import { AGENT_SESSION_PERMISSION_OWN_RUNTIME_CAPABILITY } from "./agent-session-permission-modes-capability"
 // Registered-agent hosts accept only their agentSession.agents inventory; offer agents beyond Claude/Codex only after negotiation.
 // Clients advertising this can render those agents’ tabs; withhold extra-agent tabs from older clients to avoid empty panes.
 export const STRUCTURED_AGENT_SESSION_REGISTERED_AGENTS_RUNTIME_CAPABILITY =
@@ -43,6 +43,10 @@ export const STRUCTURED_AGENT_SESSION_RESUME_WRITER_ADMISSION_RUNTIME_CAPABILITY
 // Gate the availability stream because old decoders silently drop its opcode; fall back to client facts/createSupport on click.
 export const STRUCTURED_AGENT_SESSION_AVAILABILITY_RUNTIME_CAPABILITY =
   'agent-session.structured.availability.v1' as const
+
+// Progress-aware readers renew on listingInProgress before their wait expires.
+export const AGENT_SESSION_MODEL_CATALOG_PROGRESS_CAPABILITY =
+  'agent-session.model-catalog.progress.v1' as const
 
 export const AGENT_SESSION_COHERENT_MODEL_CATALOG_CAPABILITY =
   'agent-session.coherent-model-catalog.v1' as const

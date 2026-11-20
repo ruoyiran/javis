@@ -1,13 +1,13 @@
-import type { AgentCompletionCoordinatorOptions } from './agent-completion-coordinator-types'
-import type { InspectionPriority } from './process-inspection/agent-process-inspection-queue'
-import type { PendingTitleController } from './agent-completion-pending-title'
-import type { ProcessMonitorState } from './agent-completion-process-types'
+import type { AgentCompletionCoordinatorOptions } from "./agent-completion-coordinator-types"
+import type { InspectionPriority } from "./process-inspection/agent-process-inspection-queue"
+import type { PendingTitleController } from "./agent-completion-pending-title"
+import type { ProcessMonitorState } from "./agent-completion-process-types"
 import {
   NO_EVIDENCE_ACTIVITY_HOT_WINDOW_MS,
   POLL_TIER_INTERVAL_MS,
   type PollCadenceTier
-} from './agent-completion-poll-cadence'
-import { nextCadenceInspectionDelayMs } from './agent-completion-poll-interval'
+} from "./agent-completion-poll-cadence"
+import { nextCadenceInspectionDelayMs } from "./agent-completion-poll-interval"
 
 export function createAgentCompletionPollScheduler(args: {
   options: AgentCompletionCoordinatorOptions
@@ -42,10 +42,26 @@ export function createAgentCompletionPollScheduler(args: {
     )
   }
 
+  function isPaneQuiet(now: number): boolean {
+    return (
+      state.lastPaneActivityAt === null ||
+      now - state.lastPaneActivityAt >= NO_EVIDENCE_ACTIVITY_HOT_WINDOW_MS
+    )
+  }
+
   function currentPollTier(): PollCadenceTier {
     const ptyId = options.getPtyId()
     if (ptyId && options.isRemotePtyId?.(ptyId) === true) {
       return 'hidden'
+    }
+    const now = Date.now()
+    // An agent idling at its prompt changes nothing until it prints; a pending exit still confirms fast.
+    if (
+      (state.lastForegroundAgent || state.hasAgentRunEvidence) &&
+      state.pendingProcessExit === null &&
+      isPaneQuiet(now)
+    ) {
+      return 'quiet-agent'
     }
     if (options.shouldPollProcessCadence?.() === false) {
       return 'hidden'
@@ -56,11 +72,7 @@ export function createAgentCompletionPollScheduler(args: {
     if (state.hasAgentRunEvidence) {
       return 'idle'
     }
-    if (
-      options.isProcessInspectionCostly?.() === true &&
-      (state.lastPaneActivityAt === null ||
-        Date.now() - state.lastPaneActivityAt >= NO_EVIDENCE_ACTIVITY_HOT_WINDOW_MS)
-    ) {
+    if (options.isProcessInspectionCostly?.() === true && isPaneQuiet(now)) {
       return 'no-evidence'
     }
     return 'idle'
@@ -92,9 +104,7 @@ export function createAgentCompletionPollScheduler(args: {
     const now = Date.now()
     // Align only genuinely idle panes; agent activity retains the exact interval and phase.
     const isIdlePane =
-      state.lastForegroundAgent === null &&
-      (state.lastPaneActivityAt === null ||
-        now - state.lastPaneActivityAt >= NO_EVIDENCE_ACTIVITY_HOT_WINDOW_MS)
+      tier === 'quiet-agent' || (state.lastForegroundAgent === null && isPaneQuiet(now))
     const interval = nextCadenceInspectionDelayMs({
       baseMs: backoff,
       hasConsecutiveErrors: state.consecutiveInspectionErrors > 0,

@@ -1,10 +1,10 @@
-import type { Project, ProjectHostSetup } from './project-types'
-import type { Repo } from './repo-types'
+import type { Project, ProjectHostSetup } from "./project/project-types"
+import type { Repo } from "./repo-types"
 import {
   getProjectIdentityKey,
   projectHostSetupProjectionFromRepos,
   type ProjectHostSetupProjection
-} from './project-host-setup-projection'
+} from "./project-host-setup-projection"
 
 type NormalizedProjectHostSetupProjection = ProjectHostSetupProjection & {
   changed: boolean

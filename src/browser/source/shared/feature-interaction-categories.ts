@@ -1,4 +1,4 @@
-import type { FeatureInteractionId } from './feature-interaction-catalog'
+import type { FeatureInteractionId } from "./feature-interaction-catalog"
 
 export const FEATURE_INTERACTION_CATEGORIES = [
   'workspace',
@@ -30,6 +30,7 @@ export const FEATURE_INTERACTION_CATEGORY_BY_ID = {
   'cmd-j-quick-action': 'launcher',
   'cmd-j-create-workspace': 'launcher',
   browser: 'browser',
+  'browser-extensions': 'browser',
   'browser-tab-created': 'browser',
   'client-hosted-browser': 'browser',
   tasks: 'task_management',

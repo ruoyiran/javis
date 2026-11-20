@@ -63,8 +63,8 @@ export const BROWSER_BASIC_COMMAND_SPECS: CommandSpec[] = withBrowserPageTarget(
   {
     path: ['fill'],
     summary: 'Clear and fill a browser input by ref',
-    usage: 'javis browser fill --element <ref> --value <text> [--worktree <selector>] [--json]',
-    allowedFlags: [...GLOBAL_FLAGS, 'element', 'value', 'worktree']
+    usage: 'javis browser fill --element <ref> (--value <text> | --value-stdin) [--worktree <selector>] [--json]',
+    allowedFlags: [...GLOBAL_FLAGS, 'element', 'value', 'value-stdin', 'worktree']
   },
   {
     path: ['type'],
@@ -228,8 +228,8 @@ export const BROWSER_BASIC_COMMAND_SPECS: CommandSpec[] = withBrowserPageTarget(
     path: ['tab', 'create'],
     summary: 'Create a new browser tab in the current worktree',
     usage:
-      'javis browser tab create [--url <url>] [--worktree <selector>] [--profile <id>] [--split <right|left|down|up>] [--json]',
-    allowedFlags: [...GLOBAL_FLAGS, 'url', 'worktree', 'profile', 'split']
+      'javis browser tab create [--url <url>] [--worktree <selector>] [--profile <id>] [--split <right|left|down|up>] [--headless] [--json]',
+    allowedFlags: [...GLOBAL_FLAGS, 'url', 'worktree', 'profile', 'split', 'headless']
   },
   {
     path: ['tab', 'profile', 'list'],

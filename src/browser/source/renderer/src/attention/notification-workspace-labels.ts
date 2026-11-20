@@ -1,29 +1,32 @@
-import type { useAppStore } from '../store/index'
-import { getIndexedRepoMap } from '../store/repos/repository-catalog-index'
-import { getIndexedWorktreesById } from '../store/slices/worktrees/listing/worktree-catalog-index'
+import type { useAppStore } from "../store/index"
+import { getIndexedRepoMap } from "../store/repos/repository-catalog-index"
+import { getIndexedWorktreesById } from "../store/slices/worktrees/listing/worktree-catalog-index"
 import {
   worktreeHostMatchOptions,
   worktreeMatchesHost
-} from '../store/slices/worktrees/listing/worktree-host-ownership'
-import { getResolvedExecutionHostIdForWorktree } from '../lib/workspace/ownership/resolved-worktree-execution-host'
-import { getActiveWorkspaceExecutionHostId } from '../lib/workspace/ownership/active-workspace-host'
+} from "../store/slices/worktrees/listing/worktree-host-ownership"
+import { getResolvedExecutionHostIdForWorktree } from "../lib/workspace/ownership/resolved-worktree-execution-host"
+import { getActiveWorkspaceExecutionHostId } from "../lib/workspace/ownership/active-workspace-host"
 import {
   findIndexedFolderWorkspaceOwner,
   findIndexedProjectGroupOwner
-} from '../lib/workspace/ownership/worktree-runtime-owner-index'
+} from "../lib/workspace/ownership/worktree-runtime-owner-index"
 import {
   findIndexedRepoOwnerForHost,
   resolveIndexedRepoOwner
-} from '../lib/workspace/ownership/repo-owner-index'
-import '../lib/workspace/ownership/workspace-catalog-owner-index'
-import { getRepoExecutionHostId, type ExecutionHostId } from '../../../shared/execution-host'
-import type { Repo } from '../../../shared/repo-types'
-import type { Worktree } from '../../../shared/worktree/types'
-import { parseWorkspaceKey } from '../../../shared/workspace-scope'
+} from "../lib/workspace/ownership/repo-owner-index"
+import "../lib/workspace/ownership/workspace-catalog-owner-index"
+import {
+  getRepoExecutionHostId,
+  type ExecutionHostId
+} from "../../../shared/execution-host"
+import type { Repo } from "../../../shared/repo-types"
+import type { Worktree } from "../../../shared/worktree/types"
+import { parseWorkspaceKey } from "../../../shared/workspace-scope"
 import {
   selectFolderWorkspaces,
   selectWorktreesByRepo
-} from '../store/workspaces/catalog/workspace-record-fields'
+} from "../store/workspaces/catalog/workspace-record-fields"
 
 type StoreSnapshot = ReturnType<typeof useAppStore.getState>
 

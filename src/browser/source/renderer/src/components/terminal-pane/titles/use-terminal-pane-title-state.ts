@@ -1,12 +1,12 @@
-import { useTerminalPaneErrorCallbacks } from '../errors/use-terminal-pane-error-callbacks'
-import { useTerminalPaneRecoveryCallback } from '../pty-transport/recovery/use-terminal-pane-recovery-callback'
+import { useTerminalPaneErrorCallbacks } from "../errors/use-terminal-pane-error-callbacks"
+import { useTerminalPaneRecoveryCallback } from "../pty-transport/recovery/use-terminal-pane-recovery-callback"
 import { useCallback, useRef, useState } from 'react'
-import type { PaneTitleOverlayRect } from './pane-title-overlay-rects'
+import type { PaneTitleOverlayRect } from "./pane-title-overlay-rects"
 import {
   createRemotePaneLayoutPusher,
   type RemotePaneLayoutPusher
-} from '../layout/persistence/remote-pane-layout-push'
-import type { TerminalPaneFoundation } from '../controller/use-terminal-pane-foundation'
+} from "../layout/persistence/remote-pane-layout-push"
+import type { TerminalPaneFoundation } from "../controller/use-terminal-pane-foundation"
 
 export function useTerminalPaneTitleState(controller: TerminalPaneFoundation) {
   const {
@@ -26,8 +26,8 @@ export function useTerminalPaneTitleState(controller: TerminalPaneFoundation) {
   paneTitlesRef.current = paneTitles
   const removedTitleLeafIdsRef = useRef<Set<string>>(new Set())
   const clearedScrollbackLeafIdsRef = useRef<Set<string>>(new Set())
-  const remotePaneLayoutPusherRef = useRef<RemotePaneLayoutPusher | null>(null)
-  remotePaneLayoutPusherRef.current ??= createRemotePaneLayoutPusher()
+  const [remotePaneLayoutPusher] = useState(createRemotePaneLayoutPusher)
+  const remotePaneLayoutPusherRef = useRef<RemotePaneLayoutPusher | null>(remotePaneLayoutPusher)
   const [paneTitleOverlayRects, setPaneTitleOverlayRects] = useState<
     Record<number, PaneTitleOverlayRect>
   >({})

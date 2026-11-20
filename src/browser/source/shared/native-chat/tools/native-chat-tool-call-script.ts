@@ -1,9 +1,9 @@
-import { nativeChatToolInputText } from './native-chat-tool-input-text'
+import { nativeChatToolInputText } from "./native-chat-tool-input-text"
 import {
   powershellAnalysisScript,
   powershellInvocationScript
-} from './native-chat-powershell-script'
-import { posixShellWords } from './native-chat-tool-preview-prefix'
+} from "./native-chat-powershell-script"
+import { posixShellWords } from "./native-chat-tool-preview-prefix"
 
 // Decodes the script a shell tool call ran into POSIX-readable text for command analysis. Only the
 // launch shapes agents are recorded writing are unwrapped, each in the quoting of what wrote it:
@@ -69,7 +69,7 @@ export function nativeChatToolCallScript(name: string, input: unknown): string |
   if (name.trim().toLowerCase() === 'powershell') {
     return powershellAnalysisScript(command)
   }
-  // Only a whole line that is one launch is unwrapped, as the common pattern does: any other line
+  // Only a whole line that is one launch is unwrapped: any other line
   // is analyzed as written, its comments, heredocs and other commands kept as they are.
   const words = posixShellWords(command)
   const launched = words ? launchedScript(words) : undefined

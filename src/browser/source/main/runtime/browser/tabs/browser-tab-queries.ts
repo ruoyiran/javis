@@ -1,24 +1,26 @@
+import { activeRpcBrowserPagePicker } from "../../../browser/agent-browser/session-routing/person-pick-hold"
 import type {
   BrowserTabAnnotationsResult,
   BrowserTabCurrentResult,
   BrowserTabListResult,
   BrowserTabShowResult,
   BrowserTabSwitchResult
-} from '../../../../shared/browser/runtime/runtime-browser-contracts'
-import type { BrowserCertificateProceedResult } from '../../../../shared/browser-workspace-types'
+} from "../../../../shared/browser/runtime/runtime-browser-contracts"
+import type { BrowserCertificateProceedResult } from "../../../../shared/browser-workspace-types"
 import {
   browserCertificateTrustController,
   browserManager
-} from '../../../browser/guest-lifecycle/manager/browser-manager'
-import { BrowserError } from '../../../browser/browser-error'
-import { publishSwitchedBrowserSessionTab } from './browser-tab-create-publication'
+} from "../../../browser/guest-lifecycle/manager/browser-manager"
+import { BrowserError } from "../../../browser/browser-error"
+import { publishSwitchedBrowserSessionTab } from "./browser-tab-create-publication"
 import type {
   BrowserCommandTargetParams,
+  BrowserAnswerAdmission,
   RuntimeBrowserCommandHost
-} from '../commands/browser-command-contracts'
-import type { RuntimeBrowserCommandTargets } from '../commands/browser-command-targets'
-import type { RuntimeBrowserTabCatalog } from './browser-tab-catalog'
-import { findListedBrowserTab, readBrowserTabAnnotations } from './browser-tab-annotations'
+} from "../commands/browser-command-contracts"
+import type { RuntimeBrowserCommandTargets } from "../commands/browser-command-targets"
+import type { RuntimeBrowserTabCatalog } from "./browser-tab-catalog"
+import { findListedBrowserTab, readBrowserTabAnnotations } from "./browser-tab-annotations"
 
 export class RuntimeBrowserTabQueries {
   constructor(
@@ -41,7 +43,10 @@ export class RuntimeBrowserTabQueries {
     >,
     private readonly catalog: Pick<
       RuntimeBrowserTabCatalog,
-      'listLogicalBrowserTabs' | 'assertClientPageWorkspace' | 'describeBrowserTab'
+      | 'listLogicalBrowserTabs'
+      | 'assertClientPageWorkspace'
+      | 'describeBrowserTab'
+      | 'describeClientHostedBrowserTab'
     >
   ) {}
 
@@ -50,14 +55,15 @@ export class RuntimeBrowserTabQueries {
       ? (await this.host.resolveBrowserWorkspace(params.worktree)).id
       : undefined
     const clientPages = this.host.getRuntimeBrowserPageRegistry().listPages(workspaceId)
-    const bridgeWorktreeId = workspaceId
-    return { tabs: this.catalog.listLogicalBrowserTabs(bridgeWorktreeId, clientPages) }
+    return { tabs: this.catalog.listLogicalBrowserTabs(workspaceId, clientPages) }
   }
 
   async browserProceedCertificate(
-    params: { challengeId: string } & BrowserCommandTargetParams
+    params: { challengeId: string } & BrowserCommandTargetParams,
+    admit?: BrowserAnswerAdmission
   ): Promise<BrowserCertificateProceedResult> {
-    const target = await this.targets.resolveBrowserCommandTarget(params)
+    const resolved = await this.targets.resolveBrowserCommandTarget(params)
+    const target = typeof admit === 'function' ? admit(resolved) : resolved
     if (!target.browserPageId) {
       return { ok: false, reason: 'missing' }
     }
@@ -68,16 +74,7 @@ export class RuntimeBrowserTabQueries {
     const clientPage = this.host.getRuntimeBrowserPageRegistry().getPage(params.page)
     if (clientPage) {
       await this.catalog.assertClientPageWorkspace(clientPage, params.worktree)
-      const tab = this.catalog
-        .listLogicalBrowserTabs(
-          clientPage.workspaceId,
-          this.host.getRuntimeBrowserPageRegistry().listPages(clientPage.workspaceId)
-        )
-        .find((candidate) => candidate.browserPageId === clientPage.browserPageId)
-      if (!tab) {
-        throw new BrowserError('browser_tab_not_found', `Browser page ${params.page} was not found`)
-      }
-      return { tab }
+      return { tab: this.catalog.describeClientHostedBrowserTab(clientPage) }
     }
     const target = await this.targets.resolveBrowserCommandTarget(params)
     return { tab: this.catalog.describeBrowserTab(params.page, target.worktreeId) }
@@ -140,8 +137,8 @@ export class RuntimeBrowserTabQueries {
     if (clientPage) {
       this.host
         .getRuntimeBrowserPageRegistry()
-        .activatePage(clientPage.browserPageId, clientPage.placement)
-      publishSwitchedBrowserSessionTab(this.host, {
+        .activatePage(clientPage.browserPageId, clientPage.placement, activeRpcBrowserPagePicker())
+      await publishSwitchedBrowserSessionTab(this.host, {
         placementKind: 'client',
         browserPageId: clientPage.browserPageId,
         worktreeId: clientPage.workspaceId,
@@ -157,14 +154,11 @@ export class RuntimeBrowserTabQueries {
           ? (await this.host.resolveBrowserWorkspace(params.worktree)).id
           : undefined
     const result = await bridge.tabSwitch(undefined, worktreeId, selected.browserPageId)
-    this.host.getRuntimeBrowserPageRegistry().deactivateGlobal()
-    if (worktreeId) {
-      this.host.getRuntimeBrowserPageRegistry().deactivateWorkspace(worktreeId)
-    }
+    this.host.getRuntimeBrowserPageRegistry().yieldSelection(worktreeId)
     // Scope focus to the owning worktree; never switch the user's workspace.
     const focusWorktreeId =
       worktreeId ?? browserManager.getWorktreeIdForTab(result.browserPageId) ?? undefined
-    publishSwitchedBrowserSessionTab(this.host, {
+    await publishSwitchedBrowserSessionTab(this.host, {
       placementKind: 'bridge',
       browserPageId: result.browserPageId,
       worktreeId: focusWorktreeId,

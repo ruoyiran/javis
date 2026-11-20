@@ -1,8 +1,11 @@
 // Use IndexedDB so drafts do not compete with settings for localStorage quota.
 
 import type { JSONContent } from '@tiptap/react'
-import { parseExecutionHostId, type ExecutionHostId } from '../../../../../shared/execution-host'
-import { createIndexedDbNativeChatComposerDraftStorage } from './native-chat-composer-draft-indexeddb'
+import {
+  parseExecutionHostId,
+  type ExecutionHostId
+} from "../../../../../shared/execution-host"
+import { createIndexedDbNativeChatComposerDraftStorage } from "./native-chat-composer-draft-indexeddb"
 
 export type NativeChatComposerDraftImage = {
   id: string

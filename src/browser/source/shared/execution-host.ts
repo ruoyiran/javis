@@ -1,6 +1,6 @@
-import type { GlobalSettings } from './global-settings-types'
-import type { Repo } from './repo-types'
-import type { Worktree } from './worktree/types'
+import type { GlobalSettings } from "./global-settings-types"
+import type { Repo } from "./repo-types"
+import type { Worktree } from "./worktree/types"
 
 export const LOCAL_EXECUTION_HOST_ID = 'local'
 export const ALL_EXECUTION_HOSTS_SCOPE = 'all'
@@ -23,7 +23,7 @@ export type ParsedExecutionHost =
   | { kind: 'ssh'; id: `ssh:${string}`; targetId: string }
   | { kind: 'runtime'; id: `runtime:${string}`; environmentId: string }
 
-function getCurrentLocalPlatform(): NodeJS.Platform | null {
+export function getCurrentLocalPlatform(): NodeJS.Platform | null {
   const globalNavigator = (globalThis as { navigator?: { userAgent?: string; platform?: string } })
     .navigator
   const userAgent = globalNavigator?.userAgent || globalNavigator?.platform || ''
@@ -132,6 +132,18 @@ export function parseExecutionHostId(value: string | null | undefined): ParsedEx
     }
   }
   return null
+}
+
+/** Re-encodes the decoded target so equivalent spellings (e.g. `runtime:wsl:x` and `runtime:wsl%3Ax`) match catalog ids. */
+export function canonicalExecutionHostId(value: string | null | undefined): ExecutionHostId | null {
+  const parsed = parseExecutionHostId(value)
+  if (parsed?.kind === 'ssh') {
+    return toSshExecutionHostId(parsed.targetId)
+  }
+  if (parsed?.kind === 'runtime') {
+    return toRuntimeExecutionHostId(parsed.environmentId)
+  }
+  return parsed?.id ?? null
 }
 
 /** True only for an explicit local host id; absent or unparsable ids return false. */

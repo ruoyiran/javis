@@ -1,18 +1,20 @@
-import type { NotificationAttentionAcknowledgement } from './notification-settings-types'
-import type { CreateWorktreeResult } from './worktree/create-types'
+import type { BotChangeScope } from "./bots/bot-change-scope"
+import type { NotificationAttentionAcknowledgement } from "./notification-settings-types"
+import type { CreateWorktreeResult } from "./worktree/create-types"
 import type {
   WorktreeDefaultTabsLaunch,
   WorktreeSetupLaunch,
   WorktreeStartupLaunch
-} from './worktree/launch-types'
-import type { SshConnectionState } from './ssh-types'
-import type { TerminalSideEffectBatch } from './terminal/output/terminal-side-effect-facts'
-import type { RuntimeNativeChatLaunchDraftResolution } from './runtime-types'
-import type { RuntimeNavigationTarget } from './runtime-navigation'
-import type { WorktreeSortOrderUpdate } from './worktree/sort-order-update'
-import type { WorkspaceMetadataSet } from './worktree/workspace-metadata-set'
-import type { SidebarInputsChangedEvent } from './sidebar-list/sidebar-inputs-feed-contract'
-import type { BrowserClientHostRequestEvent } from './browser/client-hosting/browser-client-host-request-protocol'
+} from "./worktree/launch-types"
+import type { SshConnectionState } from "./ssh-types"
+import type { TerminalSideEffectBatch } from "./terminal/output/terminal-side-effect-facts"
+import type { RuntimeNativeChatLaunchDraftResolution } from "./runtime-session-contracts"
+import type { RuntimeNavigationTarget } from "./runtime-navigation"
+import type { WorktreeSortOrderUpdate } from "./worktree/sort-order-update"
+import type { WorkspaceMetadataSet } from "./worktree/workspace-metadata-set"
+import type { SidebarInputsChangedEvent } from "./sidebar-list/sidebar-inputs-feed-contract"
+import type { BrowserClientHostRequestEvent } from "./browser/client-hosting/browser-client-host-request-protocol"
+import type { WorkspaceCleanupRunFinishedEvent } from "./workspace-cleanup/workspace-cleanup-run"
 
 export type RuntimeClientEvent =
   | {
@@ -67,6 +69,14 @@ export type RuntimeClientEvent =
     }
   // Why: browser profiles live on the host; old clients drop the unknown type and refetch on their old triggers.
   | { type: 'browserProfilesChanged' }
+  /** A bot, its automations or its Activity's work changed; readers re-read. Old clients drop it, and
+   *  ignore the scope: which bots (all when absent) and which kinds of change (any when absent); an
+   *  `items` notice also carries every bot's Needs you count. */
+  | ({ type: 'botsChanged' } & BotChangeScope)
+  /** A worker this chat session started appeared or changed state; that chat's worker list re-reads. Old clients drop it. */
+  | { type: 'orchestrationSessionWorkersChanged'; sessionId: string }
+  // Old clients drop the unknown type; the report RPC has the same run.
+  | WorkspaceCleanupRunFinishedEvent
   | {
       type: 'linearLinkedIssueUpdated'
       worktreeId: string

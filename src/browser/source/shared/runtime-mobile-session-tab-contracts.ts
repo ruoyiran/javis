@@ -1,10 +1,13 @@
-import type { AgentStatusEntry } from './agent-status/contracts/agent-status-types'
-import type { BrowserCertificateFailure, BrowserLoadError } from './browser-workspace-types'
-import type { RuntimeBrowserPlacement } from './runtime-browser-placement'
-import type { TerminalColorOverrides } from './terminal-themes/terminal-color-overrides'
-import type { TerminalLayoutSnapshot, TerminalTab } from './workspace-layout/terminal-tab-types'
-import type { TuiAgent } from './agent-launch/catalog/tui-agent'
-import type { StructuredAgentId } from './agent-session/lifecycle/agent-session-provider-handle'
+import type { AgentStatusEntry } from "./agent-status/contracts/agent-status-types"
+import type {
+  BrowserCertificateFailure,
+  BrowserLoadError
+} from "./browser-workspace-types"
+import type { RuntimeBrowserPlacement } from "./runtime-browser-placement"
+import type { TerminalColorOverrides } from "./terminal-themes/terminal-color-overrides"
+import type { TerminalLayoutSnapshot, TerminalTab } from "./workspace-layout/terminal-tab-types"
+import type { TuiAgent } from "./agent-launch/catalog/tui-agent"
+import type { StructuredAgentId } from "./agent-session/lifecycle/agent-session-provider-handle"
 
 export type RuntimeMobileSessionTerminalTab = {
   type: 'terminal'
@@ -24,7 +27,11 @@ export type RuntimeMobileSessionTerminalTab = {
   /** Host-owned PTY incarnation used to fence remote identity observations. */
   incarnationId?: string | null
   terminalTheme?: RuntimeMobileTerminalTheme
+  /** Same-build renderer graph input; main never returns this in client frames. */
+  statusSuppressionTitle?: string
   agentStatus?: AgentStatusEntry | null
+  /** The desktop Agents list says this tab's agent has an unread turn. Phones only; hosts with no verdict omit it. */
+  unread?: true
   /** Event-only lead-turn end time for paired clients; never persisted in AgentStatusEntry. */
   turnCompletedAt?: number
   launchAgent?: TuiAgent
@@ -97,6 +104,8 @@ export type RuntimeMobileSessionBrowserTab = {
   executionHostKey?: string
   placement?: RuntimeBrowserPlacement
   url: string
+  /** Current runtime initialization disposition; never saved or echoed by a renderer. */
+  initializationState?: 'pending' | 'stopped'
   loading: boolean
   canGoBack: boolean
   canGoForward: boolean
@@ -119,8 +128,12 @@ export type RuntimeMobileSessionAgentTab = {
   replacesSessionId?: string
   /** Host-registered agent; gate names beyond Claude/Codex on client registered-agents capability. */
   agent: StructuredAgentId
+  /** The chat is a fork, so its title follows the fork mark. Old hosts omit it. */
+  forked?: true
   /** The host's structured status row for this chat. Optional: old hosts never send it. */
   chatStatus?: RuntimeMobileSessionAgentTabStatus
+  /** The desktop Agents list says this tab's agent has an unread turn. Phones only; hosts with no verdict omit it. */
+  unread?: true
   color?: string | null
   isPinned?: boolean
   isActive: boolean

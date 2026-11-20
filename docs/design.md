@@ -1,5 +1,7 @@
 # Javis design
 
+Latest browser/CUA synchronization is pinned to Orca `d3a843d032f602cf09e392613683a94089efce07` (83 browser commands,16 desktop CUA commands). See [latest command parity](browser-parity/latest-command-parity.md) and its fixed parameter/method inventory. Earlier verification records below retain their original snapshot/evidence.
+
 ## Intent and scope
 
 Javis makes desktop computer use available to agents without an Orca checkout or process. It has a CLI, MCP stdio server, Agent Skill, local settings page, and separately paired mobile browser page. The mobile page controls a desktop Javis installation; it does not control phone apps. Orca Mobile has no computer-use route, so this phone page is a Javis addition beyond Orca parity.

@@ -2,16 +2,17 @@ import type {
   NativeChatMessage,
   NativeChatToolCallBlock,
   NativeChatToolResultBlock
-} from './native-chat/native-chat-types'
-import { isWordlessProviderFrameBlock } from './native-chat/native-chat-provider-frame-summary'
-import { pairToolBlocks, type NativeChatToolPair } from './native-chat/tools/native-chat-tool-pairs'
-import { formatToolInputPreview } from './native-chat/tools/native-chat-tool-summary'
-import { sliceAtCodeUnitLimit } from './surrogate-safe-text-slice'
-import { MAX_CONTEXT_CHARS } from './agent-session/requests/agent-session-context-budget'
-import { agentJournalToolCallLifecycle } from './agent-journal-tool-call-lifecycle'
-import { withoutNativeChatVisualDirectiveLines } from './native-chat/native-chat-visual-directive'
-import { workerTranscriptBlockFallbacks } from './worker-transcript-text'
-import { isInlineDataUrl } from './native-chat/native-chat-inline-data-url'
+} from "./native-chat/native-chat-types"
+import { isNativeChatOrcaCard } from "./native-chat/native-chat-orca-card"
+import { isWordlessProviderFrameBlock } from "./native-chat/native-chat-provider-frame-summary"
+import { pairToolBlocks, type NativeChatToolPair } from "./native-chat/tools/native-chat-tool-pairs"
+import { formatToolInputPreview } from "./native-chat/tools/native-chat-tool-summary"
+import { sliceAtCodeUnitLimit } from "./surrogate-safe-text-slice"
+import { MAX_CONTEXT_CHARS } from "./agent-session/requests/agent-session-context-budget"
+import { agentJournalToolCallLifecycle } from "./agent-journal-tool-call-lifecycle"
+import { withoutNativeChatVisualDirectiveLines } from "./native-chat/native-chat-visual-directive"
+import { workerTranscriptBlockFallbacks } from "./worker-transcript-text"
+import { isInlineDataUrl } from "./native-chat/native-chat-inline-data-url"
 
 const MAX_TOOL_CHARS = 8_000
 const MAX_MESSAGE_CHARS = 8_000
@@ -65,7 +66,7 @@ function contextEntryChars(entries: readonly { text: string }[]): number {
 
 function prioritizeConversation(messages: readonly NativeChatMessage[]): ConversationMessage[] {
   const candidates = messages.flatMap((message, messageIndex) => {
-    if (message.agentStart || message.role === 'reasoning') {
+    if (isNativeChatOrcaCard(message) || message.role === 'reasoning') {
       return []
     }
     const fallbacks = workerTranscriptBlockFallbacks(message.blocks)
@@ -113,7 +114,7 @@ function selectToolEvidence(messages: readonly NativeChatMessage[]): {
     () => []
   )
   messages.forEach((message, messageIndex) => {
-    if (message.agentStart || message.role === 'reasoning') {
+    if (isNativeChatOrcaCard(message) || message.role === 'reasoning') {
       return
     }
     message.blocks.forEach((block, blockIndex) => {

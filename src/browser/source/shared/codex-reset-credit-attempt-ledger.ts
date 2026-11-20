@@ -1,6 +1,6 @@
 import * as z from 'zod'
-import type { CodexRateLimitResetOutcome } from './rate-limit-types'
-import type { CodexResetCreditExpectedScope } from './codex-reset-credit-scope'
+import type { CodexRateLimitResetOutcome } from "./agent-usage/rate-limits/rate-limit-types"
+import type { CodexResetCreditExpectedScope } from "./codex-reset-credit-scope"
 
 const CodexResetCreditTargetSchema = z.discriminatedUnion('runtime', [
   z.object({ runtime: z.literal('host'), wslDistro: z.null() }).strict(),

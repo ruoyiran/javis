@@ -1,26 +1,25 @@
-import { sleepingAgentRecordIndex } from '@/store/terminals/sleeping-agent-record-index'
-import { getFirstTerminalTabOwnerWorktreeId } from '@/store/terminals/terminal-tab-owner-index'
-import type { useAppStore } from '@/store/index'
-import type { SleepingAgentSessionRecord } from '../../../../../shared/agent-session/lifecycle/agent-session-resume'
-import { agentTurnEndedUncleanly } from '../../../../../shared/agent-status/lifecycle/agent-main-agent-verdict'
+import { sleepingAgentRecordIndex } from "../../../store/terminals/sleeping-agent-record-index"
+import { getFirstTerminalTabOwnerWorktreeId } from "../../../store/terminals/terminal-tab-owner-index"
+import type { useAppStore } from "../../../store/index"
+import type { SleepingAgentSessionRecord } from "../../../../../shared/agent-session/lifecycle/agent-session-resume"
+import { agentTurnEndedUncleanly } from "../../../../../shared/agent-status/lifecycle/agent-main-agent-verdict"
 import type {
   TerminalLayoutSnapshot,
   TerminalPaneLayoutNode,
   TerminalTab
-} from '../../../../../shared/workspace-layout/terminal-tab-types'
-import { parseAppSshPtyId } from '../../../../../shared/ssh-pty-id'
+} from "../../../../../shared/workspace-layout/terminal-tab-types"
+import { parseAppSshPtyId } from "../../../../../shared/ssh-pty-id"
 import {
   parseLegacyNumericPaneKey,
   parsePaneKey
-} from '../../../../../shared/workspace-layout/stable-pane-id'
-import { getProviderSessionClaimKey } from '../../../../../shared/sleeping-record-legacy-pane-key'
-import { isWebTerminalSurfaceTabId } from '../../../../../shared/workspace-layout/terminal-surface-id'
-import { ORCA_LAYOUT_OWNER_IS_MAIN } from '../../../../../shared/layout-owner-switch'
-import { isWorkspaceSleepRecord } from '../../../../../shared/workspace-sleep'
+} from "../../../../../shared/workspace-layout/stable-pane-id"
+import { getProviderSessionClaimKey } from "../../../../../shared/sleeping-record-legacy-pane-key"
+import { isWebTerminalSurfaceTabId } from "../../../../../shared/workspace-layout/terminal-surface-id"
+import { isWorkspaceSleepRecord } from "../../../../../shared/workspace-sleep"
 import {
   isPaneResumingInPlace,
   isPaneSpawnDeferred
-} from '../../../components/terminal-pane/session-restore/spawn-deferral/pane-spawn-deferral-registry'
+} from "../../../components/terminal-pane/session-restore/spawn-deferral/pane-spawn-deferral-registry"
 
 type AppStoreState = ReturnType<typeof useAppStore.getState>
 
@@ -204,8 +203,8 @@ export function recordPaneIsOwnedByPreservedPane(
     if (sshPty && state.sshConnectionStates.get(sshPty.connectionId)?.status !== 'connected') {
       return true
     }
-    // Main clears gone bindings during in-place resume; the active start, not the binding, proves ownership.
-    if (ORCA_LAYOUT_OWNER_IS_MAIN && isPaneResumingInPlace(record.paneKey)) {
+    // In-place restart clears bindings with either layout owner; its active start still owns the session.
+    if (isPaneResumingInPlace(record.paneKey)) {
       return true
     }
     // Scrollback-only leaves without PTY/session IDs can repaint but cannot cold-resume active sessions.

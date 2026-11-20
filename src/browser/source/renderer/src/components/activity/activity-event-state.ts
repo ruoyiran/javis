@@ -1,12 +1,15 @@
-import { resolveAgentRowState } from '../../../../shared/agent-status/presentation/agent-row-decay-state'
+import { resolveAgentRowState } from "../../../../shared/agent-status/presentation/agent-row-decay-state"
 
 import type {
   AgentStatusEntry,
   AgentStatusState,
   AgentStatusState as ActivityEventState
-} from '../../../../shared/agent-status/contracts/agent-status-types'
+} from "../../../../shared/agent-status/contracts/agent-status-types"
 
-import type { ActivityHookLiveAgentState, ActivityLiveAgentState } from './activity-thread-types'
+import type {
+  ActivityHookLiveAgentState,
+  ActivityLiveAgentState
+} from "./activity-thread-types"
 
 function isActivityHookLiveAgentState(
   state: AgentStatusState | 'idle'

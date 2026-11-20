@@ -3,29 +3,32 @@ import {
   getExpectedSshConnectionGeneration,
   OWNER_CHANGED_MESSAGE,
   type EditorFileOperationProvenance
-} from './editor-file-operation-provenance'
+} from "./editor-file-operation-provenance"
 
-import { parseExecutionHostId, toSshExecutionHostId } from '../../../../../shared/execution-host'
-import { parseWorkspaceKey } from '../../../../../shared/workspace-scope'
-import type { AppState } from '@/store/types'
-import type { OpenFile } from '@/store/slices/editor/types/open-file'
-import { runtimeTargetForOwnerEnvironment } from '@/runtime/rpc/targets/runtime-client-target'
-import type { RuntimeClientTarget } from '../../../../../shared/runtime-client-target'
-import { resolveWorkspaceDirectory } from '../../workspace/paths/workspace-directory'
-import { getFileConnectionOwnerFromState } from '../../workspace/ownership/connection-owner-resolution'
-import { captureWorktreeOperationGenerationSnapshot } from '../../workspace/ownership/worktree-operation-generation'
+import {
+  parseExecutionHostId,
+  toSshExecutionHostId
+} from "../../../../../shared/execution-host"
+import { parseWorkspaceKey } from "../../../../../shared/workspace-scope"
+import type { AppState } from "../../../store/types"
+import type { OpenFile } from "../../../store/slices/editor/types/open-file"
+import { runtimeTargetForOwnerEnvironment } from "../../../runtime/rpc/targets/runtime-client-target"
+import type { RuntimeClientTarget } from "../../../../../shared/runtime-client-target"
+import { resolveWorkspaceDirectory } from "../../workspace/paths/workspace-directory"
+import { getFileConnectionOwnerFromState } from "../../workspace/ownership/connection-owner-resolution"
+import { captureWorktreeOperationGenerationSnapshot } from "../../workspace/ownership/worktree-operation-generation"
 import {
   editorFileChildRoute,
   editorFileChildAuthority,
   assertEditorFileOwnerCurrent,
   captureEditorFileOperationForOwner
-} from './editor-file-child-owner'
+} from "./editor-file-child-owner"
 
 import {
   selectDetectedWorktreesByRepo,
   selectFolderWorkspaces,
   selectWorktreesByRepo
-} from '@/store/workspaces/catalog/workspace-record-fields'
+} from "../../../store/workspaces/catalog/workspace-record-fields"
 
 export function getEditorFileOperationContext(
   ...args: Parameters<typeof getEditorFileReadContext>

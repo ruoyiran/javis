@@ -1,8 +1,11 @@
-import type { DashboardRevealAgentArgs, DashboardSnapshot } from '../../shared/dashboard-snapshot'
+import type {
+  DashboardRevealAgentArgs,
+  DashboardSnapshot
+} from "../../shared/dashboard-snapshot"
 import type {
   TerminalPreviewConnectResult,
   TerminalPreviewDataPayload
-} from '../../shared/terminal/replay/terminal-preview'
+} from "../../shared/terminal/replay/terminal-preview"
 
 export type DashboardApi = {
   openPopout: () => Promise<void>

@@ -1,34 +1,35 @@
-import { resolveLocalWindowsAgentStartupShell } from '../../windows-terminal-shell'
-import { resolveStartupShell } from '../startup/tui-agent-startup-shell'
-import { agentPermissionHostPlatform } from '../permissions/agent-permission-env'
-import { isTuiAgent } from '../catalog/tui-agent-config'
-import { agentLaunchChoiceUpdates } from './agent-launch-choice-updates'
-import { projectAgentLaunchProfile } from './agent-launch-profile'
-import type { AgentLaunchChoices, AgentChoicePatch } from './agent-launch-choices'
-import { agentEnvironmentMutationUpdates, choiceUpdate } from './agent-launch-environment-updates'
-import type { GlobalSettings } from '../../global-settings-types'
-import type { TuiAgent } from '../catalog/tui-agent'
-import { buildDefaultAgentSettingsUpdate } from './default-agent-settings'
+import { resolveLocalWindowsAgentStartupShell } from "../../windows-terminal-shell"
+import { resolveStartupShell } from "../startup/tui-agent-startup-shell"
+import { agentPermissionHostPlatform } from "../permissions/agent-permission-env"
+import { isTuiAgent } from "../catalog/tui-agent-config"
+import { agentLaunchChoiceUpdates } from "./agent-launch-choice-updates"
+import { projectAgentLaunchProfile } from "./agent-launch-profile"
+import type { AgentLaunchChoices, AgentChoicePatch } from "./agent-launch-choices"
+import { agentEnvironmentMutationUpdates, choiceUpdate } from "./agent-launch-environment-updates"
+import type { GlobalSettings } from "../../global-settings-types"
+import type { TuiAgent } from "../catalog/tui-agent"
+import { buildDefaultAgentSettingsUpdate } from "./default-agent-settings"
 import {
   buildAgentAvailabilitySettingsUpdate,
   normalizeDisabledTuiAgents
-} from '../catalog/tui-agent-selection'
+} from "../catalog/tui-agent-selection"
 import {
   composeAgentLaunchProfile,
   normalizeTuiAgentArgsRecord,
   resolveTuiAgentLaunchArgs,
   resolveTuiAgentLaunchEnv
-} from './tui-agent-launch-defaults'
+} from "./tui-agent-launch-defaults"
 import {
   hasTypedAgentPermission,
   type AgentPermissionChoice
-} from '../permissions/tui-agent-permission-choice'
-import { liftAgentPermissionArgs } from '../permissions/tui-agent-permission-lift'
+} from "../permissions/tui-agent-permission-choice"
+import { seedPermissionUpdates, type AgentPermissionSeed } from "./agent-launch-permission-seed"
+import { liftAgentPermissionArgs } from "../permissions/tui-agent-permission-lift"
 import {
   legacyArgumentsUpdates,
   legacyPermissionsUpdates,
   permissionUpdates
-} from './agent-launch-permission-updates'
+} from "./agent-launch-permission-updates"
 import {
   applyAgentPermissionMode,
   AUTO_TUI_AGENT_ARGS,
@@ -38,7 +39,7 @@ import {
   resolveAgentPermissionModeSummary,
   resolveNonAutoAgentPermissionMode,
   type AgentPermissionMode
-} from '../permissions/tui-agent-permissions'
+} from "../permissions/tui-agent-permissions"
 
 export type AgentLaunchSettingsSource = Partial<
   Pick<
@@ -96,6 +97,8 @@ export type AgentLaunchSettingsMutation =
       agent?: TuiAgent
       withoutAuto?: true
     }
+  /** Hosts with the seed capability: applies only while no permission was ever chosen there. */
+  | ({ type: 'seed-permission' } & AgentPermissionSeed)
   | { type: 'command'; agent: TuiAgent; value: string }
   /** The whole terminal text, flag included, as older clients see it. */
   | { type: 'arguments'; agent: TuiAgent; value: string }
@@ -231,6 +234,8 @@ export function agentLaunchSettingsMutationUpdates(
         ...(mutation.exceptAuto ? { exceptAuto: true } : {})
       })
     }
+    case 'seed-permission':
+      return seedPermissionUpdates(settings, mutation)
     case 'command': {
       const commands = { ...settings.agentCmdOverrides }
       if (mutation.value.trim()) {

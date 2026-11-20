@@ -1,13 +1,13 @@
-import type { RuntimeMobileSessionTabsResult } from '../../../../shared/runtime-types'
-import { getRuntimeEnvironmentConnectionGeneration } from '@/store/slices/runtime-status/runtime-status-connection-generation'
-import { probeHostLiveTerminals } from '../hosted-terminals/inventory/host-live-terminal-probe'
+import type { RuntimeMobileSessionTabsResult } from "../../../../shared/runtime-session-contracts"
+import { getRuntimeEnvironmentConnectionGeneration } from "../../store/slices/runtime-status/runtime-status-connection-generation"
+import { probeHostLiveTerminals } from "../hosted-terminals/inventory/host-live-terminal-probe"
 import {
   markHostSessionMirrorHydrated,
   markHostSessionMirrorWorktreeHydrated
-} from './hydration/host-session-mirror-hydration'
-import { getRuntimeEnvironmentRevision } from '../rpc/environment-revisions/runtime-environment-revision'
-import { getWebSessionTabsTrackingGeneration } from './tracking-lifecycle'
-import type { WebSessionTabsSnapshotDecision } from './tracking-decisions'
+} from "./hydration/host-session-mirror-hydration"
+import { getRuntimeEnvironmentRevision } from "../rpc/environment-revisions/runtime-environment-revision"
+import { getWebSessionTabsTrackingGeneration } from "./tracking-lifecycle"
+import type { WebSessionTabsSnapshotDecision } from "./tracking-decisions"
 
 /** Proof that the store patch committed and its host evidence may be settled. */
 export type HostSessionMirrorSettle = () => void

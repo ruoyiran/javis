@@ -1,13 +1,13 @@
-import { translate } from '@/i18n/i18n'
-import type { Translate } from '@/i18n/use-translate'
+import { translate } from "../../i18n/i18n"
+import type { Translate } from "../../i18n/use-translate"
 import type {
   NewTabAgentMenuRow,
   buildNewTabAgentMenuRows
-} from '../../../../shared/agent-launch/picker/agent-launch-picker-rows'
-import type { UseDetectedAgentsResult } from '@/hooks/useDetectedAgents'
-import type { GlobalSettings } from '../../../../shared/global-settings-types'
-import type { ProspectiveWorkspace } from '@/lib/agent-session/launch/routing/agent-launch-route-input'
-import type { AgentPickerDefaultSettings } from '../../../../shared/agent-launch/picker/agent-launch-picker-defaults'
+} from "../../../../shared/agent-launch/picker/agent-launch-picker-rows"
+import type { UseDetectedAgentsResult } from "../../hooks/useDetectedAgents"
+import type { GlobalSettings } from "../../../../shared/global-settings-types"
+import type { ProspectiveWorkspace } from "../../lib/agent-session/launch/routing/agent-launch-route-input"
+import type { AgentPickerDefaultSettings } from "../../../../shared/agent-launch/picker/agent-launch-picker-defaults"
 
 export type NewTabAgentMenuModel =
   | { state: 'loading'; placeholderCount: number }
@@ -18,6 +18,8 @@ export type NewTabAgentMenuModel =
       /** The default these rows were ordered by, so the new-agent badge marks the same agent. */
       defaultTuiAgent?: GlobalSettings['defaultTuiAgent']
       terminalPending?: boolean
+      /** Agents the host publishes Orca's managed runtime for; absent until its agent list is read. */
+      managedRuntimeAgents?: readonly string[] | undefined
       pickerContext?: {
         launchCwd?: string | null
         workspace: ProspectiveWorkspace

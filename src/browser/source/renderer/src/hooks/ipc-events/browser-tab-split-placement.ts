@@ -1,5 +1,8 @@
-import type { AppState } from '../../store/types'
-import type { TabSplitDirection, TabSplitTarget } from '../../store/slices/tabs/tabs-slice-contract'
+import type { AppState } from "../../store/types"
+import type {
+  TabSplitDirection,
+  TabSplitTarget
+} from "../../store/slices/tabs/tabs-slice-contract"
 
 type SplitPlacementState = Pick<
   AppState,

@@ -1,8 +1,8 @@
-import { emitBrowserExtensionWorkerStartEvent } from '../api-runtime/browser-extension-api-host'
+import { emitBrowserExtensionWorkerStartEvent } from "../api-runtime/browser-extension-api-host"
 import {
   getBrowserExtensionProfileStateStore,
   type BrowserExtensionProfileState
-} from '../profile-storage/browser-extension-profile-state-store'
+} from "../profile-storage/browser-extension-profile-state-store"
 
 type LoadedVersions = NonNullable<BrowserExtensionProfileState['lastLoaded']>
 
@@ -55,5 +55,10 @@ export function fireRuntimeLifecycleEvents(
     }
   }
   // Why after: a crash before the debounced write re-fires the event once rather than never.
-  store.update(profileId, extension.id, (state) => ({ ...state, lastLoaded: current }))
+  if (
+    last?.extensionVersion !== current.extensionVersion ||
+    last?.chromiumVersion !== current.chromiumVersion
+  ) {
+    store.update(profileId, extension.id, (state) => ({ ...state, lastLoaded: current }))
+  }
 }

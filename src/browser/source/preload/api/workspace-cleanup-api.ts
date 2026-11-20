@@ -5,14 +5,15 @@ import type {
   WorkspaceCleanupScanResult,
   WorkspaceCleanupSnapshotPruneBatchArgs,
   WorkspaceCleanupSnapshotPruneRecordArgs
-} from '../../shared/workspace-cleanup/workspace-cleanup'
+} from "../../shared/workspace-cleanup/workspace-cleanup"
 import type {
   WorkspaceSpaceAnalysis,
   WorkspaceSpaceAnalyzeResult,
   WorkspaceSpaceScanProgress
-} from '../../shared/workspace-disk-space/workspace-space-types'
-import type { ExecutionHostId } from '../../shared/execution-host'
-import type { WorkspaceSpaceChange } from '../../shared/workspace-disk-space/workspace-space-change'
+} from "../../shared/workspace-disk-space/workspace-space-types"
+import type { ExecutionHostId } from "../../shared/execution-host"
+import type { WorkspaceCleanupRunFinishedEvent } from "../../shared/workspace-cleanup/workspace-cleanup-run"
+import type { WorkspaceSpaceChange } from "../../shared/workspace-disk-space/workspace-space-change"
 
 export type WorkspaceCleanupApi = {
   scan: (
@@ -27,6 +28,8 @@ export type WorkspaceCleanupApi = {
   beginRemovalSnapshotPruneBatch?: (args: WorkspaceCleanupSnapshotPruneBatchArgs) => Promise<void>
   recordRemovalSnapshotPrune?: (args: WorkspaceCleanupSnapshotPruneRecordArgs) => Promise<void>
   finishRemovalSnapshotPruneBatch?: (args: WorkspaceCleanupSnapshotPruneBatchArgs) => Promise<void>
+  /** This app's own cleanup runner finished a run. */
+  onRunFinished: (callback: (run: WorkspaceCleanupRunFinishedEvent['run']) => void) => () => void
 }
 
 export type WorkspaceSpaceApi = {

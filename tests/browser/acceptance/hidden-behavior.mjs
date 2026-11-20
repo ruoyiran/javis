@@ -1,3 +1,4 @@
+import { browserFixtureApplication, browserFixtureElectron } from './browser-fixture-distribution.mjs'
 import assert from 'node:assert/strict'
 import { build } from 'esbuild'
 import { createRequire } from 'node:module'
@@ -8,6 +9,7 @@ import { pathToFileURL } from 'node:url'
 import { createServer } from 'node:http'
 import net from 'node:net'
 import { chromium } from 'playwright-core'
+import { waitForBrowserFixtureState } from './browser-fixture-state.mjs'
 
 process.env.ORCA_BACKGROUND_LAUNCH = '1'
 const directory = await mkdtemp(join(tmpdir(), 'javis-parity-acceptance-'))
@@ -36,7 +38,6 @@ let page
 let pageId
 let isolatedProfile
 const rendererErrors = []
-const require = createRequire(resolve('package.json'))
 const portServer = net.createServer()
 await new Promise(resolve => portServer.listen(0, '127.0.0.1', resolve))
 const port = portServer.address().port
@@ -45,7 +46,7 @@ const runtime = join(directory, 'runtime.cjs')
 await build({ stdin: { contents: "export {BrowserProcess} from './src/browser/runtime/browser-process.ts'; export {dispatchBrowserHostRequest} from './src/browser/remote/host-dispatch.ts';", resolveDir: process.cwd() }, bundle: true, platform: 'node', format: 'cjs', target: 'node22', outfile: runtime, external: ['electron', 'node-pty'], logLevel: 'silent' })
 const { BrowserProcess, dispatchBrowserHostRequest } = createRequire(runtime)(runtime)
 function start() {
-  engine = new BrowserProcess({ executable: require('electron'), entry: resolve('dist/browser/main/main.cjs'), applicationDirectory: resolve('dist/browser'), dataDirectory: join(directory, 'state', 'browser'), launchArguments: [`--remote-debugging-port=${port}`, '--remote-debugging-address=127.0.0.1'], onEvent: event => {
+  engine = new BrowserProcess({ executable: browserFixtureElectron, entry: join(browserFixtureApplication, 'main/main.cjs'), applicationDirectory: browserFixtureApplication, dataDirectory: join(directory, 'state', 'browser'), launchArguments: [`--remote-debugging-port=${port}`, '--remote-debugging-address=127.0.0.1'], onEvent: event => {
     if (event.method !== 'browser.host.request') return
     const owner = engine
     void dispatchBrowserHostRequest(event.params).then(response => owner.call('browser.host.reply', { id: event.params.id, response })).catch(() => {})
@@ -273,10 +274,10 @@ try {
     await page.keyboard.press(process.platform === 'darwin' ? 'Meta+A' : 'Control+A')
     await page.keyboard.insertText('source-updated\n')
     await page.keyboard.press(process.platform === 'darwin' ? 'Meta+S' : 'Control+S')
-    await page.waitForFunction(async context => {
+    await waitForBrowserFixtureState(() => page.evaluate(async context => {
       const response = await window.api.javisBrowser.call('browser.host.call', { target: 'local', method: 'files.readChunk', params: { worktree: context, relativePath: 'source.html', offset: 0, length: 1024 } })
       return atob(response.contentBase64) === 'source-updated\n'
-    }, context)
+    }, context), 'the granted source file save')
     assert.equal(await readFile(file, 'utf8'), 'source-updated\n')
   })
   await check('fresh opaque context can mount browser chrome independently of restored folder tabs', async () => {

@@ -1,40 +1,40 @@
-import type { BrowserScreencastResult } from '../../../../shared/browser/runtime/runtime-browser-contracts'
-import { BrowserError } from '../../../browser/browser-error'
+import type { BrowserScreencastResult } from "../../../../shared/browser/runtime/runtime-browser-contracts"
+import { BrowserError } from "../../../browser/browser-error"
 import { randomUUID } from 'node:crypto'
-import { startBrowserScreencast } from '../../../browser/cdp/screencast/browser-screencast-stream'
-import { browserManager } from '../../../browser/guest-lifecycle/manager/browser-manager'
-import { rendererPublicationThrottle } from '../../../window/renderer-publication-throttle'
-import { mintBrowserScreencastSubscriptionId } from './browser-screencast-subscription-id'
+import { startBrowserScreencast } from "../../../browser/cdp/screencast/browser-screencast-stream"
+import { browserManager } from "../../../browser/guest-lifecycle/manager/browser-manager"
+import { rendererPublicationThrottle } from "../../../window/renderer-publication-throttle"
+import { mintBrowserScreencastSubscriptionId } from "./browser-screencast-subscription-id"
 import {
   cancelScreencastSubscriberFrameRetry,
   deliverScreencastSubscriberFrame,
   flushCreditedScreencastFrame
-} from './browser-screencast-subscriber-frame-delivery'
+} from "./browser-screencast-subscriber-frame-delivery"
 import {
   createBrowserScreencastFrameCredit,
   registerBrowserScreencastFrameCredit
-} from './browser-screencast-frame-credit'
+} from "./browser-screencast-frame-credit"
 import {
   INITIAL_SCREENCAST_SUBSCRIBER_DELIVERY,
   screencastSubscriberIsGhost
-} from './browser-screencast-ghost-subscriber-eviction'
-import type { BrowserScreencastSession } from '../../../browser/cdp/screencast/browser-screencast-stream-types'
-import type { RpcBinarySender } from '../../rpc/rpc-binary-sender'
-import type { RuntimeBrowserCommandHost } from '../commands/browser-command-contracts'
-import type { RuntimeBrowserCommandTargets } from '../commands/browser-command-targets'
-import type { RuntimeBrowserTabCatalog } from '../tabs/browser-tab-catalog'
+} from "./browser-screencast-ghost-subscriber-eviction"
+import type { BrowserScreencastSession } from "../../../browser/cdp/screencast/browser-screencast-stream-types"
+import type { RpcBinarySender } from "../../rpc/rpc-binary-sender"
+import type { RuntimeBrowserCommandHost } from "../commands/browser-command-contracts"
+import type { RuntimeBrowserCommandTargets } from "../commands/browser-command-targets"
+import type { RuntimeBrowserTabCatalog } from "../tabs/browser-tab-catalog"
 import {
   applySharedScreencastFrameBudget,
   normalizeScreencastViewport,
   normalizeScreencastFrameBudget,
   hasScreencastViewportSize
-} from './browser-screencast-budget'
+} from "./browser-screencast-budget"
 import type {
   BrowserScreencastParams,
   BrowserScreencastStartResult,
   ActiveBrowserScreencastSubscriber,
   ActiveBrowserScreencastPage
-} from './browser-screencast-contracts'
+} from "./browser-screencast-contracts"
 
 export class RuntimeBrowserScreencasts {
   private readonly activeScreencastsByPageId = new Map<string, ActiveBrowserScreencastPage>()
@@ -65,7 +65,9 @@ export class RuntimeBrowserScreencasts {
         'Client-hosted browser pages do not support server screencast.'
       )
     }
-    const target = await this.targets.resolveBrowserCommandTarget(params)
+    const target = await this.targets.resolveBrowserCommandTarget(params, {
+      waitForFirstLoad: false
+    })
     const { browserPageId, webContents: guest } = this.targets.resolveBrowserPageWebContents(
       target.worktreeId,
       target.browserPageId

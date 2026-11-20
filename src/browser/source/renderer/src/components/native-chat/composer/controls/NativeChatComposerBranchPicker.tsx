@@ -1,11 +1,11 @@
 import { useCallback } from 'react'
 import { GitBranch } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { useTranslate } from '@/i18n/use-translate'
-import { useWorktreeGitOwnerTarget } from '@/components/right-sidebar/source-control/sync/worktree-git-owner-target'
-import { WorkspaceBranchPicker } from '@/components/right-sidebar/source-control/branches/WorkspaceBranchPicker'
-import { recordWorktreeBranchSwitchLanded } from '@/components/right-sidebar/source-control/branches/workspace-branch-switch-status'
-import type { ExecutionHostId } from '../../../../../../shared/execution-host'
+import { Button } from "../../../ui/button"
+import { useTranslate } from "../../../../i18n/use-translate"
+import { useWorktreeGitOwnerTarget } from "../../../right-sidebar/source-control/sync/worktree-git-owner-target"
+import { WorkspaceBranchPicker } from "../../../right-sidebar/source-control/branches/WorkspaceBranchPicker"
+import { recordWorktreeBranchSwitchLanded } from "../../../right-sidebar/source-control/branches/workspace-branch-switch-status"
+import type { ExecutionHostId } from "../../../../../../shared/execution-host"
 
 export function NativeChatComposerBranchPicker({
   worktreeId,
@@ -64,7 +64,7 @@ export function NativeChatComposerBranchPicker({
           type="button"
           variant="ghost"
           size="xs"
-          className="h-5.5 min-w-0 flex-1 justify-start"
+          className="h-5.5 min-w-0 max-w-full shrink justify-start"
           title={branch}
           aria-label={t('sourceControl.branchPicker.switch', 'Switch branch: {{branch}}', {
             branch

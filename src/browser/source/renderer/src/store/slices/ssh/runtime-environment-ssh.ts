@@ -1,13 +1,16 @@
 import type { StateCreator } from 'zustand'
-import type { AppState } from '../../types'
-import type { SshConnectionState, SshTargetSummary } from '../../../../../shared/ssh-types'
-import { persistedUIValuesEqual as sshConnectionStatesEqual } from '../../../../../shared/persisted-ui-equality'
+import type { AppState } from "../../types"
+import type {
+  SshConnectionState,
+  SshTargetSummary
+} from "../../../../../shared/ssh-types"
+import { persistedUIValuesEqual as sshConnectionStatesEqual } from "../../../../../shared/persisted-ui-equality"
 import {
   collectSshTargetGenerations,
   sshTargetGenerationsEqual,
   sshTargetLabelsEqual
-} from './ssh-target-metadata'
-import { createBoundedGenerationMap } from '../../../lib/bounded-generation-map'
+} from "./ssh-target-metadata"
+import { createBoundedGenerationMap } from "../../../lib/bounded-generation-map"
 
 /** Mirror each runtime’s SSH targets separately from local maps to prevent cross-host settings, picker and registry contamination (STA-1468). */
 export type RuntimeEnvironmentSshBucket = {

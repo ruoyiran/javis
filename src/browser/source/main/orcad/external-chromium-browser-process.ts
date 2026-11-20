@@ -1,28 +1,28 @@
 import { z } from 'zod'
-import type { RuntimeBrowserCommandHost } from '../runtime/browser/commands/browser-command-contracts'
-import type { RuntimeBrowserCommands } from '../runtime/browser/commands/browser-commands'
-import { BrowserError } from '../browser/browser-error'
-import { assertUploadFilesExist } from '../browser/cdp/input/browser-upload-files'
+import type { RuntimeBrowserCommandHost } from "../runtime/browser/commands/browser-command-contracts"
+import type { RuntimeBrowserCommands } from "../runtime/browser/commands/browser-commands"
+import { BrowserError } from "../browser/browser-error"
+import { assertUploadFilesExist } from "../browser/cdp/input/browser-upload-files"
 import {
   agentBrowserEvalCommand,
   ExternalChromiumBrowserSession,
   type ExternalChromiumLaunch
-} from './external-chromium-browser-session'
-import { normalizeBrowserNavigationUrl } from '../../shared/browser-url'
+} from "./external-chromium-browser-session"
+import { normalizeBrowserNavigationUrl } from "../../shared/browser-url"
 import {
   externalChromiumCommandArguments,
   externalChromiumWaitCommand,
   normalizeExternalChromiumCommandResult
-} from './external-chromium-command-arguments'
+} from "./external-chromium-command-arguments"
 import {
   externalChromiumSnapshotResult,
   type ExternalChromiumPageRecord as PageRecord
-} from './external-chromium-tab-projection'
-import { ExternalChromiumTabRegistry } from './external-chromium-tab-registry'
-import { runExternalChromiumPageInput, type PageInputSession } from './external-chromium-page-input'
-import { agentBrowserSnapshotArgs } from '../browser/agent-browser/protocol/agent-browser-snapshot-arguments'
-import { Snapshot } from '../../shared/rpc-contract/browser-observation-params'
-import { ExpectedPageUrlGuard } from '../browser/cdp/input/browser-expected-page-url'
+} from "./external-chromium-tab-projection"
+import { ExternalChromiumTabRegistry } from "./external-chromium-tab-registry"
+import { runExternalChromiumPageInput, type PageInputSession } from "./external-chromium-page-input"
+import { agentBrowserSnapshotArgs } from "../browser/agent-browser/protocol/agent-browser-snapshot-arguments"
+import { Snapshot } from "../../shared/rpc-contract/browser-observation-params"
+import { ExpectedPageUrlGuard } from "../browser/cdp/input/browser-expected-page-url"
 
 const AgentBrowserCurrentUrl = z.object({ url: z.string() })
 
@@ -222,6 +222,12 @@ export class ExternalChromiumBrowserProcess {
     const input = await runExternalChromiumPageInput(session, method, params)
     if (input !== null) {
       return input
+    }
+    if (method === 'browserReload' && params.ignoreCache === true) {
+      throw new BrowserError(
+        'browser_command_unavailable',
+        'This browser provider cannot reload without the cache.'
+      )
     }
     if (method === 'browserBack' || method === 'browserForward' || method === 'browserReload') {
       await session.run([method.slice('browser'.length).toLowerCase()])

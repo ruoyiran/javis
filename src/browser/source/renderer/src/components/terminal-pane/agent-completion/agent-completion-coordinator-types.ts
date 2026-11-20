@@ -1,9 +1,9 @@
 import type {
   ParsedAgentStatusPayload,
   TurnEndDisposition
-} from '../../../../../shared/agent-status/contracts/agent-status-types'
-import type { RecognizedAgentProcess } from '../../../../../shared/agent-status/process/agent-process-recognition'
-import type { TerminalProcessInspection as RuntimeTerminalProcessInspection } from '../../../../../shared/terminal/pty/lifecycle/terminal-process-inspection'
+} from "../../../../../shared/agent-status/contracts/agent-status-types"
+import type { RecognizedAgentProcess } from "../../../../../shared/agent-status/process/agent-process-recognition"
+import type { TerminalProcessInspection as RuntimeTerminalProcessInspection } from "../../../../../shared/terminal/pty/lifecycle/terminal-process-inspection"
 
 export type AgentCompletionStatusSnapshot = ParsedAgentStatusPayload & {
   stateStartedAt?: number
@@ -36,7 +36,7 @@ export type AgentCompletionCoordinatorOptions = {
   getExpectedIncarnationId?: () => string | null
   inspectProcess: (
     ptyId: string,
-    options?: { expectedIncarnationId?: string; steadyState?: boolean }
+    options?: { expectedIncarnationId?: string; steadyState?: boolean; jobMembershipOnly?: boolean }
   ) => Promise<RuntimeTerminalProcessInspection>
   /** Rechecks a local exit candidate without trusting the inspection's cached process name. */
   confirmForegroundProcess?: (ptyId: string) => Promise<string | null>

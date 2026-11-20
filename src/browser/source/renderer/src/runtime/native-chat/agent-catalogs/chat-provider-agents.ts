@@ -1,12 +1,12 @@
-import { useAppViewExternalStore } from '@/store/retained-views/app-state-view'
-import type { TuiAgent } from '../../../../../shared/agent-launch/catalog/tui-agent'
-import { isTuiAgent } from '../../../../../shared/agent-launch/catalog/tui-agent-config'
+import { useAppViewExternalStore } from "../../../store/retained-views/app-state-view"
+import type { TuiAgent } from "../../../../../shared/agent-launch/catalog/tui-agent"
+import { isTuiAgent } from "../../../../../shared/agent-launch/catalog/tui-agent-config"
 import {
   hostStructuredAgentsVersion,
   readHostStructuredAgents,
   subscribeHostStructuredAgents,
   type HostStructuredAgentsStatuses
-} from '@/runtime/native-chat/agent-catalogs/host-structured-agents'
+} from "./host-structured-agents"
 
 const BUILT_IN_CHAT_AGENTS: readonly TuiAgent[] = ['claude', 'codex']
 
@@ -22,6 +22,18 @@ export function chatProviderAgents(
       ...registered.map((row) => row.agent).filter((agent) => isTuiAgent(agent))
     ])
   ]
+}
+
+/** The chat agents whose chat runs a program Orca downloads on that host, apart from their CLI. */
+export function managedRuntimeChatAgents(
+  executionHostId: string,
+  statuses: HostStructuredAgentsStatuses
+): Set<string> {
+  return new Set(
+    readHostStructuredAgents(executionHostId, statuses)
+      ?.filter((row) => row.managedRuntime)
+      .map((row) => row.agent)
+  )
 }
 
 export function useHostStructuredAgentsVersion(): number {

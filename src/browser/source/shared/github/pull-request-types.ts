@@ -1,8 +1,13 @@
+import type { GitHubRepositoryIdentity } from "./repositories/repository-identity"
+
 export type PRState = 'open' | 'closed' | 'merged' | 'draft'
+
 export type IssueState = 'open' | 'closed'
+
 export type CheckStatus = 'pending' | 'success' | 'failure' | 'neutral'
 
 export type PRMergeableState = 'MERGEABLE' | 'CONFLICTING' | 'UNKNOWN'
+
 export type PRReviewDecision = 'APPROVED' | 'CHANGES_REQUESTED' | 'REVIEW_REQUIRED'
 
 export type PRConflictSummary = {
@@ -12,9 +17,6 @@ export type PRConflictSummary = {
   files: string[]
   localMergeState?: 'clean'
 }
-
-// Keep GHES host identity across renderer/RPC boundaries to prevent actions targeting same-named github.com repos.
-export type GitHubRepositoryIdentity = { owner: string; repo: string; host?: string }
 
 export type GitHubPRMergeMethod = 'merge' | 'squash' | 'rebase'
 
@@ -150,6 +152,3 @@ export type GitHubPRFileContents = {
   originalTooLarge?: boolean
   modifiedTooLarge?: boolean
 }
-
-// Share the identity shape across IPC/renderer without main imports; main’s gh-utils.ts retains the OwnerRepo alias.
-export type GitHubOwnerRepo = GitHubRepositoryIdentity

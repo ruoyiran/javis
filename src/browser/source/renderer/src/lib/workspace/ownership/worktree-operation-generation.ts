@@ -1,16 +1,19 @@
-import { parseExecutionHostId } from '../../../../../shared/execution-host'
-import { authorityKey, type HostAuthority } from '../../../../../shared/host-authority'
+import { parseExecutionHostId } from "../../../../../shared/execution-host"
+import {
+  authorityKey,
+  type HostAuthority
+} from "../../../../../shared/host-authority"
 import {
   getEnvironmentSshStateGeneration,
   getEnvironmentSshTargetConnectionGeneration
-} from '@/store/slices/ssh/runtime-environment-ssh'
-import { getLocalSshTargetConnectionGeneration } from '@/store/slices/ssh/create-ssh-slice'
-import { getRuntimeEnvironmentConnectionGeneration } from '@/store/slices/runtime-status/runtime-status-connection-generation'
-import { getRuntimeEnvironmentRevision } from '@/runtime/rpc/environment-revisions/runtime-environment-revision'
+} from "../../../store/slices/ssh/runtime-environment-ssh"
+import { getLocalSshTargetConnectionGeneration } from "../../../store/slices/ssh/create-ssh-slice"
+import { getRuntimeEnvironmentConnectionGeneration } from "../../../store/slices/runtime-status/runtime-status-connection-generation"
+import { getRuntimeEnvironmentRevision } from "../../../runtime/rpc/environment-revisions/runtime-environment-revision"
 import {
   resolveWorktreeOperationRoute,
   type WorktreeOperationRoute
-} from './worktree-operation-route'
+} from "./worktree-operation-route"
 
 type OperationRouteState = Parameters<typeof resolveWorktreeOperationRoute>[0]
 

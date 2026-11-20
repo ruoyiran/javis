@@ -1,19 +1,19 @@
 import type { StateCreator } from 'zustand'
-import type { AppState } from '../../types'
-import type { RemoteServerUpdaterSnapshot } from '../../../../../shared/remote-server-update'
-import { isListedRemoteServer } from '../../../../../shared/remote-runtime/host-catalog/runtime-environments'
-import type { RuntimeRpcResponse } from '../../../../../shared/runtime-rpc-envelope'
-import type { RuntimeStatus } from '../../../../../shared/runtime-session-contracts'
-import type { UpdateCheckOptions } from '../../../../../shared/update-status-types'
-import { unwrapRuntimeRpcResult } from '@/runtime/rpc/calls/runtime-rpc-result'
+import type { AppState } from "../../types"
+import type { RemoteServerUpdaterSnapshot } from "../../../../../shared/remote-server-update"
+import { isListedRemoteServer } from "../../../../../shared/remote-runtime/host-catalog/runtime-environments"
+import type { RuntimeRpcResponse } from "../../../../../shared/runtime-rpc-envelope"
+import type { RuntimeStatus } from "../../../../../shared/runtime-session-contracts"
+import type { UpdateCheckOptions } from "../../../../../shared/update-status-types"
+import { unwrapRuntimeRpcResult } from "../../../runtime/rpc/calls/runtime-rpc-result"
 import {
   checkingRemoteServerUpdateEntry,
   inspectRemoteServerUpdate,
   runRemoteServerUpdate,
   type RemoteServerUpdateEntry,
   type RemoteServerUpdateTransport
-} from '@/runtime/hosts/updates/remote-server-update-coordinator'
-import { runRemoteServerUpdateBatch } from '@/runtime/hosts/updates/remote-server-update-batch'
+} from "../../../runtime/hosts/updates/remote-server-update-coordinator"
+import { runRemoteServerUpdateBatch } from "../../../runtime/hosts/updates/remote-server-update-batch"
 
 const MAX_CONCURRENT_REMOTE_SERVER_UPDATES = 2
 
@@ -29,9 +29,9 @@ function callRemoteUpdater<TResult>(
 }
 
 const transport: RemoteServerUpdateTransport = {
-  getRuntimeStatus: (environmentId, timeoutMs) =>
+  getRuntimeStatus: (environmentId, timeoutMs, options) =>
     window.api.runtimeEnvironments
-      .getStatus({ selector: environmentId, timeoutMs })
+      .getStatus({ selector: environmentId, timeoutMs, ...options })
       .then((response) => unwrapRuntimeRpcResult<RuntimeStatus>(response)),
   getUpdaterStatus: (environmentId, timeoutMs) =>
     callRemoteUpdater<RemoteServerUpdaterSnapshot>(

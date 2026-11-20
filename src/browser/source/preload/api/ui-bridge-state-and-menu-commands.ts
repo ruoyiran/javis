@@ -1,13 +1,14 @@
-import type { MarkdownDocument } from '../../shared/file-listing/file-document'
-import type { BrowserTabCreateRequest } from '../../shared/browser-tab-create-request'
+import type { MarkdownDocument } from "../../shared/file-listing/file-document"
+import type { BotDeepLinkOutcome } from "../../shared/bot-deep-link"
+import type { BrowserTabCreateRequest } from "../../shared/browser-tab-create-request"
 import { ipcRenderer } from 'electron'
-import type { PersistedUIState } from '../../shared/persisted-ui-state-types'
-import type { KeybindingActionId } from '../../shared/keybindings'
-import type { PreloadApi } from '../api-types'
+import type { PersistedUIState } from "../../shared/persisted-ui-state-types"
+import type { KeybindingActionId } from "../../shared/keybindings/types"
+import type { PreloadApi } from "../api-types"
 import type {
   RemoteCliBrowserScopeQuery,
   RemoteCliBrowserScopeReply
-} from '../../shared/desktop-browser-bridge-protocol'
+} from "../../shared/desktop-browser-bridge-protocol"
 
 export const uiStateAndMenuCommandsApi = {
   getJiraQuickFilters: () => ipcRenderer.invoke('ui:getJiraQuickFilters'),
@@ -46,6 +47,13 @@ export const uiStateAndMenuCommandsApi = {
   },
   consumePendingSkillShare: (): Promise<string | null> =>
     ipcRenderer.invoke('ui:consumePendingSkillShare'),
+  onBotLinkPending: (callback: () => void): (() => void) => {
+    const listener = (): void => callback()
+    ipcRenderer.on('ui:botLinkPending', listener)
+    return () => ipcRenderer.removeListener('ui:botLinkPending', listener)
+  },
+  consumePendingBotLink: (): Promise<BotDeepLinkOutcome | null> =>
+    ipcRenderer.invoke('ui:consumePendingBotLink'),
   onOpenPluginInstallLink: (callback: (link: string) => void): (() => void) => {
     const listener = (_event: Electron.IpcRendererEvent, link: string): void => callback(link)
     ipcRenderer.on('ui:openPluginInstallLink', listener)
@@ -118,11 +126,6 @@ export const uiStateAndMenuCommandsApi = {
     const listener = (_event: Electron.IpcRendererEvent) => callback()
     ipcRenderer.on('ui:openNewWorkspace', listener)
     return () => ipcRenderer.removeListener('ui:openNewWorkspace', listener)
-  },
-  onDeleteCurrentWorkspace: (callback: () => void): (() => void) => {
-    const listener = (_event: Electron.IpcRendererEvent) => callback()
-    ipcRenderer.on('ui:deleteCurrentWorkspace', listener)
-    return () => ipcRenderer.removeListener('ui:deleteCurrentWorkspace', listener)
   },
   onOpenWorkspaceBoard: (callback: () => void): (() => void) => {
     const listener = (_event: Electron.IpcRendererEvent) => callback()

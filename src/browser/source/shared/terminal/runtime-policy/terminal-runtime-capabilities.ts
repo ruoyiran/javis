@@ -1,7 +1,7 @@
-import { TERMINAL_LIMIT_RUNTIME_CAPABILITY } from './terminal-limit-policy'
-import { TERMINAL_ORDERED_INPUT_CAPABILITY } from '../input/terminal-ordered-input'
-import { PROGRAM_STATUS_RUNTIME_CAPABILITY } from '../../program-status/protocol'
-import { TERMINAL_QUICK_COMMAND_RUNTIME_CAPABILITIES } from '../quick-commands/terminal-quick-command-capabilities'
+import { TERMINAL_LIMIT_RUNTIME_CAPABILITY } from "./terminal-limit-policy"
+import { TERMINAL_ORDERED_INPUT_CAPABILITY } from "../input/terminal-ordered-input"
+import { PROGRAM_STATUS_RUNTIME_CAPABILITY } from "../../program-status/protocol"
+import { TERMINAL_QUICK_COMMAND_RUNTIME_CAPABILITIES } from "../quick-commands/terminal-quick-command-capabilities"
 
 // Why: hosts without this strip terminal.send's inputKind (zod object drops
 // unknown keys), so a mobile xterm query reply would land as ordinary
@@ -30,6 +30,9 @@ export const TERMINAL_CREATE_SHELL_SELECTION_RUNTIME_CAPABILITY =
 
 // Why: an older host strips terminal.split's `retrySplit` and splits again, duplicating the command.
 export const TERMINAL_SPLIT_RETRY_RUNTIME_CAPABILITY = 'terminal.split-retry.v1' as const
+// Why: an older host's send guard lets a mid-turn agent whose hooks hide approvals take Enter, so clients refuse those sends there.
+export const TERMINAL_SEND_APPROVAL_GUARD_RUNTIME_CAPABILITY =
+  'terminal.send-approval-guard.v1' as const
 
 export const TERMINAL_RUNTIME_CAPABILITIES = [
   TERMINAL_ORDERED_INPUT_CAPABILITY,
@@ -45,5 +48,6 @@ export const TERMINAL_RUNTIME_CAPABILITIES = [
   ...TERMINAL_QUICK_COMMAND_RUNTIME_CAPABILITIES,
   TERMINAL_CREATE_IDEMPOTENCY_RUNTIME_CAPABILITY,
   TERMINAL_CREATE_SHELL_SELECTION_RUNTIME_CAPABILITY,
-  TERMINAL_SPLIT_RETRY_RUNTIME_CAPABILITY
+  TERMINAL_SPLIT_RETRY_RUNTIME_CAPABILITY,
+  TERMINAL_SEND_APPROVAL_GUARD_RUNTIME_CAPABILITY
 ] as const

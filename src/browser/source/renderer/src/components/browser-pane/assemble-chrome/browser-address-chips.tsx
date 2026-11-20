@@ -1,13 +1,13 @@
 import { FileCode2, Monitor, ZoomIn } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { useTranslate } from '@/i18n/use-translate'
-import { browserPageZoomLevelToPercent } from '../../../../../shared/browser-page-zoom'
-import type { BrowserViewportPresetId } from '../../../../../shared/browser-workspace-types'
-import { getBrowserViewportPreset } from '../../../../../shared/browser-viewport-presets'
-import { publishBrowserPageSiteDisplay } from '../host-guest/browser-page-zoom'
-import { applyBrowserViewportPreset } from './browser-viewport-preset-apply'
-import { useBrowserPageSiteDisplay } from './use-browser-page-site-display'
+import { Button } from "../../ui/button"
+import { Tooltip, TooltipContent, TooltipTrigger } from "../../ui/tooltip"
+import { useTranslate } from "../../../i18n/use-translate"
+import { browserPageZoomLevelToPercent } from "../../../../../shared/browser-page-zoom"
+import type { BrowserViewportPresetId } from "../../../../../shared/browser-workspace-types"
+import { getBrowserViewportPreset } from "../../../../../shared/browser-viewport-presets"
+import { publishBrowserPageSiteDisplay } from "../host-guest/browser-page-zoom"
+import { applyBrowserViewportPreset } from "./browser-viewport-preset-apply"
+import { useBrowserPageSiteDisplay } from "./use-browser-page-site-display"
 
 function AddressChip({
   label,
@@ -94,7 +94,13 @@ export function BrowserOpenSourceFileButton({ onOpen }: { onOpen: () => void }):
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <Button type="button" size="icon-xs" variant="ghost" aria-label={label} onClick={onOpen}>
+        <Button
+          type="button"
+          size="icon-xs"
+          variant="muted-field-icon"
+          aria-label={label}
+          onClick={onOpen}
+        >
           <FileCode2 className="size-3.5" />
         </Button>
       </TooltipTrigger>

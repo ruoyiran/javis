@@ -1,12 +1,16 @@
+import { BotLinkOpenTargetSchema } from "../bots/bot-link-open-target"
 import { z } from 'zod'
-import { RUNTIME_NAVIGATION_TARGETS } from '../runtime-navigation'
-import { TAB_ACTIVATION_INTENTS } from '../tab-activation-intent'
-import { OptionalBoolean } from './rpc-param-primitives'
-import { sleepingAgentLaunchConfigSchema } from '../workspace-session/workspace-session-sleeping-agents'
-import type { TuiAgent } from '../agent-launch/catalog/tui-agent'
-import { isTuiAgent } from '../agent-launch/catalog/tui-agent-config'
-import { LEGACY_MAX_QUICK_COMMAND_AGENT_PROMPT_LENGTH } from '../terminal/quick-commands/terminal-quick-command-prompt-limit'
-import { ResumeProviderSessionParam, WindowsShellOverrideParam } from './terminal-unary-params'
+import { RUNTIME_NAVIGATION_TARGETS } from "../runtime-navigation"
+import { TAB_ACTIVATION_INTENTS } from "../tab-activation-intent"
+import { OptionalBoolean } from "./rpc-param-primitives"
+import { sleepingAgentLaunchConfigSchema } from "../workspace-session/workspace-session-sleeping-agents"
+import type { TuiAgent } from "../agent-launch/catalog/tui-agent"
+import { isTuiAgent } from "../agent-launch/catalog/tui-agent-config"
+import { LEGACY_MAX_QUICK_COMMAND_AGENT_PROMPT_LENGTH } from "../terminal/quick-commands/terminal-quick-command-prompt-limit"
+import {
+  ResumeProviderSessionParam,
+  WindowsShellOverrideParam
+} from "./terminal-unary-params"
 
 export const WorktreeTabSelector = z.object({
   worktree: z
@@ -29,6 +33,10 @@ export const ActivateTab = WorktreeTabSelector.extend({
   navigation: z.enum(RUNTIME_NAVIGATION_TARGETS).optional(),
   // Absent means user intent for old clients; only automatic activation may refuse a slept pane.
   intent: z.enum(TAB_ACTIVATION_INTENTS).optional()
+})
+
+export const BotLinkActivateTab = ActivateTab.extend({
+  botLinkTarget: BotLinkOpenTargetSchema.optional()
 })
 
 export const CloseTab = ActivateTab.extend({

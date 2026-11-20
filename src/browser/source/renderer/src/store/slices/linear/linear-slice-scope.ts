@@ -1,21 +1,23 @@
-import type { AppState } from '../../types'
-import type { TaskSourceContext } from '../../../../../shared/work-items/task-source-context'
-import { getTaskSourceCacheScope } from '../../../../../shared/work-items/task-source-context'
+import type { AppState } from "../../types"
+import type { RuntimeClientTarget } from "../../../../../shared/runtime-client-target"
+import { taskSourceRuntimeTarget } from "../../../lib/work-items/task-source-runtime-target"
+import type { TaskSourceContext } from "../../../../../shared/work-items/task-source-context"
+import { getTaskSourceCacheScope } from "../../../../../shared/work-items/task-source-context"
 import {
   canonicalizeLinearIssueAttributeFilter,
   isEmptyLinearIssueAttributeFilter,
   type LinearIssueAttributeFilter
-} from '../../../../../shared/linear/issue-attribute-filter'
+} from "../../../../../shared/linear/issue-attribute-filter"
 import {
   getProviderRuntimeContextKey,
   getEnvironmentRuntimeContextKey
-} from '@/runtime/hosts/observations/provider-runtime-context'
-import { getLinearCacheGeneration, getLinearMutationGeneration } from './linear-slice-request-state'
+} from "../../../runtime/hosts/observations/provider-runtime-context"
+import { getLinearCacheGeneration, getLinearMutationGeneration } from "./linear-slice-request-state"
 import {
   defaultScopeSource,
   rowLessSourceTarget
-} from '@/runtime/hosts/selection/default-creation-host'
-import type { RowLessSource } from '@/runtime/hosts/selection/default-creation-host'
+} from "../../../runtime/hosts/selection/default-creation-host"
+import type { RowLessSource } from "../../../runtime/hosts/selection/default-creation-host"
 
 export function normalizeListAttributeFilter(
   attributeFilter?: LinearIssueAttributeFilter | null
@@ -64,7 +66,14 @@ export function getLinearReadScope(
 }
 
 export function getLinearSourceScope(source: RowLessSource): LinearReadScope {
-  const target = rowLessSourceTarget(source)
+  return buildLinearReadScope(source, rowLessSourceTarget(source))
+}
+
+export function getLinearTaskSourceScope(source: TaskSourceContext): LinearReadScope {
+  return buildLinearReadScope(source, taskSourceRuntimeTarget(source))
+}
+
+function buildLinearReadScope(source: RowLessSource, target: RuntimeClientTarget): LinearReadScope {
   const environmentId = target.kind === 'environment' ? target.environmentId : null
   const runtimeKey = getEnvironmentRuntimeContextKey(environmentId)
   const cachePrefix = source.kind === 'task-source' ? getTaskSourceCacheScope(source) : null

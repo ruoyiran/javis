@@ -1,5 +1,6 @@
 import { JavisError } from "./error.js";
 import type { JavisMethod } from "./session.js";
+import type { ComputerReadOptions, ProviderReadOptions } from './computer-read-options.js'
 import {
   browserMethods,
   validateBrowserParams,
@@ -10,6 +11,7 @@ export type BrowserDaemonMethod =
   | BrowserMethod
   | "browser.open"
   | "browser.status"
+  | "browser.workspaceSnapshot"
   | "browser.catalog.context"
   | "browser.catalog.list"
   | "browser.catalog.register"
@@ -25,6 +27,7 @@ const browserMethodNames = new Set<string>([
   ...browserMethods,
   "browser.open",
   "browser.status",
+  "browser.workspaceSnapshot",
   "browser.catalog.context",
   "browser.catalog.list",
   "browser.catalog.register",
@@ -60,6 +63,10 @@ export function browserDaemonParams(
       );
     return params;
   }
+  if (method === "browser.workspaceSnapshot") {
+    if (Object.keys(params).some(key => key !== 'worktree') || (params.worktree !== undefined && (typeof params.worktree !== 'string' || !params.worktree))) throw new JavisError('invalid_argument', 'Browser workspace snapshot accepts only a non-empty worktree')
+    return params
+  }
   if (method.startsWith("browser.catalog.")) return params;
   return validateBrowserParams(method, params);
 }
@@ -75,6 +82,7 @@ export function createDaemonDispatch(
   computer: (
     method: JavisMethod,
     params: Record<string, unknown>,
+    options?: ComputerReadOptions & ProviderReadOptions,
   ) => Promise<unknown>,
   permissions: PermissionOperations,
   browser?: (
@@ -86,8 +94,9 @@ export function createDaemonDispatch(
   method: JavisDaemonMethod,
   params: Record<string, unknown>,
   canDeliver?: () => boolean,
+  options?: ComputerReadOptions & ProviderReadOptions,
 ) => Promise<unknown> {
-  return async (method, params, canDeliver = () => true) => {
+  return async (method, params, canDeliver = () => true, options = {}) => {
     if (!canDeliver())
       throw new JavisError(
         "action_timeout",
@@ -135,6 +144,6 @@ export function createDaemonDispatch(
         ...(result && typeof result === "object" ? result : {}),
       };
     }
-    return computer(method, params);
+    return computer(method, params, options);
   };
 }

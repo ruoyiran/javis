@@ -1,5 +1,6 @@
-import './constants'
-import { ORCA_BROWSER_BLANK_URL } from './browser/browser-blank-page'
+import "./constants"
+import { ORCA_BROWSER_BLANK_URL } from "./browser/browser-blank-page"
+import { getCurrentLocalPlatform } from "./execution-host"
 
 const LOCAL_ADDRESS_PATTERN =
   /^(?:localhost|127(?:\.\d{1,3}){3}|0\.0\.0\.0|\[[0-9a-f:]+\])(?::\d+)?(?:[/?#].*)?$/i
@@ -31,6 +32,9 @@ const SEARCH_ENGINE_URLS: Record<SearchEngine, string> = {
 }
 
 export const DEFAULT_SEARCH_ENGINE: SearchEngine = 'google'
+
+// Lone surrogates make encodeURIComponent throw. Not toWellFormed() (Android WebView <111) and no lookbehind (WebKit <16.4).
+const LONE_SURROGATE = /[\uD800-\uDFFF]/gu
 
 export function classifySchemeLessLocalDevAddress(rawInput: string): URL | null {
   const trimmed = rawInput.trim()
@@ -219,7 +223,7 @@ export function buildSearchUrl(
       return sessionSearchUrl
     }
   }
-  return `${SEARCH_ENGINE_URLS[engine]}${encodeURIComponent(query.toWellFormed())}`
+  return `${SEARCH_ENGINE_URLS[engine]}${encodeURIComponent(query.replace(LONE_SURROGATE, '\uFFFD'))}`
 }
 
 export function looksLikeSearchQuery(input: string): boolean {
@@ -245,7 +249,9 @@ export function isAbsoluteFilesystemPathInput(input: string): boolean {
 }
 
 function absolutePathToFileUrl(filePath: string): string {
-  const normalizedPath = filePath.replaceAll('\\', '/')
+  // Why: `\` is a filename char on POSIX but a separator on Windows, even in rooted paths like `/foo\bar`.
+  const isPosixPath = filePath.startsWith('/') && getCurrentLocalPlatform() !== 'win32'
+  const normalizedPath = isPosixPath ? filePath : filePath.replaceAll('\\', '/')
   const segments = normalizedPath.split('/').map((segment, index) => {
     if (index === 0 && /^[A-Za-z]:$/.test(segment)) {
       return segment

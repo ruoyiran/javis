@@ -1,10 +1,10 @@
-import type { WriteSettlement } from './terminal/pty/lifecycle/pty-write-settlement'
+import type { WriteSettlement } from "./terminal/pty/lifecycle/pty-write-settlement"
 
 export type RuntimeTerminalSend = {
   handle: string
   accepted: boolean
   bytesWritten: number
-  refusedReason?: 'no-agent' | 'permission'
+  refusedReason?: 'no-agent' | 'permission' | 'approval-unseen'
   prompt?: RuntimeTerminalPromptDelivery
   writeSettlement?: WriteSettlement
 }

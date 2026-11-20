@@ -1,17 +1,19 @@
 import { z } from 'zod'
+import { BrowserTarget, ExpectUrlBrowserTarget } from '../source/shared/rpc-contract/rpc-param-primitives.js'
+import { CertificateProceed, PageZoom, Reload } from '../source/shared/rpc-contract/browser-core-params.js'
+import { Check, ClipboardWrite, CookieDelete, CookieGet, CookieSet, DialogAccept, Drag, Element, Eval, Exec, Fill, Find, FullScreenshot, Geolocation, Get, Goto, Highlight, InterceptEnable, Is, KeyboardInsert, Keypress, LimitParam, MouseButton, MouseWheel, MouseXY, ProfileClearGoogleCookies, ProfileDelete, ProfileImportFromBrowser, Screencast, Scroll, Select, SelectorPath, SetCredentials, SetDevice, SetHeaders, SetMedia, SetOffline, StorageKey, StorageKeyValue, TabClose, TabCurrent, TabList, TabProfileClone, TabSetProfile, TabShow, TabSwitch, Type, Upload, Viewport, Wait } from '../source/shared/rpc-contract/browser-params.js'
+import { BrowserClientHostAttachParams, BrowserClientHostCommandResultChunkParams, BrowserClientHostCommandResultParams } from '../source/shared/browser/client-hosting/browser-client-host-protocol.js'
 import { BrowserClientFileChannelAbortParams, BrowserClientFileChannelReadParams, BrowserClientFileChannelWriteParams } from '../source/shared/browser/client-hosting/browser-client-file-channel-protocol.js'
-import { BrowserClientHostAttachParams, BrowserClientHostCommandResultParams } from '../source/shared/browser/client-hosting/browser-client-host-protocol.js'
-import { BrowserClientHostRequestResultParams } from '../source/shared/browser/client-hosting/browser-client-host-request-protocol.js'
 import { BrowserClientPageMetadataParams } from '../source/shared/browser/client-hosting/browser-client-page-metadata-protocol.js'
-import { CertificateProceed } from './upstream/rpc-contract/browser-core-params.js'
-import { ExtensionList, ExtensionReload } from './upstream/rpc-contract/browser-extension-params.js'
-import { MouseClick } from './upstream/rpc-contract/browser-extras-params.js'
-import { BrowserIdentitySet, ProfileCreate } from './upstream/rpc-contract/browser-identity-params.js'
-import { Screenshot, Snapshot } from './upstream/rpc-contract/browser-observation-params.js'
-import { Check, ClipboardWrite, CookieDelete, CookieGet, CookieSet, DialogAccept, Drag, Element, Eval, Exec, Fill, Find, FullScreenshot, Geolocation, Get, Goto, Highlight, InterceptEnable, Is, KeyboardInsert, Keypress, LimitParam, MouseButton, MouseWheel, MouseXY, ProfileClearGoogleCookies, ProfileDelete, ProfileImportFromBrowser, Screencast, Scroll, Select, SelectorPath, SetCredentials, SetDevice, SetHeaders, SetMedia, SetOffline, StorageKey, StorageKeyValue, TabClose, TabCurrent, TabList, TabProfileClone, TabSetProfile, TabShow, TabSwitch, Type, Upload, Viewport, Wait } from './upstream/rpc-contract/browser-params.js'
-import { ScreencastAck, ScreencastUnsubscribe } from './upstream/rpc-contract/browser-screencast-params.js'
-import { BrowserOpenUrlParams, BrowserTabCreateParams } from './upstream/rpc-contract/browser-tab-create-params.js'
-import { BrowserTarget, ExpectUrlBrowserTarget } from './upstream/rpc-contract/rpc-param-primitives.js'
+import { BrowserClientHostRequestResultParams } from '../source/shared/browser/client-hosting/browser-client-host-request-protocol.js'
+import { BrowserPageInitializationActionParams } from '../source/shared/browser/client-hosting/browser-page-initialization-action.js'
+import { ExtensionList, ExtensionReload } from '../source/shared/rpc-contract/browser-extension-params.js'
+import { BrowserIdentitySet, ProfileCreate } from '../source/shared/rpc-contract/browser-identity-params.js'
+import { MouseClick } from '../source/shared/rpc-contract/browser-extras-params.js'
+import { BrowserOpenUrlParams, BrowserTabCreateParams } from '../source/shared/rpc-contract/browser-tab-create-params.js'
+import { ScreencastAck, ScreencastUnsubscribe } from '../source/shared/rpc-contract/browser-screencast-params.js'
+import { Screenshot, Snapshot } from '../source/shared/rpc-contract/browser-observation-params.js'
+const EmptyParams = z.object({})
 export const browserMethodSchemas = {
   'browser.back': ExpectUrlBrowserTarget,
   'browser.capture.start': BrowserTarget,
@@ -22,11 +24,13 @@ export const browserMethodSchemas = {
   'browser.click': Element,
   'browser.clientHost.attach': BrowserClientHostAttachParams,
   'browser.clientHost.commandResult': BrowserClientHostCommandResultParams,
+  'browser.clientHost.commandResultChunk': BrowserClientHostCommandResultChunkParams,
   'browser.clientHost.fileChannel.abort': BrowserClientFileChannelAbortParams,
   'browser.clientHost.fileChannel.read': BrowserClientFileChannelReadParams,
   'browser.clientHost.fileChannel.write': BrowserClientFileChannelWriteParams,
   'browser.clientHost.pageMetadata': BrowserClientPageMetadataParams,
   'browser.clientHost.requestResult': BrowserClientHostRequestResultParams,
+  'browser.clientPage.initializationAction': BrowserPageInitializationActionParams,
   'browser.clipboardRead': BrowserTarget,
   'browser.clipboardWrite': ClipboardWrite,
   'browser.console': LimitParam,
@@ -52,7 +56,7 @@ export const browserMethodSchemas = {
   'browser.goto': Goto,
   'browser.highlight': Highlight,
   'browser.hover': Element,
-  'browser.identity.get': z.object({}),
+  'browser.identity.get': EmptyParams,
   'browser.identity.set': BrowserIdentitySet,
   'browser.intercept.disable': BrowserTarget,
   'browser.intercept.enable': InterceptEnable,
@@ -68,14 +72,14 @@ export const browserMethodSchemas = {
   'browser.network': LimitParam,
   'browser.openUrl': BrowserOpenUrlParams,
   'browser.pdf': BrowserTarget,
-  'browser.profileClearDefaultCookies': z.object({}),
+  'browser.profileClearDefaultCookies': EmptyParams,
   'browser.profileClearGoogleCookies': ProfileClearGoogleCookies,
   'browser.profileCreate': ProfileCreate,
   'browser.profileDelete': ProfileDelete,
-  'browser.profileDetectBrowsers': z.object({}),
+  'browser.profileDetectBrowsers': EmptyParams,
   'browser.profileImportFromBrowser': ProfileImportFromBrowser,
-  'browser.profileList': z.object({}),
-  'browser.reload': ExpectUrlBrowserTarget,
+  'browser.profileList': EmptyParams,
+  'browser.reload': Reload,
   'browser.screencast': Screencast,
   'browser.screencast.ack': ScreencastAck,
   'browser.screencast.unsubscribe': ScreencastUnsubscribe,
@@ -90,6 +94,7 @@ export const browserMethodSchemas = {
   'browser.setMedia': SetMedia,
   'browser.setOffline': SetOffline,
   'browser.snapshot': Snapshot,
+  'browser.stop': BrowserTarget,
   'browser.storage.local.clear': ExpectUrlBrowserTarget,
   'browser.storage.local.get': StorageKey,
   'browser.storage.local.set': StorageKeyValue,
@@ -110,4 +115,5 @@ export const browserMethodSchemas = {
   'browser.upload': Upload,
   'browser.viewport': Viewport,
   'browser.wait': Wait,
+  'browser.zoom': PageZoom
 } as const

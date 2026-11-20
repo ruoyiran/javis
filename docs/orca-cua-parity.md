@@ -1,5 +1,7 @@
 # Orca CUA command parity
 
+Latest browser/CUA synchronization is pinned to Orca `d3a843d032f602cf09e392613683a94089efce07` (83 browser commands,16 desktop CUA commands). See [latest command parity](browser-parity/latest-command-parity.md) and its fixed parameter/method inventory. Earlier verification records below retain their original snapshot/evidence.
+
 The comparison uses Orca commit `729f757b592244176420a86114c1ea23911eeeba`. Its `src/cli/specs/computer.ts` declares 14 CLI commands: 13 computer operations and permission setup. Each has a Javis command with the same action-specific flags. Both `javis computer <command>` and the existing flat Javis names use one parser and runtime.
 
 ## Command mapping

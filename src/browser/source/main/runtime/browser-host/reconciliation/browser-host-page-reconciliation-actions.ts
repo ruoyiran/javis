@@ -1,21 +1,21 @@
 import type {
   BrowserClientHostedPageInventory,
   BrowserClientHostCommandEvent
-} from '../../../../shared/browser/client-hosting/browser-client-host-protocol'
-import type { BrowserClientAutomationResult as BrowserClientHostCommandResult } from '../../../../shared/browser/client-hosting/browser-client-automation-protocol'
-import { assertBrowserHostPageCommandAdmission } from '../commands/browser-host-page-command-admission'
-import { browserHostClientProfileFor } from '../profiles/browser-host-client-profile-metadata'
-import type { BrowserHostLeaseState } from '../leases/browser-host-lease-records'
+} from "../../../../shared/browser/client-hosting/browser-client-host-protocol"
+import type { BrowserClientAutomationResult as BrowserClientHostCommandResult } from "../../../../shared/browser/client-hosting/browser-client-automation-protocol"
+import { assertBrowserHostPageCommandAdmission } from "../commands/browser-host-page-command-admission"
+import { browserHostClientProfileFor } from "../profiles/browser-host-client-profile-metadata"
+import type { BrowserHostLeaseState } from "../leases/browser-host-lease-records"
 import type {
   BrowserClientPagePlacementReservation,
   BrowserHostPagePlacementRegistry
-} from './browser-host-page-placement'
-import type { RuntimeBrowserPlacement } from '../../../../shared/runtime-browser-placement'
-import type { BrowserHostPageReconciliationActions as ActionHandlers } from './browser-host-page-reconciliation-executor'
+} from "./browser-host-page-placement"
+import type { RuntimeBrowserPlacement } from "../../../../shared/runtime-browser-placement"
+import type { BrowserHostPageReconciliationActions as ActionHandlers } from "./browser-host-page-reconciliation-executor"
 import type {
   BrowserHostPageReconciliationPlan,
   BrowserHostRuntimePageIntent
-} from './browser-host-page-reconciliation-plan'
+} from "./browser-host-page-reconciliation-plan"
 
 export class BrowserHostPageReconciliationActions {
   readonly controller = new AbortController()
@@ -116,9 +116,10 @@ export class BrowserHostPageReconciliationActions {
     intent: BrowserHostRuntimePageIntent,
     signal: AbortSignal
   ): Promise<void> {
-    const url = this.plan.closeThenRestore.find(
-      (pair) => pair.intent.browserPageId === intent.browserPageId
-    )?.page.currentUrl
+    const url =
+      intent.url ??
+      this.plan.closeThenRestore.find((pair) => pair.intent.browserPageId === intent.browserPageId)
+        ?.page.currentUrl
     await this.issueCommand(
       intent.browserPageId,
       intent.pageHostGeneration,

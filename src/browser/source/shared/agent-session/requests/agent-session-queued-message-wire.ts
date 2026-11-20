@@ -1,7 +1,7 @@
 // Publish queued cards, queue pause and draft mutation results together.
 
-import type { UnreadAgentSessionFailureFact } from '../failures/agent-session-failure'
-import type { AgentJournalMessageItem } from '../journal/agent-session-journal-types'
+import type { UnreadAgentSessionFailureFact } from "../failures/agent-session-failure"
+import type { AgentJournalMessageItem } from "../journal/agent-session-journal-types"
 
 /** The draft could not be converted into a send; an explicit Send retries it. */
 export const QUEUED_MESSAGE_PAUSED_SEND_FAILED = 'send_failed' as const
@@ -47,6 +47,8 @@ export type AgentSessionQueuedMessage = {
   /** Only failed submissions return cards with reason/rejection; Stop/restart withdrawals wait again. Classify returnedRejection with returnedReason as the legacy fallback, exactly as submission rejection. */
   returnedReason?: string | null
   returnedRejection?: UnreadAgentSessionFailureFact
+  /** A person's message sent to steer the running turn; the host holds it only until the turn takes it in. */
+  steers?: true
 }
 
 /** Removal from the published list is the outcome; no reply body/text or re-ask after a lost answer. */

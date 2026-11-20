@@ -4,12 +4,16 @@
 import {
   backgroundTaskBlocks,
   withoutBackgroundTaskRows
-} from '../input/native-chat-background-task-row'
-import { isWordlessProviderFrameBlock } from '../native-chat-provider-frame-summary'
-import { isReplacedSubagentGroupTwin, subagentGroupBlocks } from './native-chat-subagent-summary'
-import { isSubagentGroupBlock, isTextBlock, type NativeChatBlock } from '../native-chat-types'
-import { splitNativeChatBlocks } from '../tools/native-chat-tool-fold'
-import { nativeChatProseToMarkdown } from './native-chat-prose'
+} from "../input/native-chat-background-task-row"
+import { isWordlessProviderFrameBlock } from "../native-chat-provider-frame-summary"
+import { isNativeChatProviderTurnStartBlock } from "./turns/native-chat-provider-turn-start"
+import {
+  isReplacedSubagentGroupTwin,
+  subagentGroupBlocks
+} from "./native-chat-subagent-summary"
+import { isSubagentGroupBlock, isTextBlock, type NativeChatBlock } from "../native-chat-types"
+import { splitNativeChatBlocks } from "../tools/native-chat-tool-fold"
+import { nativeChatProseToMarkdown } from "./native-chat-prose"
 
 /** Inferred from `derive` so the shape cannot drift from what it returns. */
 export type NativeChatRowContent = ReturnType<typeof derive>
@@ -24,7 +28,9 @@ function readMarkdown(this: { prose: NativeChatBlock[] }): string {
 
 function derive(blocks: readonly NativeChatBlock[]) {
   const split = splitNativeChatBlocks(
-    blocks.filter((block) => !isWordlessProviderFrameBlock(block))
+    blocks.filter(
+      (block) => !isWordlessProviderFrameBlock(block) && !isNativeChatProviderTurnStartBlock(block)
+    )
   )
   const groups = subagentGroupBlocks(split.prose)
   const tasks = backgroundTaskBlocks(split.prose)

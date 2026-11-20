@@ -1,16 +1,20 @@
 import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
-import { useAppStore } from '@/store'
-import { parseExecutionHostId, type ExecutionHostId } from '../../../shared/execution-host'
-import { BROWSER_GOOGLE_COOKIE_CLEAR_CAPABILITY } from '../../../shared/browser/runtime/browser-runtime-capabilities'
-import { useConfirmationDialog } from './confirmation-dialog-context'
+import { useAppStore } from "../store/index"
+import { useRuntimeHostStatusSelector } from "../store/slices/runtime-status/views/use-runtime-status-view"
+import {
+  parseExecutionHostId,
+  type ExecutionHostId
+} from "../../../shared/execution-host"
+import { BROWSER_GOOGLE_COOKIE_CLEAR_CAPABILITY } from "../../../shared/browser/runtime/browser-runtime-capabilities"
+import { useConfirmationDialog } from "./confirmation-dialog-context"
 import {
   captureGoogleCookieClearTarget,
   confirmAndClearGoogleCookies
-} from '@/lib/browser/cookies/browser-google-cookie-clear'
-import { useTranslate } from '@/i18n/use-translate'
-import { translateBrowserSessionProfileLabel } from '@/lib/browser/profiles/browser-session-profile-label'
-import { getRuntimeEnvironmentRevision } from '@/runtime/rpc/environment-revisions/runtime-environment-revision'
+} from "../lib/browser/cookies/browser-google-cookie-clear"
+import { useTranslate } from "../i18n/use-translate"
+import { translateBrowserSessionProfileLabel } from "../lib/browser/profiles/browser-session-profile-label"
+import { getRuntimeEnvironmentRevision } from "../runtime/rpc/environment-revisions/runtime-environment-revision"
 
 export function useGoogleCookieClear(hostId: ExecutionHostId, profileId: string, label?: string) {
   const t = useTranslate()
@@ -32,12 +36,10 @@ export function useGoogleCookieClear(hostId: ExecutionHostId, profileId: string,
     const environment = s.runtimeEnvironments.find((entry) => entry.id === environmentId)
     return environment?.pairingRevision ?? environment?.createdAt
   })
-  const supported = useAppStore((s) =>
-    environmentId
-      ? s.runtimeStatusByEnvironmentId
-          .get(environmentId)
-          ?.status?.capabilities?.includes(BROWSER_GOOGLE_COOKIE_CLEAR_CAPABILITY) === true
-      : false
+  const supported = useRuntimeHostStatusSelector(
+    environmentId,
+    (entry) =>
+      entry?.status?.capabilities?.includes(BROWSER_GOOGLE_COOKIE_CLEAR_CAPABILITY) === true
   )
   const [available, setAvailable] = useState<boolean | undefined>()
   useEffect(() => {

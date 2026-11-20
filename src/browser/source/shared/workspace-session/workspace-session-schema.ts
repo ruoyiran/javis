@@ -3,34 +3,39 @@ import { z } from 'zod'
 import {
   leafStringsSchema,
   terminalLayoutSnapshotSchema
-} from '../workspace-layout/terminal-layout-snapshot-schema'
-import { closedTerminalPaneSchema } from '../workspace-layout/closed-terminal-panes'
-import { closedTerminalTabTombstoneSchema } from '../workspace-layout/closed-terminal-tab-tombstones'
+} from "../workspace-layout/terminal-layout-snapshot-schema"
+import { closedTerminalPaneSchema } from "../workspace-layout/closed-terminal-panes"
+import { closedTerminalTabTombstoneSchema } from "../workspace-layout/closed-terminal-tab-tombstones"
 
-import type { TabGroupLayoutNode } from '../tab-types'
-import type { TuiAgent } from '../agent-launch/catalog/tui-agent'
-import type { WorkspaceSessionState } from './workspace-session-state-types'
-import { terminalTabIdSchema } from '../workspace-layout/terminal-tab-id-schema'
-import { terminalSurfaceTombstoneSchema } from '../workspace-layout/terminal-surface-tombstone-schema'
-import { parseExecutionHostId, type ExecutionHostId } from '../execution-host'
-import { isTuiAgent } from '../agent-launch/catalog/tui-agent-config'
-import { type WorkspaceKey, isWorkspaceKey } from '../workspace-scope'
+import type { TabGroupLayoutNode } from "../tab-types"
+import type { TuiAgent } from "../agent-launch/catalog/tui-agent"
+import type { WorkspaceSessionState } from "./workspace-session-state-types"
+import { terminalTabIdSchema } from "../workspace-layout/terminal-tab-id-schema"
+import { terminalSurfaceTombstoneSchema } from "../workspace-layout/terminal-surface-tombstone-schema"
+import { parseExecutionHostId, type ExecutionHostId } from "../execution-host"
+import { isTuiAgent } from "../agent-launch/catalog/tui-agent-config"
+import { type WorkspaceKey, isWorkspaceKey } from "../workspace-scope"
 import {
   browserHistoryEntriesSchema,
   workspaceDocHistoryEntriesSchema,
   browserPageSchema,
   browserWorkspaceSchema
-} from './workspace-session-browser-schema'
-import { workspaceSessionCloseIntentFieldSchemas } from './workspace-session-close-intent-schema'
-import { persistedClientHostedBrowserPageSchema } from './client-hosted-browser-page-record'
-import { persistedOpenFileSchema } from './workspace-session-editor-schema'
-import { sleepingAgentSessionsByPaneKeySchema } from './workspace-session-sleeping-agents'
+} from "./workspace-session-browser-schema"
+import { workspaceSessionCloseIntentFieldSchemas } from "./workspace-session-close-intent-schema"
+import { persistedClientHostedBrowserPageSchema } from "./client-hosted-browser-page-record"
+import { persistedOpenFileSchema } from "./workspace-session-editor-schema"
+import { sleepingAgentSessionsByPaneKeySchema } from "./workspace-session-sleeping-agents"
 import {
   tabContentTypeSchema,
   workspaceVisibleTabTypeSchema
-} from './workspace-session-tab-type-schema'
-import { salvagedField, salvagedOptional, salvagingArray, salvagingRecord } from '../zod-salvage'
-import { isStructuredAgentId } from '../agent-session/lifecycle/agent-session-provider-handle-encoding'
+} from "./workspace-session-tab-type-schema"
+import {
+  salvagedField,
+  salvagedOptional,
+  salvagingArray,
+  salvagingRecord
+} from "../zod-salvage"
+import { isStructuredAgentId } from "../agent-session/lifecycle/agent-session-provider-handle-encoding"
 
 const workspaceKeySchema = z.custom<WorkspaceKey>(
   (value) => typeof value === 'string' && isWorkspaceKey(value)

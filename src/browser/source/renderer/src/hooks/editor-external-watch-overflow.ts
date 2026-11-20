@@ -1,24 +1,24 @@
-import { useAppStore } from '@/store'
-import type { OpenFile } from '@/store/slices/editor/types/open-file'
-import type { EditorExternalWatchBatchPathIndex } from '@/components/editor/external-changes/editor-external-watch-path-index'
-import { isExternalReloadableEditorTab } from '@/components/editor/autosave/editor-autosave'
-import { forgetCombinedDiffViewBodiesForWorktree } from '@/components/editor/combined-diff/remember-view/combined-diff-view-cache'
-import { getRuntimeTargetForFileOwner } from '@/lib/files/access/file-owner-runtime-target'
-import { runtimePathsExist } from '@/runtime/files/metadata/runtime-path-existence-batch'
+import { useAppStore } from "../store/index"
+import type { OpenFile } from "../store/slices/editor/types/open-file"
+import type { EditorExternalWatchBatchPathIndex } from "../components/editor/external-changes/editor-external-watch-path-index"
+import { isExternalReloadableEditorTab } from "../components/editor/autosave/editor-autosave"
+import { forgetCombinedDiffViewBodiesForWorktree } from "../components/editor/combined-diff/remember-view/combined-diff-view-cache"
+import { getRuntimeTargetForFileOwner } from "../lib/files/access/file-owner-runtime-target"
+import { runtimePathsExist } from "../runtime/files/metadata/runtime-path-existence-batch"
 import {
   PATH_EXISTENCE_BATCH_MAX,
   type PathExistenceResult
-} from '../../../shared/file-access/path-existence-batch'
+} from "../../../shared/file-access/path-existence-batch"
 import {
   getLocalWindowsWslAliasOption,
   getOpenFileRuntimeOwner,
   type EditorExternalWatchTarget
-} from './editor-external-watch-targets'
+} from "./editor-external-watch-targets"
 import {
   scheduleDebouncedEditorExternalReload,
   scheduleEditorSelfMoveEchoVerification,
   type EditorExternalWatchNotification
-} from './editor-external-watch-disk-verification'
+} from "./editor-external-watch-disk-verification"
 
 // Why: an existence answer is stale once a newer probe or watch event for that tab arrives.
 const probeGenerationByFileId = new Map<string, number>()
@@ -28,10 +28,6 @@ function claimProbeGeneration(fileId: string): number {
   probeGenerationSeq += 1
   probeGenerationByFileId.set(fileId, probeGenerationSeq)
   return probeGenerationSeq
-}
-
-export function getPendingOverflowProbeCountForTest(): number {
-  return probeGenerationByFileId.size
 }
 
 /** Drops pending existence answers for tabs this watch batch touched. */

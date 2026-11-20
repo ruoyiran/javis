@@ -1,6 +1,6 @@
 import { z } from 'zod'
-import type { AgentType } from './agent-status/contracts/agent-status-types'
-import type { ProjectExecutionRuntimeResolution } from './execution-host/project-execution-runtime'
+import type { AgentType } from "./agent-status/contracts/agent-status-types"
+import type { ProjectExecutionRuntimeResolution } from "./execution-host/project-execution-runtime"
 
 export type SkillProvider = 'codex' | 'claude' | 'agent-skills'
 
@@ -15,6 +15,8 @@ export type DiscoveredSkill = {
   providers: SkillProvider[]
   sourceKind: SkillSourceKind
   sourceLabel: string
+  /** Claude plugin namespace: Claude invokes the skill as `/<pluginName>:<folder>`. */
+  pluginName?: string
   rootPath: string
   /** Retain co-owning roots during canonical-path dedup or symlinked skills lose agents. */
   rootPaths?: string[]
@@ -29,9 +31,14 @@ export type SkillDiscoverySource = {
   label: string
   path: string
   sourceKind: SkillSourceKind
+  /** Claude plugin namespace for the skills under this root. */
+  pluginName?: string
   providers: SkillProvider[]
   /** Agent that owns this root; null is the explicit shared-skills scope. */
   owner: AgentType | null
+  /** A relocated owner home is read only by its owner, and the default one only by agents that
+   *  read the owner's folders; absent means both. */
+  readers?: 'owner' | 'borrowers'
   exists: boolean
   /** Unavailable means unanswered, so skills are unknown rather than absent. */
   skippedReason?: 'missing' | 'remote-repo' | 'unavailable'

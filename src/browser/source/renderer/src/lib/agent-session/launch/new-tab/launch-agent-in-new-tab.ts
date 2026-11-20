@@ -1,38 +1,38 @@
-import { refuseAgentTabLaunch, refuseUnavailableAgentTabLaunch } from './launch-agent-tab-refusal'
+import { refuseAgentTabLaunch, refuseUnavailableAgentTabLaunch } from "./launch-agent-tab-refusal"
 import {
   launchNewTabPromptThroughHost,
   newTabPromptLaunchesThroughHost
-} from '@/lib/agent-session/launch/new-tab/launch-agent-new-tab-host-route'
-import type { LaunchAgentInNewTabArgs } from '@/lib/agent-session/launch/new-tab/launch-agent-in-new-tab-args'
-import { useAppStore } from '@/store/index'
+} from "./launch-agent-new-tab-host-route"
+import type { LaunchAgentInNewTabArgs } from "./launch-agent-in-new-tab-args"
+import { useAppStore } from "../../../../store/index"
 import { toast } from 'sonner'
-import { invalidTerminalArgsMessage } from '../../../workspace/creation/work-item/launch-work-item-direct-messages'
+import { invalidTerminalArgsMessage } from "../../../workspace/creation/work-item/launch-work-item-direct-messages"
 import {
   agentLaunchCheckSettingsMessage,
   notifyAgentLaunchFailure
-} from '@/lib/agent-session/launch/failure/agent-launch-failure'
-import { planLaunchAgentStartupPrompt } from '@/lib/agent-session/launch/prompt/launch-agent-startup-prompt-plan'
-import { persistAgentLaunchTabOrder } from '@/lib/agent-session/launch/pane/launch-agent-tab-order'
-import '@/diagnostics/telemetry/telemetry'
-import { tuiAgentToAgentKind } from '../../../../../../shared/agent-kind'
-import { seedNativeChatLaunchDraftForAgentTab } from '@/lib/agent-session/launch/prompt/agent-launch-prompt-delivery'
-import { pasteAgentLaunchPromptOnceReady } from '@/lib/agent-session/launch/prompt/launch-agent-tab-prompt-paste'
-import { runtimeEnvironmentIdOrLocalUnlessTwin } from '@/lib/workspace/ownership/worktree-runtime-owner'
-import { snapshotAgentTabLaunchArgs } from '@/lib/agent-session/launch/new-tab/launch-agent-in-new-tab-args'
-import { isWebRuntimeSessionActive } from '@/runtime/web-session-tabs-sync/identity/web-runtime-session-environment'
-import { launchAgentInWebHostTab } from '@/lib/agent-session/launch/new-tab/launch-agent-web-host-tab'
-import { resolveAgentStartupPlanInputs } from '../../../../../../shared/agent-launch/startup/agent-startup-plan-inputs'
-import { readAgentLaunchPreferencesForWorktree } from '@/runtime/agent-launch-settings/use-host-agent-launch-preferences'
-import { TUI_AGENT_CONFIG } from '../../../../../../shared/agent-launch/catalog/tui-agent-config'
+} from "../failure/agent-launch-failure"
+import { planLaunchAgentStartupPrompt } from "../prompt/launch-agent-startup-prompt-plan"
+import { persistAgentLaunchTabOrder } from "../pane/launch-agent-tab-order"
+import "../../../../diagnostics/telemetry/telemetry"
+import { tuiAgentToAgentKind } from "../../../../../../shared/agent-kind"
+import { seedNativeChatLaunchDraftForAgentTab } from "../prompt/agent-launch-prompt-delivery"
+import { pasteAgentLaunchPromptOnceReady } from "../prompt/launch-agent-tab-prompt-paste"
+import { runtimeEnvironmentIdOrLocalUnlessTwin } from "../../../workspace/ownership/worktree-runtime-owner"
+import { snapshotAgentTabLaunchArgs } from "./launch-agent-in-new-tab-args"
+import { isWebRuntimeSessionActive } from "../../../../runtime/web-session-tabs-sync/identity/web-runtime-session-environment"
+import { launchAgentInWebHostTab } from "./launch-agent-web-host-tab"
+import { resolveAgentStartupPlanInputs } from "../../../../../../shared/agent-launch/startup/agent-startup-plan-inputs"
+import { readAgentLaunchPreferencesForWorktree } from "../../../../runtime/agent-launch-settings/use-host-agent-launch-preferences"
+import { TUI_AGENT_CONFIG } from "../../../../../../shared/agent-launch/catalog/tui-agent-config"
 import {
   agentTabLaunchStore,
   resolveAgentLaunchExecutionContext
-} from '@/lib/agent-session/launch/new-tab/launch-agent-execution-context'
-import { launchStructuredAgentFromNewTab } from '@/lib/agent-session/launch/new-tab/launch-agent-in-new-tab-structured-route'
-import '@/lib/agent-session/launch/routing/agent-launch-route-input'
-import { workspaceKindForWorktreeId } from '../../../../../../shared/agent-launch/contracts/workspace-launch-kind'
-import { launchOnceHostAnswered, routeNewTabLaunch } from './launch-agent-in-new-tab-host-agents'
-import type { AgentTabLaunchOutcome } from './launch-agent-in-new-tab-host-agents'
+} from "./launch-agent-execution-context"
+import { launchStructuredAgentFromNewTab } from "./launch-agent-in-new-tab-structured-route"
+import "../routing/agent-launch-route-input"
+import { workspaceKindForWorktreeId } from "../../../../../../shared/agent-launch/contracts/workspace-launch-kind"
+import { launchOnceHostAnswered, routeNewTabLaunch } from "./launch-agent-in-new-tab-host-agents"
+import type { AgentTabLaunchOutcome } from "./launch-agent-in-new-tab-host-agents"
 
 /**
  * Create a new terminal tab and queue the agent's launch command, optionally
@@ -191,7 +191,6 @@ function openAgentInNewTab(
       groupId,
       cwd: initialCwd,
       ...(trustWorktreeId ? { trustWorktreeId } : {}),
-      buildStartup,
       sessionOptions,
       prompt: trimmedPrompt,
       promptDelivery,

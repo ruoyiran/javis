@@ -1,7 +1,7 @@
 import {
   getWorktreeIdFromHostIdentity,
   isWorktreeHostIdentity
-} from './worktree/host-qualified-identity'
+} from "./worktree/host-qualified-identity"
 
 export type WorkspaceScope =
   | { type: 'worktree'; worktreeId: string }
@@ -46,6 +46,11 @@ export function normalizeWorkspaceSessionKeyToWorkspaceId(value: string): string
 
 export function isWorkspaceKey(value: string): value is WorkspaceKey {
   return parseWorkspaceKey(value) !== null
+}
+
+/** A sidebar row's workspace key: a folder row's id already is one. */
+export function workspaceKeyOfRow(id: string): WorkspaceKey {
+  return isWorkspaceKey(id) ? id : worktreeWorkspaceKey(id)
 }
 
 // Folder workspaces use the scoped active key; older worktree paths still use activeWorktreeId.

@@ -2,8 +2,9 @@ import * as React from 'react'
 import * as TooltipPrimitive from 'radix-ui/tooltip'
 
 import { cva, type VariantProps } from 'class-variance-authority'
-import { cn } from '@/lib/class-names'
-import { PortalContainerContext, usePortalContainer } from './portal-container-context'
+import { cn } from "../../lib/class-names"
+import { isKeyboardOrVirtualFocus } from "../../lib/keyboard/keyboard-input-modality"
+import { PortalContainerContext, usePortalContainer } from "./portal-container-context"
 
 function TooltipProvider({
   delayDuration = 600,
@@ -27,8 +28,24 @@ function Tooltip({ ...props }: React.ComponentProps<typeof TooltipPrimitive.Root
   return <TooltipPrimitive.Root data-slot="tooltip" {...props} />
 }
 
-function TooltipTrigger({ ...props }: React.ComponentProps<typeof TooltipPrimitive.Trigger>) {
-  return <TooltipPrimitive.Trigger data-slot="tooltip-trigger" {...props} />
+function TooltipTrigger({
+  onFocus,
+  ...props
+}: React.ComponentProps<typeof TooltipPrimitive.Trigger>) {
+  return (
+    <TooltipPrimitive.Trigger
+      data-slot="tooltip-trigger"
+      onFocus={(event) => {
+        onFocus?.(event)
+        // Why: focus restored to the trigger after a mouse-closed dialog/menu/panel must not pop the
+        // label; preventDefault skips Radix's open-on-focus unless keyboard or assistive tech moved focus.
+        if (!isKeyboardOrVirtualFocus()) {
+          event.preventDefault()
+        }
+      }}
+      {...props}
+    />
+  )
 }
 
 const TAB_PREVIEW_CLASSES =

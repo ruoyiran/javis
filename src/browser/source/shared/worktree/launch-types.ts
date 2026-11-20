@@ -1,11 +1,16 @@
-import type { StartupCommandDelivery } from '../agent-launch/startup/codex-startup-delivery'
-import type { AgentKind, LaunchSource, RequestKind } from '../telemetry-events'
-import type { SleepingAgentLaunchConfig } from '../agent-session/lifecycle/agent-session-resume'
-import type { SetupRunnerShell } from '../agent-launch/startup/setup-runner-command'
-import type { OrcaDefaultTabTemplate } from '../orca-yaml-hook-types'
-import type { TuiAgent } from '../agent-launch/catalog/tui-agent'
+import type { StartupCommandDelivery } from "../agent-launch/startup/codex-startup-delivery"
+import type {
+  AgentKind,
+  LaunchSource,
+  RequestKind
+} from "../telemetry-property-schemas"
+import type { SleepingAgentLaunchConfig } from "../agent-session/lifecycle/agent-session-resume"
+import type { SetupRunnerShell } from "../agent-launch/startup/setup-runner-command"
+import type { OrcaDefaultTabTemplate } from "../orca-yaml-hook-types"
+import type { TuiAgent } from "../agent-launch/catalog/tui-agent"
 
 export type WorktreeSetupLaunch = {
+  cwd?: string
   runnerScriptPath: string
   envVars: Record<string, string>
   shell?: SetupRunnerShell

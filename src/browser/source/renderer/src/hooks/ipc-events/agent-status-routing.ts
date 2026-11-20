@@ -1,16 +1,16 @@
-import { resolveAgentPaneAuthorityKey } from '@/store/slices/agent-status/agent-pane-authority'
-import type { AppState } from '../../store/types'
-import { titleHasAgentName } from '../../../../shared/agent-status/title/agent-name-token-match'
+import { resolveAgentPaneAuthorityKey } from "../../store/slices/agent-status/agent-pane-authority"
+import type { AppState } from "../../store/types"
+import { titleHasAgentName } from "../../../../shared/agent-status/title/agent-name-token-match"
 import type {
   AgentStatusEntry,
   AgentType,
   ParsedAgentStatusPayload
-} from '../../../../shared/agent-status/contracts/agent-status-types'
-import type { AgentStatusIpcPayload } from '../../../../shared/agent-status/contracts/agent-status-ipc-payload'
-import { resolveAgentStatusIdentity } from '../../../../shared/agent-status/identity/agent-status-identity'
-import { sameAgentStatusTerminalOwner } from '../../../../shared/agent-status/identity/agent-status-terminal-owner'
-import { makePaneKey, parsePaneKey } from '../../../../shared/workspace-layout/stable-pane-id'
-import type { useAppStore } from '../../store'
+} from "../../../../shared/agent-status/contracts/agent-status-types"
+import type { AgentStatusIpcPayload } from "../../../../shared/agent-status/contracts/agent-status-ipc-payload"
+import { resolveAgentStatusIdentity } from "../../../../shared/agent-status/identity/agent-status-identity"
+import { sameAgentStatusTerminalOwner } from "../../../../shared/agent-status/identity/agent-status-terminal-owner"
+import { makePaneKey, parsePaneKey } from "../../../../shared/workspace-layout/stable-pane-id"
+import type { useAppStore } from "../../store/index"
 
 export function isAgentStatusForRecentlyClosedTab(
   store: Pick<AppState, 'recentlyClosedAgentStatusTabIds' | 'recentlyRetiredAgentStatusPaneKeys'>,
@@ -36,15 +36,32 @@ export function isAgentStatusForRecentlyClosedTab(
 export function isSeenHostReplay(
   data: Pick<
     AgentStatusIpcPayload,
-    'isReplay' | 'stateStartedAt' | 'turnCompletedAt' | 'turnEndedAt'
+    | 'isReplay'
+    | 'paneSleep'
+    | 'interrupted'
+    | 'mainAgent'
+    | 'stateStartedAt'
+    | 'turnCompletedAt'
+    | 'turnEndedAt'
   >,
   state: string,
   existing:
-    | Pick<AppState['agentStatusByPaneKey'][string], 'state' | 'stateStartedAt' | 'turnEndedAt'>
+    | Pick<
+        NonNullable<ReturnType<AppState['agentStatusByPaneKey']['get']>>,
+        'state' | 'stateStartedAt' | 'turnEndedAt'
+      >
     | undefined
 ): boolean {
   if (data.isReplay !== true) {
     return false
+  }
+  // Sleep's own interruption is no new turn end; a completion it carries still counts.
+  if (
+    data.paneSleep &&
+    data.interrupted === true &&
+    (data.mainAgent === undefined || data.mainAgent.outcome === 'cancellation')
+  ) {
+    return true
   }
   // Why: with no row there is no proof the turn was unseen, so keep seeding (no reload re-fires).
   if (existing === undefined) {

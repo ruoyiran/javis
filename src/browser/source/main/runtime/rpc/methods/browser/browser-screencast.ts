@@ -1,14 +1,14 @@
-import { defineMethod, defineStreamingMethod } from '../../core'
-import { Screencast } from '../../../../../shared/rpc-contract/browser-params'
-import { BrowserError } from '../../../../browser/browser-error'
-import '../../../../../shared/runtime-types'
-import { BROWSER_UNAVAILABLE_ERROR_CODE } from '../../../../../shared/runtime-session-contracts'
-import { runtimeBrowserCommandsFactoryIsAvailable } from '../../../browser/installation/runtime-browser-commands-factory'
+import { defineMethod, defineStreamingMethod } from "../../core"
+import { Screencast } from "../../../../../shared/rpc-contract/browser-params"
+import { BrowserError } from "../../../../browser/browser-error"
+
+import { BROWSER_UNAVAILABLE_ERROR_CODE } from "../../../../../shared/runtime-session-contracts"
+import { runtimeBrowserCommandsFactoryIsAvailable } from "../../../browser/installation/runtime-browser-commands-factory"
 import {
   ScreencastAck,
   ScreencastUnsubscribe
-} from '../../../../../shared/rpc-contract/browser-screencast-params'
-import { acknowledgeBrowserScreencastFrame } from '../../../browser/screencast/browser-screencast-frame-credit'
+} from "../../../../../shared/rpc-contract/browser-screencast-params"
+import { acknowledgeBrowserScreencastFrame } from "../../../browser/screencast/browser-screencast-frame-credit"
 
 export const BROWSER_SCREENCAST_METHODS = [
   defineStreamingMethod({

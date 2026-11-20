@@ -1,20 +1,23 @@
-import { captureRuntimeEnvironmentRequestRevision } from '@/runtime/rpc/environment-revisions/runtime-environment-revision'
-import type { BrowserSlice, BrowserSliceGet, BrowserSliceSet } from '../browser-slice-contract'
-import type { BrowserSessionProfile, BrowserSessionProfileSource } from '../../../../../../shared/browser-workspace-types'
+import { captureRuntimeEnvironmentRequestRevision } from "../../../../runtime/rpc/environment-revisions/runtime-environment-revision"
+import type { BrowserSlice, BrowserSliceGet, BrowserSliceSet } from "../browser-slice-contract"
+import type { BrowserSessionProfile, BrowserSessionProfileSource } from "../../../../../../shared/browser-workspace-types"
 import type {
   BrowserProfileCreateResult,
   BrowserProfileDeleteResult,
   BrowserProfileListResult
-} from '../../../../../../shared/browser/runtime/runtime-browser-contracts'
-import { parseExecutionHostId, type ExecutionHostId } from '../../../../../../shared/execution-host'
-import { callRuntimeRpc } from '@/runtime/rpc/calls/runtime-rpc-call'
+} from "../../../../../../shared/browser/runtime/runtime-browser-contracts"
+import {
+  parseExecutionHostId,
+  type ExecutionHostId
+} from "../../../../../../shared/execution-host"
+import { callRuntimeRpc } from "../../../../runtime/rpc/calls/runtime-rpc-call"
 import {
   getBrowserProfilesForHost,
   getBrowserSettingsHostId,
   getBrowserSettingsRuntimeEnvironmentId,
   profileListByHostUpdate,
   updateDefaultBrowserProfileForHost
-} from '../hosts/browser-host-state'
+} from "../hosts/browser-host-state"
 
 export function createBrowserProfileListActions(
   set: BrowserSliceSet,

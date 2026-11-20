@@ -1,9 +1,10 @@
-import type { ContextualTourId } from './contextual-tours'
+import type { ContextualTourId } from "./contextual-tours"
 
 export const FEATURE_EDUCATION_CONTEXTUAL_TOUR_IDS = [
   'workspace-board',
   'workspace-agent-sessions',
   'browser',
+  'browser-extensions',
   'client-hosted-browser',
   'tasks',
   'automations',
@@ -16,6 +17,7 @@ export const FEATURE_EDUCATION_SOURCES = [
   'workspace_board_visible',
   'workspace_agent_sessions_visible',
   'browser_visible',
+  'browser_extensions_visible',
   'client_hosted_browser_visible',
   'tasks_open',
   'automations_open',

@@ -1,23 +1,29 @@
-import type { BrowserPage, BrowserWorkspace } from '../../../../../shared/browser-workspace-types'
-import type { Tab, WorkspaceVisibleTabType } from '../../../../../shared/tab-types'
-import type { Worktree } from '../../../../../shared/worktree/types'
-import type { ExecutionHostId } from '../../../../../shared/execution-host'
+import type {
+  BrowserPage,
+  BrowserWorkspace
+} from "../../../../../shared/browser-workspace-types"
+import type {
+  Tab,
+  WorkspaceVisibleTabType
+} from "../../../../../shared/tab-types"
+import type { Worktree } from "../../../../../shared/worktree/types"
+import type { ExecutionHostId } from "../../../../../shared/execution-host"
 import {
   getPaletteWorktreeIdentity,
   isPaletteCurrentWorktree,
   resolvePaletteRepoForWorktree
-} from '../../workspace/search/palette-repo-resolution'
+} from "../../workspace/search/palette-repo-resolution"
 import {
   buildSearchableBrowserPageDocument,
   type SearchableBrowserPage
-} from './browser-palette-search'
+} from "./browser-palette-search"
 import {
   findAmbiguousWorktreeIds,
   findDuplicateIds,
   getUnifiedTabPaletteExecutionHostId,
   isUnifiedTabOwnedByWorktree
-} from '../../workspace/ownership/unified-tab-host-ownership'
-import { maxValidPaletteActivityTimestamp } from '../../../../../shared/palette-match/palette-ranking'
+} from "../../workspace/ownership/unified-tab-host-ownership"
+import { maxValidPaletteActivityTimestamp } from "../../../../../shared/palette-match/palette-ranking"
 
 export type BuildSearchableBrowserPagesOptions = {
   worktrees: readonly Worktree[]

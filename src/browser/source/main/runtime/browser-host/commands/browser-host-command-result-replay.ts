@@ -1,8 +1,8 @@
 import type {
   BrowserHostCommandPageState,
   BrowserHostCommandResultParams
-} from './browser-host-command-state'
-import { sameBrowserHostCommandResult } from './browser-host-command-state'
+} from "./browser-host-command-state"
+import { sameBrowserHostCommandResult } from "./browser-host-command-state"
 
 export function isBrowserHostReconciliationResult(
   pages: ReadonlyMap<string, BrowserHostCommandPageState>,
@@ -67,4 +67,16 @@ export function replaySettledBrowserHostCommand(
     throw new Error('browser_host_command_result_conflict')
   }
   return false
+}
+
+export function hasOutstandingBrowserHostPageCreation(
+  page: BrowserHostCommandPageState | undefined,
+  generation: number
+): boolean {
+  return Boolean(
+    page?.generation === generation &&
+    [...page.records.values()].some(
+      (record) => !record.settled && record.event.command.type === 'createPage'
+    )
+  )
 }

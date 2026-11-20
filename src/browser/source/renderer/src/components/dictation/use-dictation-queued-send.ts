@@ -1,11 +1,8 @@
 import { useCallback, useEffect, useRef, useState, type RefObject } from 'react'
-import {
-  isDictationUnderway,
-  type DictationSession
-} from '../../../../shared/dictation-session-machine'
-import { dispatchDictationControl } from './dictation-control-events'
-import { pressDictationTerminalEnter } from './dictation-insertion-target'
-import type { DictationKeptRecording } from './dictation-kept-recording'
+import { isDictationUnderway, type DictationSession } from "./dictation-session-machine"
+import { dispatchDictationControl } from "./dictation-control-events"
+import { pressDictationTerminalEnter } from "./dictation-insertion-target"
+import type { DictationKeptRecording } from "./dictation-kept-recording"
 
 export type DictationQueuedSendKind = 'chat' | 'terminal'
 

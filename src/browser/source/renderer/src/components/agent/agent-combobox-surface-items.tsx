@@ -1,25 +1,25 @@
-import { terminalPendingLabel, terminalPendingReason } from '../tab-bar/new-tab-agent-menu-model'
+import { terminalPendingLabel, terminalPendingReason } from "../tab-bar/new-tab-agent-menu-model"
 import React, { useState } from 'react'
-import { CommandItem, CommandSeparator } from '@/components/ui/command'
-import { getAgentCatalog, type AgentCatalogEntry } from '@/lib/agent-catalog/agent-catalog'
-import { AgentIcon } from '@/components/agent/icons/AgentIcon'
-import { searchAgentPickerEntries } from '@/lib/agent-catalog/agent-picker-search'
-import type { AgentLaunchSurface } from '@/lib/agent-session/launch/routing/agent-session-launch-plan'
-import type { NewTabAgentMenuRow } from '../../../../shared/agent-launch/picker/agent-launch-picker-rows'
-import type { NewTabAgentMenuModel } from '@/components/tab-bar/use-new-tab-agent-menu-rows'
+import { CommandItem, CommandSeparator } from "../ui/command"
+import { getAgentCatalog, type AgentCatalogEntry } from "../../lib/agent-catalog/agent-catalog"
+import { AgentIcon } from "./icons/AgentIcon"
+import { searchAgentPickerEntries } from "../../lib/agent-catalog/agent-picker-search"
+import type { AgentLaunchSurface } from "../../lib/agent-session/launch/routing/agent-session-launch-plan"
+import type { NewTabAgentMenuRow } from "../../../../shared/agent-launch/picker/agent-launch-picker-rows"
+import type { NewTabAgentMenuModel } from "../tab-bar/new-tab-agent-menu-model"
 import {
   chatUnavailableLabel,
   rowId,
   rowLabel,
   rowTitle
-} from '@/components/tab-bar/tab-agent-row-presentation'
-import { cn } from '@/lib/class-names'
-import { translate } from '@/i18n/i18n'
-import { useTranslate, type Translate } from '@/i18n/use-translate'
-import type { TuiAgent } from '../../../../shared/agent-launch/catalog/tui-agent'
-import type { resolveAgentMenuSelection } from '@/lib/agent-session/launch/routing/agent-menu-selection'
-import { renderAgentComboboxItem } from './agent-combobox-items'
-import { AgentSurfaceLaunchButton } from './AgentSurfaceLaunchButton'
+} from "./launch-menu/agent-menu-row-presentation"
+import { cn } from "../../lib/class-names"
+import { translate } from "../../i18n/i18n"
+import { useTranslate, type Translate } from "../../i18n/use-translate"
+import type { TuiAgent } from "../../../../shared/agent-launch/catalog/tui-agent"
+import type { resolveAgentMenuSelection } from "../../lib/agent-session/launch/routing/agent-menu-selection"
+import { renderAgentComboboxItem } from "./agent-combobox-items"
+import { AgentSurfaceLaunchButton } from "./AgentSurfaceLaunchButton"
 
 /** The "+" menu's rows in the picker: a chat row picks the chat, its terminal button the CLI. */
 export type AgentComboboxSurfaceRows = {

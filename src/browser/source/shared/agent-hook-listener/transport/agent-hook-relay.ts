@@ -1,15 +1,15 @@
-import type { AgentProcessPresence } from '../../agent-status/process/agent-process-presence'
-import type { ClaudeSettledRequest } from '../claude-settled-permission-requests'
+import type { AgentProcessPresence } from "../../agent-status/process/agent-process-presence"
+import type { ClaudeSettledRequest } from "../claude-settled-permission-requests"
 // Relay normalizes; main revalidates at the SSH trust boundary and routes. Wire connectionId stays null until ingestRemote stamps mux identity. CLI version/env survive forwarding; remote marks location, not build type. Keep wire envelopes separate from renderer IPC/install contracts without Electron dependencies.
 
 import { createHash } from 'node:crypto'
 
-import type { AgentSubagentSnapshot } from '../../agent-status/contracts/agent-status-subagent-snapshot'
+import type { AgentSubagentSnapshot } from "../../agent-status/contracts/agent-status-subagent-snapshot"
 import type {
   ParsedAgentStatusPayload,
   TurnEndDisposition
-} from '../../agent-status/contracts/agent-status-types'
-import type { AgentProviderSessionMetadata } from '../../agent-session/lifecycle/agent-session-resume'
+} from "../../agent-status/contracts/agent-status-types"
+import type { AgentProviderSessionMetadata } from "../../agent-session/lifecycle/agent-session-resume"
 
 // The relay must retain the URL-derived source discriminator for CLI attribution.
 const AGENT_HOOK_SOURCES = [
@@ -77,6 +77,8 @@ export type AgentHookRelayEnvelope = {
   providerPromptId?: string
   /** The row belongs to an observed Grok prompt boundary whose opaque id may be absent. */
   grokPromptBoundary?: true
+  /** A new Claude prompt_id opened a turn on this event, ahead of the turn's prompt event. */
+  opensTurn?: true
   /** Active Claude compact generation, keyed by provider prompt identity. */
   compactTrigger?: 'manual' | 'auto'
   /** Claude tool execution id, when the source hook provides one. */

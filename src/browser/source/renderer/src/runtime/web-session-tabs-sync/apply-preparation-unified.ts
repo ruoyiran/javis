@@ -1,13 +1,16 @@
-import type { prepareWebSessionTabsSnapshotBrowser } from './apply-preparation-browser'
-import { buildTerminalUnifiedTab } from './tab-builders'
-import { isAgentSessionTab } from './terminal-surfaces'
-import { toWebTerminalSurfaceTabId } from '../../../../shared/workspace-layout/terminal-surface-id'
+import type { prepareWebSessionTabsSnapshotBrowser } from "./apply-preparation-browser"
+import { buildTerminalUnifiedTab } from "./tab-builders"
+import { isAgentSessionTab } from "./terminal-surfaces"
+import { toWebTerminalSurfaceTabId } from "../../../../shared/workspace-layout/terminal-surface-id"
 import {
   resolveWebSessionSiblingVisibleTabId,
   resolveWebSessionVisibleTabId
-} from './navigation/web-session-focus-intent'
-import { isWebSessionBrowserPlacementGroupReserved } from '../browser/placement/web-session-browser-placement'
-import { buildHostToLocalTabIdMap, updateHostSessionTabIdMappings } from './layout-groups'
+} from "./navigation/web-session-focus-intent"
+import { isWebSessionBrowserPlacementGroupReserved } from "../browser/placement/web-session-browser-placement"
+import {
+  buildHostToLocalTabIdMap,
+  updateHostSessionTabIdMappings
+} from "./layout-groups"
 
 export function prepareWebSessionTabsSnapshotUnified(
   base: ReturnType<typeof prepareWebSessionTabsSnapshotBrowser>

@@ -3,14 +3,14 @@ import type {
   BrowserExtensionReloadParams,
   BrowserExtensionReloadResult,
   BrowserExtensionSummaryListResult
-} from '../../../../shared/browser/extensions/browser-extension-types'
-import { BrowserError } from '../../../browser/browser-error'
-import '../../../../shared/runtime-types'
-import { BROWSER_UNAVAILABLE_ERROR_CODE } from '../../../../shared/runtime-session-contracts'
-import type { RuntimeBrowserUnavailableReason } from '../../../../shared/runtime-capability-degradation'
-import type { RuntimeBrowserCommandHost } from '../commands/browser-command-contracts'
-import type { RuntimeBrowserCommands } from '../commands/browser-commands'
-import { closeBrowserPageWithoutEngine } from '../client-pages/browser-client-page-close'
+} from "../../../../shared/browser/extensions/browser-extension-types"
+import { BrowserError } from "../../../browser/browser-error"
+
+import { BROWSER_UNAVAILABLE_ERROR_CODE } from "../../../../shared/runtime-session-contracts"
+import type { RuntimeBrowserUnavailableReason } from "../../../../shared/runtime-capability-degradation"
+import type { RuntimeBrowserCommandHost } from "../commands/browser-command-contracts"
+import type { RuntimeBrowserCommands } from "../commands/browser-commands"
+import { closeBrowserPageWithoutEngine } from "../client-pages/browser-client-page-close"
 
 /** Inject Electron browser construction to keep Chromium imports out of Node hosts; type imports remain safe.
  * Node hosts use external providers or reject browser_unavailable and hide capability; never silently succeed with a stub. */

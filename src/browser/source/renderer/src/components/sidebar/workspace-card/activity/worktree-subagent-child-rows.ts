@@ -1,17 +1,17 @@
-import type { DashboardAgentRow } from '@/components/dashboard/useDashboardData'
-import type { AgentRowState } from '../../../../../../shared/agent-status/presentation/agent-row-decay-state'
-import type { AgentStatusEntry } from '../../../../../../shared/agent-status/contracts/agent-status-types'
+import type { DashboardAgentRow } from "../../../dashboard/rows/dashboard-agent-row"
+import type { AgentRowState } from "../../../../../../shared/agent-status/presentation/agent-row-decay-state"
+import type { AgentStatusEntry } from "../../../../../../shared/agent-status/contracts/agent-status-types"
 import {
   agentChildRowContextForParent,
   type AgentChildRowModel
-} from '../../../../../../shared/agent-status/presentation/agent-child-row-model'
+} from "../../../../../../shared/agent-status/presentation/agent-child-row-model"
 import {
   agentChildRunStateFor,
   type AgentChildDisplayState
-} from '../../../../../../shared/agent-status/child-work/agent-status-child-work-display'
-import { buildRunningAgentChildRowModels } from '../../../../../../shared/running-agent-child-rows'
-import { agentChildRowName } from '@/components/agent-child-row-text'
-import type { TerminalTab } from '../../../../../../shared/workspace-layout/terminal-tab-types'
+} from "../../../../../../shared/agent-status/child-work/agent-status-child-work-display"
+import { buildRunningAgentChildRowModels } from "../../../../../../shared/running-agent-child-rows"
+import { agentChildRowName } from "../../../agent-child-row-text"
+import type { TerminalTab } from "../../../../../../shared/workspace-layout/terminal-tab-types"
 
 /** NUL prevents collision with real pane keys; synthetic keys are never parsed for activation, which uses the parent pane. */
 function subagentRowKey(parentPaneKey: string, subagentId: string): string {

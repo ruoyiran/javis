@@ -2,16 +2,12 @@ import {
   getEphemeralVmHostState,
   getExecutionHostVmStateHealth,
   type EphemeralVmHostLifecycle
-} from './execution-host-health'
-import {
-  normalizeHostPart,
-  toRuntimeExecutionHostId,
-  type ExecutionHostId
-} from '../execution-host'
+} from "./execution-host-health"
+import { normalizeHostPart, toRuntimeExecutionHostId, type ExecutionHostId } from "../execution-host"
 import type {
   ExecutionHostRegistryEntry,
   RuntimeStatusByEnvironmentId
-} from './execution-host-registry-entry'
+} from "./execution-host-registry-entry"
 
 /**
  * A suspended VM's server is unreachable by design, so its transport reads disconnected or

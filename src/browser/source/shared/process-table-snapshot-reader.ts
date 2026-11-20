@@ -1,23 +1,20 @@
 import { readFile } from 'node:fs/promises'
-import { monotonicNow } from './deadline-settle-notifier'
-import { PS_TIMEOUT_MS, assertWholeCapture, captureProcessTable } from './process-table-ps-capture'
+import { monotonicNow } from "./deadline-settle-notifier"
+import { PS_TIMEOUT_MS, assertWholeCapture, captureProcessTable } from "./process-table-ps-capture"
 import {
   captureDarwinProcessTable,
   resetDarwinProcessTableCaptureForTests
-} from './darwin-process-table-capture'
+} from "./darwin-process-table-capture"
 import {
   PROCESS_TABLE_SNAPSHOT_MAX_STALENESS_MS,
   PS_ARGS,
-  PS_MAX_BUFFER_BYTES,
   ProcessTableCaptureError,
   SHELL_FOREGROUND_PS_ARGS,
   parseProcessTableRows,
   parseShellForegroundRows,
   parseStrictProcessTableRows,
   type ProcessTableRow
-} from './process-table-snapshot'
-
-export { PROCESS_TABLE_SNAPSHOT_MAX_STALENESS_MS, PS_ARGS, PS_MAX_BUFFER_BYTES, PS_TIMEOUT_MS }
+} from "./process-table-snapshot"
 
 type Snapshot<T> = { value: T; capturedAtMs: number; completedAtMs: number }
 

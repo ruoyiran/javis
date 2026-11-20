@@ -1,36 +1,41 @@
-import type { GitHistoryRefs } from './git/history/git-history-types'
-import type { JiraQuickFilterState } from './jira/jira-quick-filters'
-import type { BrowserDevToolsDockLayout } from './browser/devtools/browser-devtools-dock'
-import type { JiraSavedFilterState } from './jira/jira-saved-filters'
-import type { ReleaseChannel } from './release-channel'
-import type { WorkspaceCleanupUIState } from './workspace-cleanup/workspace-cleanup'
-import type { FeatureTipSeenId } from './feature-tips'
-import type { ContextualTourId } from './contextual-tours'
-import type { FeatureInteractionState } from './feature-interactions'
-import type { UsagePercentageDisplay } from './usage-percentage-display'
-import type { StatusBarUsageMode } from './status-bar-usage-mode'
-import type { StatusBarUsageFormat } from './status-bar-usage-format'
-import type { PersistedTrustedOrcaHooks } from './orca-yaml-hook-types'
-import type { CustomPet } from './pet-types'
+import type { GitHistoryRefs } from "./git/history/git-history-types"
+import type { BotChatFold } from "./bots/bot-chat-tree"
+import type { JiraQuickFilterState } from "./jira/jira-quick-filters"
+import type { BrowserDevToolsDockLayout } from "./browser/devtools/browser-devtools-dock"
+import type { JiraSavedFilterState } from "./jira/jira-saved-filters"
+import type { ReleaseChannel } from "./release-channel"
+import type { WorkspaceCleanupUIState } from "./workspace-cleanup/workspace-cleanup"
+import type { FeatureTipSeenId } from "./feature-tips"
+import type { ContextualTourId } from "./contextual-tours"
+import type { FeatureInteractionState } from "./feature-interactions"
+import type { UsagePercentageDisplay } from "./usage-percentage-display"
+import type { StatusBarUsageMode } from "./status-bar-usage-mode"
+import type { StatusBarUsageFormat } from "./status-bar-usage-format"
+import type { PersistedTrustedOrcaHooks } from "./orca-yaml-hook-types"
+import type { CustomPet } from "./pet-types"
 import type {
-  ActivityGroupBy,
   AgentActivityDisplayMode,
   ManualRepoOrderEntry,
   ProjectOrderBy,
+  ActivityBarPosition,
   RightSidebarExplorerView,
   RightSidebarTab,
   StatusBarItem,
   TaskResumeState,
-  ThreadReadFilter,
   TopLevelView,
   VisibleWorkspaceHostIds,
   WorkspaceHostOrder,
   WorkspaceHostScope,
   WorktreeCardProperty
-} from './ui-chrome-types'
-import type { WorkspaceStatusDefinition } from './worktree/types'
-import type { PersistedAutomationHostFilter } from './automations/ownership/automation-host-filter'
-import type { PendingRuntimeRepoRemoval } from './pending-runtime-repo-removal'
+} from "./ui-chrome-types"
+import type {
+  ActivityGroupBy,
+  ThreadReadFilter
+} from "./agents-view-thread-filters"
+import type { WorkspaceStatusDefinition } from "./worktree/types"
+import type { PersistedAutomationHostFilter } from "./automations/ownership/automation-host-filter"
+import type { PendingRuntimeRepoRemoval } from "./pending-runtime-repo-removal"
+import type { BotSidebarView } from "./bots/bot-sidebar-view"
 
 export type PersistedUIState = {
   gitGraphFiltersByWorktree?: Record<string, GitHistoryRefs>
@@ -48,6 +53,8 @@ export type PersistedUIState = {
   rightSidebarTab: RightSidebarTab
   rightSidebarExplorerView: RightSidebarExplorerView
   rightSidebarWidth: number
+  /** Right sidebar activity-bar edge. Missing on older profiles, which stay at the top. */
+  activityBarPosition?: ActivityBarPosition
   markdownTocPanelWidth?: number
   combinedDiffFileTreeWidth?: number
   groupBy: 'none' | 'workspace-status' | 'repo' | 'pr-status'
@@ -88,6 +95,8 @@ export type PersistedUIState = {
   _explorerDisplayRootMigrated?: boolean
   explorerDisplayRootByWorktree?: Record<string, string>
   showDotfilesByWorktree?: Record<string, boolean>
+  /** Per-worktree notification mute. Missing entries inherit the default: not muted. */
+  notificationsMutedByWorktree?: Record<string, boolean>
   filterRepoIds: string[]
   /** Agents host scope stays separate from navigation filters; null means all hosts. */
   agentsVisibleHostIds?: VisibleWorkspaceHostIds
@@ -97,6 +106,12 @@ export type PersistedUIState = {
   agentsHideWorkspacesFromOtherDevices?: boolean
   agentsHideAutomationGeneratedWorkspaces?: boolean
   agentsHideCliCreatedWorkspaces?: boolean
+  /** A bot's workspaces list only under the bot, not in their project. Absent means on. */
+  hideBotCreatedWorkspaces?: boolean
+  /** The Bots section's Bot options. Absent means Manual order, nothing hidden. */
+  botSidebarView?: BotSidebarView
+  /** A bot chat's manual fold in Activity and the sidebar, by `botChatFoldKey`. Absent means none. */
+  botChatFolds?: Record<string, BotChatFold>
   /** Agents-view: include child (orchestration-dispatched) agent threads. Absent means off. */
   agentsShowChildAgents?: boolean
   /** Agents-view compact thread rows. Absent means on. */
@@ -118,6 +133,9 @@ export type PersistedUIState = {
   workspaceStatuses?: WorkspaceStatusDefinition[]
   workspaceBoardOpacity?: number
   workspaceBoardColumnWidth?: number
+  /** Dragged cap on the sidebar Bots section in px; absent or null keeps the default 40% cap. */
+  sidebarBotsHeight?: number | null
+  sidebarProjectsFirst?: boolean
   syncTaskStatusFromWorkspaceBoard?: boolean
   /** Migrate reversed defaults once; never infer later user order from IDs/labels. */
   _workspaceStatusesDefaultOrderMigrated?: boolean
@@ -143,6 +161,8 @@ export type PersistedUIState = {
   _zcodeStatusBarDefaultAdded?: boolean
   /** One-shot migration flag for adding the default-on Muse status item. */
   _museStatusBarDefaultAdded?: boolean
+  /** One-shot migration flag for adding the default-on Git blame status item. */
+  _gitBlameStatusBarDefaultAdded?: boolean
   statusBarItems: StatusBarItem[]
   statusBarVisible: boolean
   /** Why: this is client-side presentation, not a provider/account or execution-host setting. */
@@ -201,6 +221,10 @@ export type PersistedUIState = {
   codexTerminalServerIsolationNoticeSeen?: boolean
   /** Windows one-shot toast for Codex moving onto ~/.codex; set when shown, so absent means not yet seen. */
   codexSharedSettingsNoticeSeen?: boolean
+  /** One-shot sidebar note announcing the reworked experimental worktree cards; set on first evaluation, so absent means not yet decided. */
+  worktreeCardsUpdateNoticeSeen?: boolean
+  /** One-shot sidebar note inviting Classic users to preview the experimental worktree cards; set when shown. */
+  worktreeCardsIntroNoticeSeen?: boolean
   /** Retired launch card for the speech model update; kept because a paired client from that build still sends it. */
   speechModelUpdateNoticeSeen?: boolean
   /** One-shot pane banner explaining Claude Code's own diff panel; set when the user closes it. */
@@ -216,10 +240,14 @@ export type PersistedUIState = {
   browserKagiSessionLink?: string | null
   /** Side and size of DevTools docked in a browser pane; one choice for every page, like Chrome. */
   browserDevToolsDock?: BrowserDevToolsDockLayout
+  /** Width of extension side panels, in CSS px; one width for every extension, like Chrome. */
+  browserExtensionSidePanelWidth?: number
   /** Saved window bounds so the app restores last position/size instead of maximizing each launch. */
   windowBounds?: { x: number; y: number; width: number; height: number } | null
   /** Whether the window was maximized when it was last closed. */
   windowMaximized?: boolean
+  /** Whether the window was in native fullscreen when it was last closed. */
+  windowFullScreen?: boolean
   /** Dashboard popout bounds, independent of main-window bounds. */
   dashboardPopoutBounds?: { x: number; y: number; width: number; height: number } | null
   /** Migrate legacy recent→smart once so later activity-based recent selections survive. */
@@ -248,6 +276,10 @@ export type PersistedUIState = {
   starNagAgentValueMomentAppVersion?: string | null
   trustedOrcaHooks?: PersistedTrustedOrcaHooks
   setupScriptPromptDismissedRepoIds?: string[]
+  /** Collapses the sidebar's "Moved to WSL host" list to its header. Desktop-only. */
+  wslMovedSectionCollapsed?: boolean
+  /** Moved-project entries the user hid from that list (`wslMovedProjectKey`); dropped once the project is no longer moved. */
+  hiddenWslMovedProjectKeys?: string[]
   /** Pet overlay visibility, separate from the experimentalPet settings flag so "Hide pet" is a reversible dismiss; absent = true. */
   petVisible?: boolean
   /** Active pet id (bundled id or custom UUID); unknown ids fall back to the default on read so a removed custom pet doesn't blank the overlay. */

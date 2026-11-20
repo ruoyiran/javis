@@ -1,4 +1,4 @@
-import type { GhAccountBinding } from '../../shared/github/account-binding'
+import type { GhAccountBinding } from "../../shared/github/account-binding"
 import type {
   GetProjectViewTableResult,
   GitHubProjectCommentMutationResult,
@@ -10,7 +10,7 @@ import type {
   ListProjectViewsResult,
   ProjectWorkItemDetailsBySlugResult,
   ResolveProjectRefResult
-} from '../../shared/github/project-result-types'
+} from "../../shared/github/project-result-types"
 import type {
   AddIssueCommentBySlugArgs,
   ClearProjectItemFieldArgs,
@@ -28,20 +28,23 @@ import type {
   UpdateIssueTypeBySlugArgs,
   UpdateProjectItemFieldArgs,
   UpdatePullRequestBySlugArgs
-} from '../../shared/github/project-request-types'
-import type { TaskSourceContext } from '../../shared/work-items/task-source-context'
-import type { GitHubCommentResult } from '../../shared/github/comment-types'
+} from "../../shared/github/project-request-types"
+import type { TaskSourceContext } from "../../shared/work-items/task-source-context"
+import type { GitHubCommentResult } from "../../shared/github/comment-types"
 import type {
   GitHubAssignableUser,
-  GitHubOwnerRepo,
   IssueInfo
-} from '../../shared/github/pull-request-types'
+} from "../../shared/github/pull-request-types"
+import type { GitHubRepositoryIdentity as GitHubOwnerRepo } from "../../shared/github/repositories/repository-identity"
 import type {
   GitHubWorkItem,
   GitHubWorkItemDetails,
   ListWorkItemsResult
-} from '../../shared/github/work-item-types'
-import type { GitHubCreateIssueResult, GitHubIssueUpdate } from '../../shared/issue-mutation-types'
+} from "../../shared/github/work-item-types"
+import type {
+  GitHubCreateIssueResult,
+  GitHubIssueUpdate
+} from "../../shared/issue-mutation-types"
 
 export type GitHubRepoSelectorArgs = {
   repoOwnerExecutionHostId?: string
@@ -56,6 +59,7 @@ export type GithubWorkItemApi = {
     repoId?: string
     sourceContext?: TaskSourceContext | null
     number: number
+    ownerRepo?: GitHubOwnerRepo
   }) => Promise<IssueInfo | null>
   workItem: (args: {
     repoPath: string

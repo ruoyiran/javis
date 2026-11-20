@@ -1,29 +1,29 @@
-import { javisContext, javisContextHost } from '@/store/workspaces/javis-context-catalog'
-import type { AppState } from '@/store/types'
-import { findIndexedRepoOwnerForHost, resolveIndexedRepoOwner } from './repo-owner-index'
-import { resolveIndexedWorktreeOwner } from './worktree-runtime-owner-index'
-import { resolveWorktreeExecutionHost } from '../../../../../shared/execution-host/worktree-execution-host-resolution'
+import { javisContext, javisContextHost } from "../../../store/workspaces/javis-context-catalog"
+import type { AppState } from "../../../store/types"
+import { findIndexedRepoOwnerForHost, resolveIndexedRepoOwner } from "./repo-owner-index"
+import { resolveIndexedWorktreeOwner } from "./worktree-runtime-owner-index"
+import { resolveWorktreeExecutionHost } from "../../../../../shared/execution-host/worktree-execution-host-resolution"
 import {
   getRepoExecutionHostId,
   getRepoSshConnectionId
-} from '../../../../../shared/execution-host'
-import type { Repo } from '../../../../../shared/repo-types'
-import { FLOATING_TERMINAL_WORKTREE_ID } from '../../../../../shared/constants'
-import { getRepoIdFromWorktreeId } from '../../../../../shared/worktree/id'
-import { parseWorkspaceKey } from '../../../../../shared/workspace-scope'
+} from "../../../../../shared/execution-host"
+import type { Repo } from "../../../../../shared/repo-types"
+import { FLOATING_TERMINAL_WORKTREE_ID } from "../../../../../shared/workspace/identity/floating-workspace-id"
+import { getRepoIdFromWorktreeId } from "../../../../../shared/worktree/id"
+import { parseWorkspaceKey } from "../../../../../shared/workspace-scope"
 import {
   isPathInsideOrEqual,
   normalizeRuntimePathForComparison
-} from '../../../../../shared/cross-platform-path'
-import { getFolderWorkspaceConnectionId } from './folder-workspace-connection'
-import { findFolderWorkspaceCandidateRepos } from '../../../../../shared/folder-workspaces/folder-workspace-execution-host'
+} from "../../../../../shared/cross-platform-path"
+import { getFolderWorkspaceConnectionId } from "./folder-workspace-connection"
+import { findFolderWorkspaceCandidateRepos } from "../../../../../shared/folder-workspaces/folder-workspace-execution-host"
 import {
   selectFolderWorkspaces,
   selectWorktreesByRepo
-} from '@/store/workspaces/catalog/workspace-record-fields'
-import { resolveQualifiedIndexedFolderWorkspace } from '@/store/folder-workspaces/folder-workspace-record-index'
-import type { ExecutionHostId } from '../../../../../shared/execution-host'
-import { resolveQualifiedWorktreeExecutionOwner } from './qualified-worktree-execution-owner'
+} from "../../../store/workspaces/catalog/workspace-record-fields"
+import { resolveQualifiedIndexedFolderWorkspace } from "../../../store/folder-workspaces/folder-workspace-record-index"
+import type { ExecutionHostId } from "../../../../../shared/execution-host"
+import { resolveQualifiedWorktreeExecutionOwner } from "./qualified-worktree-execution-owner"
 
 type ConnectionOwnerState = Pick<
   AppState,

@@ -23,6 +23,7 @@ import {
   getRequiredStringFlagAllowingEmpty
 } from './flags.js'
 import { getBrowserCommandTarget } from './browser-command-target.js'
+import { readBrowserValue } from './browser-input-payload.js'
 
 const checkHandler =
   (checked: boolean): CommandHandler =>
@@ -50,9 +51,9 @@ export const BROWSER_INTERACT_HANDLERS: Record<string, CommandHandler> = {
     const result = await client.call<unknown>('browser.dblclick', { element, ...target })
     printResult(result, json, () => `Double-clicked ${element}`)
   },
-  fill: async ({ flags, client, cwd, json }) => {
+  fill: async ({ flags, client, cwd, json, stdin }) => {
     const element = getRequiredStringFlag(flags, 'element')
-    const value = getRequiredStringFlagAllowingEmpty(flags, 'value')
+    const value = await readBrowserValue(flags, stdin)
     const target = await getBrowserCommandTarget(flags, cwd, client)
     const result = await client.call<BrowserFillResult>('browser.fill', {
       element,

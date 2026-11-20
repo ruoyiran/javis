@@ -2,16 +2,15 @@ import type { JSONContent } from '@tiptap/react'
 import {
   readNativeChatComposerDraft,
   updateNativeChatComposerDraft
-} from './native-chat-composer-draft-store'
-import { appendPromptDocumentText } from '../composer/editor/native-chat-prompt-document-text'
+} from "./native-chat-composer-draft-store"
+import { appendPromptDocumentText } from "../composer/editor/native-chat-prompt-document-text"
+import { appendNativeChatQuote } from "../../../../../shared/native-chat/input/quotes/native-chat-quote-selection"
 
-/** The quote after what the draft holds, as typing it would: nothing is replaced or deduplicated. */
 export function withQuoteAppended<Draft extends { text: string; document?: JSONContent }>(
   draft: Draft,
   quote: string
 ): Draft {
-  const kept = draft.text.trimEnd()
-  const text = kept === '' ? quote : `${kept}\n\n${quote}`
+  const text = appendNativeChatQuote(draft.text, quote)
   return { ...draft, text, document: appendPromptDocumentText(draft.document, draft.text, text) }
 }
 

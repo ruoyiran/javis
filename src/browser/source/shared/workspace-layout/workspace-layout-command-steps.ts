@@ -1,14 +1,17 @@
-import { canonicalTabGap, visibleLayoutGroups } from './workspace-layout-client-visibility'
-import { ORCA_LAYOUT_OWNER_IS_MAIN } from '../layout-owner-switch'
-import { insertTabIdIntoOrder } from './tab-order'
-import { collectLayoutLeafIdsInOrder } from './terminal-pane-tree'
+import {
+  canonicalTabGap,
+  visibleLayoutGroups
+} from "./workspace-layout-client-visibility"
+import { ORCA_LAYOUT_OWNER_IS_MAIN } from "../layout-owner-switch"
+import { insertTabIdIntoOrder } from "./tab-order"
+import { collectLayoutLeafIdsInOrder } from "./terminal-pane-tree"
 import type {
   LayoutApplyResult,
   LayoutCommandResult,
   LayoutContext,
   LayoutEffects,
   LayoutRefusalCode
-} from './workspace-layout-command-types'
+} from "./workspace-layout-command-types"
 import {
   paneKeyOf,
   type LayoutLeaf,
@@ -16,10 +19,10 @@ import {
   type LayoutTerminalTab,
   type WorkspaceLayout,
   type WorkspaceLayoutModel
-} from './workspace-layout-model'
-import { workspaceRootGroupId } from './workspace-layout-minted-ids'
-import type { PaneOutcomeChanges } from './workspace-layout-pane-outcomes'
-import { withWorkspace } from './workspace-layout-removal'
+} from "./workspace-layout-model"
+import { workspaceRootGroupId } from "./workspace-layout-minted-ids"
+import type { PaneOutcomeChanges } from "./workspace-layout-pane-outcomes"
+import { withWorkspace } from "./workspace-layout-removal"
 
 export type Applied = LayoutApplyResult<WorkspaceLayoutModel>
 

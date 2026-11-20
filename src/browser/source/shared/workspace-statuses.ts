@@ -1,12 +1,10 @@
-import type { WorkspaceStatus, WorkspaceStatusDefinition, Worktree } from './worktree/types'
-import { DEFAULT_STATUS_VISUALS, DEFAULT_WORKSPACE_STATUSES } from './workspace-status-defaults'
+import type { WorkspaceStatus, WorkspaceStatusDefinition, Worktree } from "./worktree/types"
+import { DEFAULT_STATUS_VISUALS, DEFAULT_WORKSPACE_STATUSES } from "./workspace-status-defaults"
 import {
   isKnownBadPRReorderedDefaultStatusPayload,
   isLegacyDefaultWorkflowStatusPayload
-} from './workspace-status-default-migration'
-import { sliceAtCodeUnitLimit } from './surrogate-safe-text-slice'
-
-export { DEFAULT_WORKSPACE_STATUSES } from './workspace-status-defaults'
+} from "./workspace-status-default-migration"
+import { sliceAtCodeUnitLimit } from "./surrogate-safe-text-slice"
 
 const WORKSPACE_STATUS_GROUP_PREFIX = 'workspace-status:'
 const MAX_STATUS_LABEL_LENGTH = 32

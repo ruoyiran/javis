@@ -1,47 +1,48 @@
-import type { TitleDerivedAgentRowsInput } from './title-derived-agent-row-input'
-import type { DashboardAgentRow } from '@/components/dashboard/useDashboardData'
-import { formatAgentTypeLabel } from '../../../../../../shared/agent-status/presentation/agent-type-label'
+import type { TitleDerivedAgentRowsInput } from "./title-derived-agent-row-input"
+import type { DashboardAgentRow } from "../../../dashboard/rows/dashboard-agent-row"
+import { formatAgentTypeLabel } from "../../../../../../shared/agent-status/presentation/agent-type-label"
 import {
   isClaudeManagementTitle,
   isCursorAgentTitle
-} from '../../../../../../shared/agent-status/title/agent-title-core'
+} from "../../../../../../shared/agent-status/title/agent-title-core"
 
-import { detectAgentStatusFromTitle } from '../../../../../../shared/agent-status/title/agent-title-status'
-import { getAgentLabel } from '../../../../../../shared/agent-status/title/agent-title-identity'
-import { tabHasLivePty } from '../../../../../../shared/tab-has-live-pty'
+import { detectAgentStatusFromTitle } from "../../../../../../shared/agent-status/title/agent-title-status"
+import { getAgentLabel } from "../../../../../../shared/agent-status/title/agent-title-identity"
+import { jcodePaneTitleStatus } from "../../../../../../shared/agent-status/title/providers/jcode-terminal-title"
+import { tabHasLivePty } from "../../../../../../shared/tab-has-live-pty"
 import type {
   AgentStatusEntry,
   AgentStatusOrchestrationContext,
   AgentStatusState,
   AgentType
-} from '../../../../../../shared/agent-status/contracts/agent-status-types'
-import { FIRST_PANE_ID } from '../../../../../../shared/pane-key'
+} from "../../../../../../shared/agent-status/contracts/agent-status-types"
+import { FIRST_PANE_ID } from "../../../../../../shared/pane-key"
 import {
   resolveRuntimePaneTitleLeafIdFromRoot,
   resolveRuntimePaneTitleLeafIdFromSparseSlots,
   collectRuntimePaneLeafIds
-} from '../../../../../../shared/runtime-pane-title-leaf-id'
+} from "../../../../../../shared/runtime-pane-title-leaf-id"
 import {
   isTerminalLeafId,
   makePaneKey
-} from '../../../../../../shared/workspace-layout/stable-pane-id'
+} from "../../../../../../shared/workspace-layout/stable-pane-id"
 import type {
   TerminalLayoutSnapshot,
   TerminalTab
-} from '../../../../../../shared/workspace-layout/terminal-tab-types'
+} from "../../../../../../shared/workspace-layout/terminal-tab-types"
 import {
   normalizeCompatibleAgentTitleForOwner,
   resolveCompatibleAgentTypeForOwner,
   type CompatibleAgentOwnerOptions
-} from '../../../../../../shared/agent-status/title/agent-title-owner'
-import { resolvePaneAgentOwner } from '../../../../../../shared/agent-status/identity/pane-agent-owner'
+} from "../../../../../../shared/agent-status/title/agent-title-owner"
+import { resolvePaneAgentOwner } from "../../../../../../shared/agent-status/identity/pane-agent-owner"
 import {
   resolveTitleDerivedAgentType,
   resolveTitleDerivedPaneAgent,
   TITLE_AGENT_LABEL_TO_TYPE,
   type TitleDerivedPaneForeground
-} from './title-derived-pane-agent-identity'
-import { translate } from '@/i18n/i18n'
+} from "./title-derived-pane-agent-identity"
+import { translate } from "../../../../i18n/i18n"
 
 /** Title snapshots use one restart-stable authority; revisions are comparable only within it, never across authorities. */
 export const TITLE_DERIVED_AGENT_ROW_AUTHORITY_ID = 'renderer-title-projection'
@@ -182,7 +183,8 @@ function buildTitleDerivedAgentRow(args: {
     return null
   }
   // Why: the title sets activity only; a plain title on a process-identified pane is idle.
-  const status = titleStatus ?? 'idle'
+  // Jcode's own tail outranks agent names its conversation title happens to mention.
+  const status = jcodePaneTitleStatus(title, agentType) ?? titleStatus ?? 'idle'
   const rowLabel =
     agentType === titleAgentType &&
     label &&

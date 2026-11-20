@@ -1,17 +1,17 @@
 import { z } from 'zod'
-import { appStarSourceSchema } from './gh-star-source'
+import { appStarSourceSchema } from "./gh-star-source"
 import {
   FEATURE_INTERACTION_CATEGORIES,
-  FEATURE_INTERACTION_IDS,
-  FEATURE_INTERACTION_USAGE_BUCKETS,
   getFeatureInteractionCategory
-} from './feature-interactions'
+} from "./feature-interaction-categories"
+import { FEATURE_INTERACTION_IDS } from "./feature-interaction-catalog"
+import { FEATURE_INTERACTION_USAGE_BUCKETS } from "./feature-interaction-usage-buckets"
 import {
   starNagAgentBucketSchema,
   starNagOutcomeSchema,
   starNagPromptModeSchema,
   starNagPromptSourceSchema
-} from './star-nag-telemetry'
+} from "./star-nag-telemetry"
 import {
   agentKindSchema,
   errorClassSchema,
@@ -19,8 +19,8 @@ import {
   repoMethodSchema,
   requestKindSchema,
   workspaceSourceSchema
-} from './telemetry-property-schemas'
-import { workspaceCreatedTimingProperties } from './telemetry-workspace-create-schemas'
+} from "./telemetry-property-schemas"
+import { workspaceCreatedTimingProperties } from "./telemetry-workspace-create-schemas"
 
 // Cohort signal (repo count at emit time); `.optional()` lets a fail-soft `undefined` validate. See docs/onboarding-funnel-cohort-addendum.md.
 export const nthRepoAddedSchema = z.number().int().nonnegative().optional()

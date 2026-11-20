@@ -1,9 +1,9 @@
-import { i18n, translate } from '@/i18n/i18n'
-import type { Translate } from '@/i18n/use-translate'
-import { getTranslationResourceVersion } from '@/i18n/translation-resource-version'
-import { FLOATING_TERMINAL_WORKTREE_ID } from '../../../../shared/constants'
-import type { Worktree } from '../../../../shared/worktree/types'
-import type { ExecutionHostId } from '../../../../shared/execution-host'
+import { i18n, translate } from "../../i18n/i18n"
+import type { Translate } from "../../i18n/use-translate"
+import { getTranslationResourceVersion } from "../../i18n/translation-resource-version"
+import { FLOATING_TERMINAL_WORKTREE_ID } from "../../../../shared/workspace/identity/floating-workspace-id"
+import type { Worktree } from "../../../../shared/worktree/types"
+import type { ExecutionHostId } from "../../../../shared/execution-host"
 
 const STANDALONE_ACTIVITY_WORKTREE_REPO_ID = '__activity_standalone__'
 const STANDALONE_ACTIVITY_WORKTREES_CAP = 200
@@ -42,13 +42,18 @@ function buildStandaloneActivityWorktree(
   }
 }
 
+/** Synthetic rows change with this scope, so cached Activity owners must too. */
+export function standaloneActivityWorktreeScope(): string {
+  return `${i18n.language}\0${getTranslationResourceVersion()}`
+}
+
 /** Return a stable synthetic worktree for terminal-only activity. */
 export function standaloneActivityWorktree(
   worktreeId: string,
   executionHostId?: ExecutionHostId,
   t?: Translate
 ): Worktree {
-  const displayNameScope = `${i18n.language}\0${getTranslationResourceVersion()}`
+  const displayNameScope = standaloneActivityWorktreeScope()
   if (cachedDisplayNameScope !== displayNameScope) {
     cachedDisplayNameScope = displayNameScope
     standaloneActivityWorktrees.clear()

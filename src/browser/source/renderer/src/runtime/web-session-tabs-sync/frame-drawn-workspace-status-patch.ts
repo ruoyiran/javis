@@ -1,17 +1,20 @@
-import type { RuntimeMobileSessionTabsResult } from '../../../../shared/runtime-types'
-import { toWebTerminalSurfaceTabId } from '../../../../shared/workspace-layout/terminal-surface-id'
-import { buildMirroredAgentStatusPatch } from './agent-status-patch'
+import type { RuntimeMobileSessionTabsResult } from "../../../../shared/runtime-session-contracts"
+import { toWebTerminalSurfaceTabId } from "../../../../shared/workspace-layout/terminal-surface-id"
+import { buildMirroredAgentStatusPatch } from "./agent-status-patch"
 import {
   buildRemirroredClosedTabMarkerLiftPatch,
   buildRetractedMirroredTabSweepPatch
-} from './agent-status-primitives'
-import { collectCollidingRetractionPaneKeys } from './retraction-pane-ownership'
-import { adoptFrameDrawnClientHostedBrowserHandles } from './frame-drawn-desktop-browser-handles'
-import { isWebSessionTabsWorktreeRemovalFrame } from './session-tabs-inventory-absence'
-import type { WebSessionTabsBatchContext, WebSessionTabsSyncState } from './state'
-import { writableWebSessionTabsRecord } from './state-equality-core'
-import { buildMirroredTerminalTabs } from './terminal-build'
-import { isMirroredTerminalSurfaceId, isTerminalSurfaceTab } from './terminal-surfaces'
+} from "./agent-status-primitives"
+import { collectCollidingRetractionPaneKeys } from "./retraction-pane-ownership"
+import { adoptFrameDrawnClientHostedBrowserHandles } from "./frame-drawn-desktop-browser-handles"
+import { isWebSessionTabsWorktreeRemovalFrame } from "./session-tabs-inventory-absence"
+import type { WebSessionTabsBatchContext, WebSessionTabsSyncState } from "./state"
+import { writableWebSessionTabsRecord } from "./state-equality-core"
+import { buildMirroredTerminalTabs } from "./terminal-build"
+import {
+  isMirroredTerminalSurfaceId,
+  isTerminalSurfaceTab
+} from "./terminal-surfaces"
 
 /** Apply status/unread and newly created client-page handles only; layout frames own tabs, layout, bindings and focus. */
 export function buildFrameDrawnWorkspaceStatusPatch(

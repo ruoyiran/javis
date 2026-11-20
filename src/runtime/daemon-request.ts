@@ -2,14 +2,15 @@ import { timingSafeEqual } from 'node:crypto'
 import { JavisError } from './error.js'
 import type { JavisDaemonMethod } from './daemon-dispatch.js'
 import { isBrowserDaemonMethod } from './daemon-dispatch.js'
+import { isComputerRead, validateComputerReadOptions, type ComputerReadOptions } from './computer-read-options.js'
 
 const methods = new Set<string>([
-  'capabilities', 'listApps', 'listWindows', 'getAppState', 'click',
+  'capabilities', 'listApps', 'launchApp', 'listWindows', 'getAppState', 'click',
   'performSecondaryAction', 'scroll', 'drag', 'typeText', 'pressKey',
   'hotkey', 'pasteText', 'setValue', 'permissionsStatus', 'permissionsOpen', 'permissionsReset', '__shutdown', '__browserStream'
 ])
 
-export type DaemonRequest = { id: number; method: JavisDaemonMethod | '__shutdown' | '__browserStream'; params: Record<string, unknown> }
+export type DaemonRequest = ComputerReadOptions & { id: number; method: JavisDaemonMethod | '__shutdown' | '__browserStream'; params: Record<string, unknown> }
 
 export function parseDaemonRequest(line: string, token: string): DaemonRequest {
   let value: unknown
@@ -34,5 +35,9 @@ export function parseDaemonRequest(line: string, token: string): DaemonRequest {
   if (!input.params || typeof input.params !== 'object' || Array.isArray(input.params)) {
     throw new JavisError('invalid_argument', 'Invalid request parameters')
   }
-  return { id: input.id as number, method: input.method as DaemonRequest['method'], params: input.params as Record<string, unknown> }
+  const params = input.params as Record<string, unknown>
+  const options = { timeoutMs: input.timeoutMs, observation: input.observation } as ComputerReadOptions
+  validateComputerReadOptions(input.method, params, options)
+  if (input.timeoutMs !== undefined && !isComputerRead(input.method, params)) throw new JavisError('invalid_argument', 'Only passive computer reads accept an envelope timeout')
+  return { id: input.id as number, method: input.method as DaemonRequest['method'], params, ...(input.timeoutMs !== undefined ? { timeoutMs: options.timeoutMs } : {}), ...(input.observation !== undefined ? { observation: options.observation } : {}) }
 }

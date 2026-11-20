@@ -3,17 +3,17 @@ import type {
   BrowserExtensionContextMenuClick,
   BrowserExtensionContextMenuGroup,
   BrowserExtensionContextMenuPayload
-} from '../../../../shared/browser/extensions/browser-extension-context-menu-types'
-import { chromeFrameId } from '../tabs-and-windows/browser-extension-frame-projection'
-import { noteBrowserExtensionUserGesture } from '../permissions/browser-extension-user-gesture'
+} from "../../../../shared/browser/extensions/browser-extension-context-menu-types"
+import { chromeFrameId } from "../tabs-and-windows/browser-extension-frame-projection"
+import { noteBrowserExtensionUserGesture } from "../permissions/browser-extension-user-gesture"
 import {
   emitBrowserExtensionEvent,
   getBrowserExtensionProfileIdForSession
-} from '../api-runtime/browser-extension-api-host'
+} from "../api-runtime/browser-extension-api-host"
 import {
   applyContextMenuClick,
   findContextMenuItemByKey
-} from './browser-extension-context-menu-model'
+} from "./browser-extension-context-menu-model"
 import {
   ACTION_MENU_CONTEXTS,
   arrangeExtensionContextMenuGroup,
@@ -21,19 +21,19 @@ import {
   contextMenuTargetFromParams,
   visibleContextMenuTree,
   type ContextMenuTarget
-} from './browser-extension-context-menu-target'
-import { grantBrowserExtensionActiveTab } from '../permissions/browser-extension-active-tab'
-import { getBrowserExtensionDocumentId } from '../tabs-and-windows/browser-extension-document-ids'
-import { getBrowserExtensionInstallStore } from '../installation/browser-extension-install-store'
-import { extensionHasPermission } from '../api-runtime/browser-extension-namespace-registry'
-import { getBrowserExtensionProfileStateStore } from '../profile-storage/browser-extension-profile-state-store'
-import { getBrowserExtensionSessionForProfile } from '../profile-sessions/browser-extension-session-loader'
-import { isBrowserExtensionSupportEnabled } from '../browser-extension-support'
+} from "./browser-extension-context-menu-target"
+import { grantBrowserExtensionActiveTab } from "../permissions/browser-extension-active-tab"
+import { getBrowserExtensionDocumentId } from "../tabs-and-windows/browser-extension-document-ids"
+import { getBrowserExtensionInstallStore } from "../installation/browser-extension-install-store"
+import { extensionHasPermission } from "../api-runtime/browser-extension-namespace-registry"
+import { getBrowserExtensionProfileStateStore } from "../profile-storage/browser-extension-profile-state-store"
+import { getBrowserExtensionSessionForProfile } from "../profile-sessions/browser-extension-session-loader"
+import { isBrowserExtensionSupportEnabled } from "../browser-extension-support"
 import {
   describeBrowserExtensionTab,
   resolveBrowserExtensionTab
   // oxlint-disable-next-line import/no-cycle -- browser subsystem singleton hub (browserManager); breaking it needs DI and test-mock updates, left for a human
-} from '../tabs-and-windows/browser-extension-tab-model'
+} from "../tabs-and-windows/browser-extension-tab-model"
 
 /** What a click needs, kept in main so the renderer only names a token and an item key. */
 type MenuSnapshot = {
@@ -88,7 +88,7 @@ function forgetSnapshot(token: string): void {
 
 function topDocumentId(tabId: number | null): string | null {
   const contents = tabId === null ? null : resolveBrowserExtensionTab(tabId)?.contents
-  return contents ? getBrowserExtensionDocumentId(contents.mainFrame.frameTreeNodeId) : null
+  return contents ? getBrowserExtensionDocumentId(contents.mainFrame) : null
 }
 
 function extensionDisplayName(extension: Electron.Extension): string {

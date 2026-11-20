@@ -1,13 +1,13 @@
-import type { useAppStore } from '@/store/index'
+import type { useAppStore } from "../../../store/index"
 // Preserve store initialization admitted by the original combined notification owner.
-import '@/store/index'
+import "../../../store/index"
 
-import { parsePaneKey } from '../../../../../shared/workspace-layout/stable-pane-id'
-import type { TerminalPaneLayoutNode } from '../../../../../shared/workspace-layout/terminal-tab-types'
+import { parsePaneKey } from "../../../../../shared/workspace-layout/stable-pane-id"
+import type { TerminalPaneLayoutNode } from "../../../../../shared/workspace-layout/terminal-tab-types"
 import {
   getFirstTerminalTab,
   terminalTabHasOwnerOutside
-} from '@/store/terminals/terminal-tab-owner-index'
+} from "../../../store/terminals/terminal-tab-owner-index"
 
 type StoreSnapshot = ReturnType<typeof useAppStore.getState>
 const emptyTerminalTabs: StoreSnapshot['tabsByWorktree'] = {}
@@ -120,8 +120,7 @@ export function isCurrentKnownPaneKey(
   if (terminalTabHasOwnerOutside(tabsByWorktree, parsed.tabId, worktreeId)) {
     return false
   }
-  const targetTabPtyId = getFirstTerminalTab(tabsByWorktree, parsed.tabId)?.ptyId
-  if (targetTabPtyId === undefined) {
+  if (!getFirstTerminalTab(tabsByWorktree, parsed.tabId)) {
     return false
   }
 
@@ -130,8 +129,6 @@ export function isCurrentKnownPaneKey(
     return false
   }
 
-  const leafPtyId = layout?.ptyIdsByLeafId?.[parsed.leafId]
-  // Before PTY-map hydration, accept known-tab snapshots unless explicitly suppressed; tab/leaf hints prove current inactive panes.
-  const ptyHints = [targetTabPtyId, leafPtyId].filter((ptyId): ptyId is string => Boolean(ptyId))
-  return ptyHints.length === 0 || ptyHints.some((ptyId) => !isSuppressedPtyHint(state, ptyId))
+  // Accepted completion survives an intentional stop; pane closure still revokes its address.
+  return true
 }

@@ -1,29 +1,30 @@
+import { cachedBrowserGuestMetadata } from "./metadata/browser-guest-metadata-cache"
 import type { Dispatch, MutableRefObject, RefObject, SetStateAction } from 'react'
 import {
   normalizeBrowserNavigationUrl,
   redactKagiSessionToken
-} from '../../../../../shared/browser-url'
-import type { BrowserLoadError } from '../../../../../shared/browser-workspace-types'
-import '../../../../../shared/constants'
-import { ORCA_BROWSER_BLANK_URL } from '../../../../../shared/browser/browser-blank-page'
-import { isBrowserLoadBlockedByExtension } from '../../../../../shared/browser-load-failure'
-import { translate } from '@/i18n/i18n'
-import { BROWSER_GUEST_RECOVERY_ERROR_CODE } from './browser-page-guest-recovery'
-import { releaseBrowserPageMount } from './browser-page-mount-admission'
-import { rememberLiveBrowserUrl } from '../describe-page/live-browser-url-registry'
-import { resolveBrowserWebviewLoadFailure } from '../navigate/browser-webview-load-failure'
-import { resolveActiveBrowserLoadFailure } from '../navigate/browser-load-failure-for-url'
+} from "../../../../../shared/browser-url"
+import type { BrowserLoadError } from "../../../../../shared/browser-workspace-types"
+import "../../../../../shared/constants"
+import { ORCA_BROWSER_BLANK_URL } from "../../../../../shared/browser/browser-blank-page"
+import { translate } from "../../../i18n/i18n"
+import { BROWSER_GUEST_RECOVERY_ERROR_CODE } from "./browser-page-guest-recovery"
+import { releaseBrowserPageMount } from "./browser-page-mount-admission"
+import { webviewRegistry } from "./webview-registry"
+import { rememberLiveBrowserUrl } from "../describe-page/live-browser-url-registry"
+import { resolveBrowserWebviewLoadFailure } from "../navigate/browser-webview-load-failure"
+import { resolveActiveBrowserLoadFailure } from "../navigate/browser-load-failure-for-url"
 import {
   getBrowserDisplayTitle,
   isChromiumErrorPage,
   toDisplayUrl
-} from '../describe-page/browser-page-url-display'
+} from "../describe-page/browser-page-url-display"
 import type {
   BrowserPageFailLoadEvent,
   BrowserPageRecoveryNavigationValidation,
   BrowserPageUrlSetter,
   BrowserTabPageState
-} from '../describe-page/browser-page-types'
+} from "../describe-page/browser-page-types"
 
 export type BrowserPageWebviewLoadingHandlersArgs = {
   webview: Electron.WebviewTag
@@ -43,7 +44,7 @@ export type BrowserPageWebviewLoadingHandlersArgs = {
 }
 
 export type BrowserPageWebviewLoadingHandlers = {
-  handleDidStopLoading: () => void
+  handleDidStopLoading: () => BrowserTabPageState | null
   handleFailLoad: (event: BrowserPageFailLoadEvent) => void
 }
 
@@ -58,18 +59,30 @@ export function createBrowserPageWebviewLoadingHandlers({
   lastKnownWebviewUrlRef,
   keepAddressBarFocusRef,
   recoveryNavigationValidationRef,
-  onUpdatePageStateRef,
   onSetUrlRef,
   setAddressBarValue,
   focusAddressBarNow
 }: BrowserPageWebviewLoadingHandlersArgs): BrowserPageWebviewLoadingHandlers {
-  const handleDidStopLoading = (): void => {
+  const handleDidStopLoading = (): BrowserTabPageState | null => {
     // Admission starts background guests only; after any first load settlement, normal paint-retention rules decide layout.
-    releaseBrowserPageMount(browserTabId)
-    const currentUrl = webview.getURL() || webview.src || 'about:blank'
+    if (webviewRegistry.get(browserTabId) === webview) {
+      releaseBrowserPageMount(browserTabId)
+    }
+    const metadata = cachedBrowserGuestMetadata(webview)
+    if (!metadata) {
+      return null
+    }
+    const currentUrl = metadata.url
     const browserModelUrl = redactKagiSessionToken(currentUrl)
-    const activeLoadFailure = activeLoadFailureRef.current
-    if (isChromiumErrorPage(currentUrl)) {
+    const activeLoadFailure = metadata.loadError ?? activeLoadFailureRef.current
+    if (metadata.loadError) {
+      activeLoadFailureRef.current = metadata.loadError
+      return { loading: false, loadError: metadata.loadError }
+    }
+    if (metadata.hasCertificateFailure) {
+      return { loading: false }
+    }
+    if (metadata.errorPage || isChromiumErrorPage(currentUrl)) {
       const attemptedUrl = redactKagiSessionToken(
         browserTabUrlRef.current || addressBarValueRef.current || 'about:blank'
       )
@@ -85,63 +98,42 @@ export function createBrowserPageWebviewLoadingHandlers({
           validatedUrl: attemptedUrl
         } satisfies BrowserLoadError)
       activeLoadFailureRef.current = failure
-      onUpdatePageStateRef.current(browserTabId, { loading: false, loadError: failure })
-      return
+      return { loading: false, loadError: failure }
+    }
+    if (!metadata.url) {
+      return { loading: false }
     }
     if (activeLoadFailure?.code === BROWSER_GUEST_RECOVERY_ERROR_CODE) {
-      onUpdatePageStateRef.current(browserTabId, {
+      return {
         loading: false,
-        title: getBrowserDisplayTitle(webview.getTitle(), browserModelUrl),
+        title: getBrowserDisplayTitle(metadata.title, browserModelUrl),
         faviconUrl: faviconUrlRef.current,
-        canGoBack: webview.canGoBack(),
-        canGoForward: webview.canGoForward(),
         loadError: activeLoadFailure
-      })
-      return
-    } else if (activeLoadFailure) {
-      const normalizedAttemptedUrl =
-        normalizeBrowserNavigationUrl(activeLoadFailure.validatedUrl) ??
-        activeLoadFailure.validatedUrl
-      const normalizedCurrentUrl = normalizeBrowserNavigationUrl(browserModelUrl) ?? browserModelUrl
-      // Why: a load an extension blocked never commits, so the guest still shows the old URL.
-      if (
-        normalizedAttemptedUrl === normalizedCurrentUrl ||
-        isBrowserLoadBlockedByExtension(activeLoadFailure)
-      ) {
-        // Why: some failures still emit did-stop-loading on the original URL; keep loadError so the known-failed load isn't cleared to a blank surface.
-        onUpdatePageStateRef.current(browserTabId, {
-          loading: false,
-          title: getBrowserDisplayTitle(webview.getTitle(), browserModelUrl),
-          faviconUrl: faviconUrlRef.current,
-          canGoBack: webview.canGoBack(),
-          canGoForward: webview.canGoForward(),
-          loadError: activeLoadFailure
-        })
-        return
       }
     }
     activeLoadFailureRef.current = null
-    lastKnownWebviewUrlRef.current =
-      normalizeBrowserNavigationUrl(browserModelUrl) ?? browserModelUrl
+    const normalizedUrl = normalizeBrowserNavigationUrl(browserModelUrl) ?? browserModelUrl
+    const urlChanged = lastKnownWebviewUrlRef.current !== normalizedUrl
+    lastKnownWebviewUrlRef.current = normalizedUrl
     rememberLiveBrowserUrl(browserTabId, browserModelUrl)
     // Why: don't overwrite in-progress typing (see the browserTab.url sync effect above).
     if (document.activeElement !== addressBarInputRef.current) {
       setAddressBarValue(toDisplayUrl(browserModelUrl))
     }
-    onSetUrlRef.current(browserTabId, browserModelUrl)
+    if (urlChanged) {
+      onSetUrlRef.current(browserTabId, browserModelUrl)
+    }
     if (keepAddressBarFocusRef.current && currentUrl === ORCA_BROWSER_BLANK_URL) {
       focusAddressBarNow()
     } else {
       keepAddressBarFocusRef.current = false
     }
-    onUpdatePageStateRef.current(browserTabId, {
+    return {
       loading: false,
-      title: getBrowserDisplayTitle(webview.getTitle(), browserModelUrl),
+      title: getBrowserDisplayTitle(metadata.title, browserModelUrl),
       faviconUrl: faviconUrlRef.current,
-      canGoBack: webview.canGoBack(),
-      canGoForward: webview.canGoForward(),
       loadError: null
-    })
+    }
   }
 
   const handleFailLoad = (event: BrowserPageFailLoadEvent): void => {
@@ -154,10 +146,6 @@ export function createBrowserPageWebviewLoadingHandlers({
       recoveryNavigationValidationRef.current = null
     }
     activeLoadFailureRef.current = loadError
-    onUpdatePageStateRef.current(browserTabId, {
-      loading: false,
-      loadError
-    })
   }
 
   return {

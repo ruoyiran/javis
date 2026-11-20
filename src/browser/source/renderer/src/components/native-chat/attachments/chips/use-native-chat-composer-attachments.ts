@@ -1,19 +1,20 @@
-import { currentDraftScope } from '../../drafts/native-chat-launch-draft-source'
+import { useNativeChatPaneLifetimeEffect } from "../../pane/ownership/native-chat-pane-lifetime"
+import { currentDraftScope } from "../../drafts/native-chat-launch-draft-source"
 import type {
   UseNativeChatComposerAttachmentsArgs,
   NativeChatComposerAttachments
-} from './native-chat-composer-attachment-contract'
+} from "./native-chat-composer-attachment-contract"
 
-import { useCallback, useEffect, useLayoutEffect, useMemo } from 'react'
-import { nativeChatComposerTargetIsRemote } from '../../composer/submit/native-chat-composer-target'
-import { nativeChatLocalAttachmentUnsupportedNotice } from '../intake/native-chat-attachment-notices'
-import { captureNativeChatEditDraftDestination } from '../../drafts/native-chat-composer-draft-memory'
-import { updateNativeChatComposerDraft } from '../../drafts/native-chat-composer-draft-store'
-import { useNativeChatResolvedPathAttachments } from '../intake/use-native-chat-resolved-path-attachments'
+import { useCallback, useLayoutEffect, useMemo } from 'react'
+import { nativeChatComposerTargetIsRemote } from "../../composer/submit/native-chat-composer-target"
+import { nativeChatLocalAttachmentUnsupportedNotice } from "../intake/native-chat-attachment-notices"
+import { captureNativeChatEditDraftDestination } from "../../drafts/native-chat-composer-draft-memory"
+import { updateNativeChatComposerDraft } from "../../drafts/native-chat-composer-draft-store"
+import { useNativeChatResolvedPathAttachments } from "../intake/use-native-chat-resolved-path-attachments"
 import type {
   NativeChatPendingAttachmentChips,
   NativeChatPendingAttachmentOptions
-} from '../intake/native-chat-session-attachment-drop'
+} from "../intake/native-chat-session-attachment-drop"
 import {
   addNativeChatPendingAttachment,
   appendNativeChatAttachmentsAfterPending,
@@ -21,19 +22,19 @@ import {
   settleNativeChatPendingAttachment,
   settleNativeChatPendingAttachmentReferences,
   nativeChatPendingAttachmentSnapshot
-} from './native-chat-pending-attachment-cache'
-import { nativeChatPendingAttachmentScope } from './native-chat-pending-attachment-scopes'
-import { useNativeChatComposerImageChips } from './use-native-chat-composer-image-chips'
-import { createNonSecureContextUuid as createUuidV4 } from '../../../../../../shared/non-secure-context-uuid'
+} from "./native-chat-pending-attachment-cache"
+import { nativeChatPendingAttachmentScope } from "./native-chat-pending-attachment-scopes"
+import { useNativeChatComposerImageChips } from "./use-native-chat-composer-image-chips"
+import { createNonSecureContextUuid as createUuidV4 } from "../../../../../../shared/non-secure-context-uuid"
 import {
   insertImageReferences,
   nativeChatImageRowIds,
   removeImageWithReferences,
   settlePendingImageReferences,
   takePendingImageWithReferences
-} from '../../composer/editor/native-chat-composer-image-references'
-import { isImageDropPath } from '../../../../../../shared/image-path-paste'
-import { useNativeChatPastedTextAdmission } from '../../composer/editor/native-chat-pasted-text-state'
+} from "../../composer/editor/native-chat-composer-image-references"
+import { isAgentInlineImagePath } from "../../../../../../shared/native-chat/input/composer/agent-inline-image-types"
+import { useNativeChatPastedTextAdmission } from "../../composer/editor/native-chat-pasted-text-state"
 
 export function useNativeChatComposerAttachments({
   attachmentScopeKey,
@@ -67,12 +68,14 @@ export function useNativeChatComposerAttachments({
   useLayoutEffect(() => {
     mountedRef.acceptsImages = acceptsImages
   }, [acceptsImages, mountedRef])
-  useEffect(() => {
-    mountedRef.current = true
-    return () => {
-      mountedRef.current = false
-    }
-  }, [mountedRef])
+  useNativeChatPaneLifetimeEffect(
+    useCallback(() => {
+      mountedRef.current = true
+      return () => {
+        mountedRef.current = false
+      }
+    }, [mountedRef])
+  )
 
   const nextAttachmentId = useCallback(() => createUuidV4(), [])
   const serverOwnedPendingIds = useMemo(() => new Set<string>(), [])
@@ -169,7 +172,11 @@ export function useNativeChatComposerAttachments({
       })
       setPreview(id, previewUrl)
       // A dropped file's kind shows in its name; a clipboard paste is always an image.
-      if (imageReferences && acceptsImages && (!pendingName || isImageDropPath(pendingName))) {
+      if (
+        imageReferences &&
+        acceptsImages &&
+        (!pendingName || isAgentInlineImagePath(pendingName))
+      ) {
         insertImageReferences(destinationScope(), scopeEditor(), [id])
       }
       return id
@@ -194,8 +201,13 @@ export function useNativeChatComposerAttachments({
       references: { id: string; path: string }[],
       options?: NativeChatPendingAttachmentOptions,
       serverOwned = false
-    ) =>
-      settlePendingImageReferences(
+    ) => {
+      // Chips reserved for files staged on the remote target settle as server-owned too.
+      const owned = references.reduce(
+        (any, { id }) => serverOwnedPendingIds.delete(id) || any,
+        serverOwned
+      )
+      return settlePendingImageReferences(
         nativeChatPendingAttachmentScope(destinationScope(), references[0]?.id ?? ''),
         scopeEditor(),
         () =>
@@ -210,11 +222,12 @@ export function useNativeChatComposerAttachments({
                     attachResolvedPaths(
                       paths,
                       null,
-                      serverOwned ? { ...options, targetOwnerIsCurrent: () => true } : options
+                      owned ? { ...options, targetOwnerIsCurrent: () => true } : options
                     )
                 : undefined
           )
-      ),
+      )
+    },
     [
       attachResolvedPaths,
       attachmentScopeKey,
@@ -222,7 +235,8 @@ export function useNativeChatComposerAttachments({
       disabledRef,
       isComposing,
       mountedRef,
-      scopeEditor
+      scopeEditor,
+      serverOwnedPendingIds
     ]
   )
 

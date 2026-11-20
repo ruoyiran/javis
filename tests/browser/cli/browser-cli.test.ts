@@ -1,16 +1,35 @@
 import { describe, expect, it } from 'vitest'
 import { browserInvocationArgs, runBrowserCli } from '../../../src/browser/cli/index.js'
 
-async function invoke(args: string[], result: unknown = {}) {
+async function invoke(args: string[], result: unknown = {}, stdin?: string) {
   const requests: unknown[] = []
   let stdout = '', stderr = ''
   const code = await runBrowserCli(args, {
     call: async (method, params, target) => { requests.push({ method, params, target }); return result },
-    stdout: (value: string) => { stdout += value }, stderr: (value: string) => { stderr += value }, cwd: '/fixture/folder'
+    stdout: (value: string) => { stdout += value }, stderr: (value: string) => { stderr += value }, cwd: '/fixture/folder',
+    ...(stdin === undefined ? {} : { stdin: async () => stdin })
   })
   return { code, requests, stdout, stderr }
 }
 describe('browser CLI requests', () => {
+  it('fills from stdin while removing only the final secret-reader newline', async () => {
+    const output = await invoke(['fill', '--element', '@e3', '--value-stdin', '--page', 'page-7', '--json'], {}, 'line1\nline2\r\n')
+    expect(output.code).toBe(0)
+    expect(output.requests).toEqual([{ method: 'browser.fill', params: { element: '@e3', value: 'line1\nline2', page: 'page-7' }, target: {} }])
+  })
+  it('rejects conflicting or empty stdin before delivering a fill', async () => {
+    for (const [flags, text] of [[['--value=', '--value-stdin'], 'value'], [['--value-stdin'], '\n']] as const) {
+      const output = await invoke(['fill', '--element', '@e3', ...flags, '--page', 'page-7', '--json'], {}, text)
+      expect(output.code).toBe(1)
+      expect(output.requests).toEqual([])
+      expect(JSON.parse(output.stderr).error.code).toBe('invalid_argument')
+    }
+  })
+  it('creates a headless page with explicit server placement', async () => {
+    const output = await invoke(['tab', 'create', '--url', 'https://example.com', '--headless', '--context', 'workspace-1', '--json'])
+    expect(output.code).toBe(0)
+    expect(output.requests).toEqual([{ method: 'browser.tabCreate', params: { url: 'https://example.com', worktree: 'workspace-1', placement: { kind: 'server' } }, target: { context: 'workspace-1' } }])
+  })
   it('pins actions to the page and URL while preserving an empty field value', async () => {
     const output = await invoke(['fill', '--element', '@e3', '--value=', '--page', 'page-7', '--expect-url', 'https://example.com/chat', '--json'])
     expect(output.code).toBe(0)

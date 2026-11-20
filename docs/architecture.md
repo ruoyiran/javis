@@ -1,5 +1,7 @@
 # Architecture
 
+Latest browser/CUA synchronization is pinned to Orca `d3a843d032f602cf09e392613683a94089efce07` (83 browser commands,16 desktop CUA commands). See [latest command parity](browser-parity/latest-command-parity.md) and its fixed parameter/method inventory. Earlier verification records below retain their original snapshot/evidence.
+
 ```mermaid
 flowchart LR
   Agent[Codex or Claude Code] --> MCP[javis mcp: stdio]

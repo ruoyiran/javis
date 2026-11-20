@@ -1,15 +1,13 @@
 import { toast } from 'sonner'
-import { useAppStore } from '@/store/index'
-import { makePaneKey } from '../../../../../shared/workspace-layout/stable-pane-id'
-import { translate } from '@/i18n/i18n'
+import { useAppStore } from "../../../store/index"
+import { makePaneKey } from "../../../../../shared/workspace-layout/stable-pane-id"
+import { translate } from "../../../i18n/i18n"
 
 export function dismissStaleAgentRowByKey(paneKey: string): void {
   const store = useAppStore.getState()
-  const liveExisted = paneKey in store.agentStatusByPaneKey
-  const retainedExisted = paneKey in store.retainedAgentsByPaneKey
+  const liveExisted = store.agentStatusByPaneKey.has(paneKey)
   store.dropAgentStatus(paneKey, { paneRemoved: true })
-  store.dismissRetainedAgent(paneKey)
-  if (liveExisted || retainedExisted) {
+  if (liveExisted) {
     showAgentPaneUnavailable(
       translate(
         'auto.components.terminal.pane.stale.agent.row.090d607412',

@@ -1,22 +1,26 @@
-import { legacyEditorTabs } from './legacy-editor-tab-hydration'
-import { structuredLaunchSlotIds } from '@/lib/agent-session/launch/structured-agent-session-launch-persistence'
-import type { Tab, TabGroup, TabGroupLayoutNode } from '../../../../../shared/tab-types'
-import type { WorkspaceSessionState } from '../../../../../shared/workspace-session/workspace-session-state-types'
-import { isValidTerminalTabId } from '../../../../../shared/workspace-layout/terminal-tab-id'
-import { resolveTabGroupOwners } from '../../../../../shared/workspace-layout/tab-group-owners'
+import { legacyEditorTabs } from "./legacy-editor-tab-hydration"
+import { structuredLaunchSlotIds } from "../../../lib/agent-session/launch/structured-agent-session-launch-persistence"
+import type {
+  Tab,
+  TabGroup,
+  TabGroupLayoutNode
+} from "../../../../../shared/tab-types"
+import type { WorkspaceSessionState } from "../../../../../shared/workspace-session/workspace-session-state-types"
+import { isValidTerminalTabId } from "../../../../../shared/workspace-layout/terminal-tab-id"
+import { resolveTabGroupOwners } from "../../../../../shared/workspace-layout/tab-group-owners"
 import {
   adoptGrouplessTabs,
   appendOwnedTabIdsToGroups,
   layoutSpanningGroups
-} from './tab-group-reference-repair'
+} from "./tab-group-reference-repair"
 import {
   dedupeEditorTabsWithinGroups,
   getPersistedEditFileIdsByWorktree,
   selectHydratedActiveGroupId
-} from './tab-hydration-records'
-import { sanitizeRecentTabIds } from './tab-selection-history'
-import { dedupeTabOrder } from '../../../../../shared/workspace-layout/tab-order'
-import { restoresSavedContentTab } from '../../../../../shared/workspace-layout/saved-editor-tab-restore'
+} from "./tab-hydration-records"
+import { sanitizeRecentTabIds } from "./tab-selection-history"
+import { dedupeTabOrder } from "../../../../../shared/workspace-layout/tab-order"
+import { restoresSavedContentTab } from "../../../../../shared/workspace-layout/saved-editor-tab-restore"
 
 type HydratedTabState = {
   unifiedTabsByWorktree: Record<string, Tab[]>

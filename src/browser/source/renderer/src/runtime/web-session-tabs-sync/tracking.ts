@@ -1,4 +1,5 @@
-import type { RuntimeMobileSessionTabsResult } from '../../../../shared/runtime-session-contracts'
+import { recordBrowserInitializationReceipt } from "./tab-projection/browser-initialization-presentation"
+import type { RuntimeMobileSessionTabsResult } from "../../../../shared/runtime-session-contracts"
 import {
   latestReceivedSessionTabsInventoryFrameByEnvironment,
   latestReceivedSessionTabsSnapshotByWorktree,
@@ -14,7 +15,7 @@ import {
   type SnapshotFreshness,
   type SessionTabsListAllResult,
   type TrackedWebSessionTabsWorktree
-} from './state'
+} from "./state"
 import {
   acceptSessionTabsRuntimeId,
   isCurrentSessionTabsRuntimeId,
@@ -22,10 +23,10 @@ import {
   isRetiredSessionTabsRuntimeId,
   noteSessionTabsPublicationEpoch,
   recordReceivedWebSessionTabsEnvironmentFrame
-} from './publisher-identity-fences'
-import { hostSnapshotAffirmsWorktreeContents } from './hydration/host-session-snapshot-authority'
-import { replayWebSessionClosesDueForSnapshot } from './closing/web-session-close-replay'
-import { appPairedTerminalTabCloseIntentStore } from './closing/paired-terminal-tab-close-intent-store'
+} from "./publisher-identity-fences"
+import { hostSnapshotAffirmsWorktreeContents } from "./hydration/host-session-snapshot-authority"
+import { replayWebSessionClosesDueForSnapshot } from "./closing/web-session-close-replay"
+import { appPairedTerminalTabCloseIntentStore } from "./closing/paired-terminal-tab-close-intent-store"
 
 export function isSessionTabsListAllResult(value: unknown): value is SessionTabsListAllResult {
   return (
@@ -89,6 +90,7 @@ export function recordReceivedWebSessionTabsSnapshot(
   source: 'stream' | 'bootstrap' = 'stream'
 ): number {
   const frame = receivedFrame ?? nextReceivedSessionTabsFrame()
+  recordBrowserInitializationReceipt(environmentId, snapshot, frame)
   const key = sessionTabsFreshnessKey(environmentId, snapshot.worktree)
   const current = latestReceivedSessionTabsSnapshotByWorktree.get(key)
   // Bootstrap reserves before request; a later received stream makes its eventual response stale and unable to advance epoch history.

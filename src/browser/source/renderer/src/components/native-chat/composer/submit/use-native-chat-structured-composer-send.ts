@@ -1,49 +1,49 @@
-import { serializeNativeChatAgentReferences } from '../pickers/native-chat-agent-reference-send'
+import { serializeNativeChatAgentReferences } from "../pickers/native-chat-agent-reference-send"
 import {
   hasNativeChatStagedFiles,
   captureNativeChatStagedInput
-} from '../../drafts/native-chat-draft-attachment-staging'
-import { mayHoldAgentReferences } from '../../../../../../shared/orchestration/mailbox/orchestration-agent-reference'
-import { getAgentLabel } from '@/lib/agent-catalog/agent-catalog'
-import { formatAgentTypeLabel } from '../../../../../../shared/agent-status/presentation/agent-type-label'
-import { isTuiAgent } from '../../../../../../shared/agent-launch/catalog/tui-agent-config'
-import { MAX_SKILL_REFS } from '../../../../../../shared/rpc-contract/structured-agent-session-message-params'
-import { SkillRefLimitError } from '../../../../../../shared/agent-session/requests/structured-agent-session-send-mutation'
+} from "../../drafts/native-chat-draft-attachment-staging"
+import { mayHoldAgentReferences } from "../../../../../../shared/orchestration/mailbox/orchestration-agent-reference"
+import { getAgentLabel } from "../../../../lib/agent-catalog/agent-catalog"
+import { formatAgentTypeLabel } from "../../../../../../shared/agent-status/presentation/agent-type-label"
+import { isTuiAgent } from "../../../../../../shared/agent-launch/catalog/tui-agent-config"
+import { MAX_SKILL_REFS } from "../../../../../../shared/rpc-contract/structured-agent-session-message-params"
+import { SkillRefLimitError } from "../../../../../../shared/agent-session/requests/structured-agent-session-send-mutation"
 import {
   promptHasInteractionModeSkill,
   promptSkillRefs
-} from '../editor/native-chat-prompt-document'
-import type { StructuredAgentSessionAttachmentPreparation } from '../../session/structured/delivery/structured-agent-session-send-slot'
+} from "../editor/native-chat-prompt-document"
+import type { StructuredAgentSessionAttachmentPreparation } from "../../session/structured/delivery/structured-agent-session-send-slot"
 import { useCallback } from 'react'
-import { completeNativeChatStructuredUserAction } from './native-chat-structured-user-action'
+import { completeNativeChatStructuredUserAction } from "./native-chat-structured-user-action"
 import {
   isStructuredAgentSessionHostCommand,
   isStructuredAgentSessionGoalCommand,
   structuredAgentSessionCommandChangesConversation
-} from '../../../../../../shared/agent-session/view/structured-agent-session-composer'
-import type { AgentType } from '../../../../../../shared/agent-status/contracts/agent-status-types'
-import { dispatchNativeChatStructuredComposerText } from './native-chat-structured-composer-dispatch'
-import type { NativeChatComposerSendIntent } from './native-chat-composer-send-intent'
-import type { NativeChatStructuredComposerTransport } from './native-chat-structured-composer-transport'
-import type { NativeChatComposerImageAttachment } from '../../attachments/chips/native-chat-image-attachment'
-import { nativeChatAttachImagesAgainReason } from '../../attachments/chips/native-chat-image-reattach'
-import { nativeChatNoticeFromError } from '../controls/native-chat-composer-notice'
-import { agentSessionWriteNoticeText } from '../../messages/notices/agent-session-write-notice-text'
-import { translate } from '@/i18n/i18n'
+} from "../../../../../../shared/agent-session/view/structured-agent-session-composer"
+import type { AgentType } from "../../../../../../shared/agent-status/contracts/agent-status-types"
+import { dispatchNativeChatStructuredComposerText } from "./native-chat-structured-composer-dispatch"
+import type { NativeChatComposerSendIntent } from "./native-chat-composer-send-intent"
+import type { NativeChatStructuredComposerTransport } from "./native-chat-structured-composer-transport"
+import type { NativeChatComposerImageAttachment } from "../../attachments/chips/native-chat-image-attachment"
+import { nativeChatAttachImagesAgainReason } from "../../attachments/chips/native-chat-image-reattach"
+import { nativeChatNoticeFromError } from "../controls/native-chat-composer-notice"
+import { agentSessionWriteNoticeText } from "../../messages/notices/agent-session-write-notice-text"
+import { translate } from "../../../../i18n/i18n"
 import {
   captureNativeChatComposerSubmission,
   subscribeToNativeChatComposerDraftAppend
-} from '../../drafts/native-chat-composer-draft-memory'
+} from "../../drafts/native-chat-composer-draft-memory"
 import {
   finishNativeChatComposerSubmission,
   readNativeChatComposerDraft,
   updateNativeChatComposerDraft
-} from '../../drafts/native-chat-composer-draft-store'
-import { nativeChatComposerDraftLeftAfterSend } from '../../drafts/native-chat-composer-draft-comparison'
+} from "../../drafts/native-chat-composer-draft-store"
+import { nativeChatComposerDraftLeftAfterSend } from "../../drafts/native-chat-composer-draft-comparison"
 import {
   admitNativeChatPastedText,
   projectNativeChatPastedText
-} from '../../paste/native-chat-composer-pasted-text-references'
+} from "../../paste/native-chat-composer-pasted-text-references"
 
 export type UseNativeChatStructuredComposerSendArgs = {
   agent: AgentType
@@ -92,12 +92,13 @@ export function useNativeChatStructuredComposerSend({
           text,
           structuredTransport.threadGoal !== undefined,
           agent,
-          structuredTransport.optionSnapshot
+          structuredTransport.optionSnapshot,
+          structuredTransport.mcpPanel !== undefined
         )
       // Blocked hosts cannot take turns/conversation commands; option commands only configure later turns.
       if (
         structuredTransport.sendBlockedReason !== undefined &&
-        (!hostCommand || structuredAgentSessionCommandChangesConversation(text))
+        (!hostCommand || structuredAgentSessionCommandChangesConversation(text, agent))
       ) {
         return false
       }
@@ -117,7 +118,7 @@ export function useNativeChatStructuredComposerSend({
         return false
       }
       // A conversation command reveals at the press, not after its round trip; options move nothing.
-      if (hostCommand && structuredAgentSessionCommandChangesConversation(text)) {
+      if (hostCommand && structuredAgentSessionCommandChangesConversation(text, agent)) {
         structuredTransport.onSubmitted?.()
       }
       const isCurrent = structuredTransport.capturePresentation()

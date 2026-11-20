@@ -1,23 +1,23 @@
-import type { HostedReviewProvider } from '../../../../../../shared/source-control/hosted-review/hosted-review-contracts'
-import type { WorkspaceAttachmentMutation } from '../../../../../../shared/workspace-attachments/workspace-attachment-mutation'
-import { translate } from '@/i18n/i18n'
-import type { Repo } from '../../../../../../shared/repo-types'
-import { normalizeGitRemoteUrl } from '../../../../../../shared/git/remotes/git-remote-identity'
-import type { WorkspaceAttachment, Worktree } from '../../../../../../shared/worktree/types'
-import type { WorktreeMeta } from '../../../../../../shared/worktree/meta-types'
+import type { HostedReviewProvider } from "../../../../../../shared/source-control/hosted-review/hosted-review-contracts"
+import type { WorkspaceAttachmentMutation } from "../../../../../../shared/workspace-attachments/workspace-attachment-mutation"
+import { translate } from "../../../../i18n/i18n"
+import type { Repo } from "../../../../../../shared/repo-types"
+import { normalizeGitRemoteUrl } from "../../../../../../shared/git/remotes/git-remote-identity"
+import type { WorkspaceAttachment, Worktree } from "../../../../../../shared/worktree/types"
+import type { WorktreeMeta } from "../../../../../../shared/worktree/meta-types"
 import {
   getWorkspaceAttachments,
   workspaceAttachmentReferenceLabel
-} from '../../../../../../shared/workspace-attachments/workspace-attachments'
+} from "../../../../../../shared/workspace-attachments/workspace-attachments"
 import {
   getWorkspaceAttachmentKey,
   getWorkspaceAttachmentUrlScope
-} from '../../../../../../shared/workspace-attachments/workspace-attachment-normalization'
-import { parseGitHubIssueOrPRLink } from '../../../../../../shared/github/links'
-import { parseGitLabIssueOrMRLink } from '../../../../../../shared/new-workspace/gitlab-links'
-import { parseLinearIssueInput } from '../../../../../../shared/linear/links'
-import { parseJiraIssueUrl } from '../../../../../../shared/jira/jira-issue-url'
-import { isWorkItemLinkQueryTooLarge } from '../../../../../../shared/new-workspace/work-item-link-query-bounds'
+} from "../../../../../../shared/workspace-attachments/workspace-attachment-normalization"
+import { parseGitHubIssueOrPRLink } from "../../../../../../shared/github/repositories/links"
+import { parseGitLabIssueOrMRLink } from "../../../../../../shared/new-workspace/gitlab-links"
+import { parseLinearIssueInput } from "../../../../../../shared/linear/links"
+import { parseJiraIssueUrl } from "../../../../../../shared/jira/jira-issue-url"
+import { isWorkItemLinkQueryTooLarge } from "../../../../../../shared/new-workspace/work-item-link-query-bounds"
 
 export const ATTACHMENT_INPUT_KINDS = [
   { value: 'github-pr', label: () => translate('workspace.links.kind.github_pr', 'GitHub PR') },

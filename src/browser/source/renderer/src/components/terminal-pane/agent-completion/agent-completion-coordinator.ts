@@ -1,21 +1,21 @@
-import type { AgentStatus } from '../../../../../shared/agent-status/title/agent-title-core'
-import type { RecognizedAgentProcess } from '../../../../../shared/agent-status/process/agent-process-recognition'
+import type { AgentStatus } from "../../../../../shared/agent-status/title/agent-title-core"
 import type {
   AgentCompletionCoordinator,
   AgentCompletionCoordinatorOptions,
   AgentCompletionStatusSnapshot
-} from './agent-completion-coordinator-types'
-import { createAgentCompletionIdentityScope } from './agent-completion-identity-store'
-import { createTitleCompletionClaim } from './agent-completion-title-claim'
-import { createAgentCompletionProcessMonitor } from './agent-completion-process-monitor'
-import { createPendingTitleController } from './agent-completion-pending-title'
+} from "./agent-completion-coordinator-types"
+import { createAgentCompletionIdentityScope } from "./agent-completion-identity-store"
+import { createTitleCompletionClaim } from "./agent-completion-title-claim"
+import { createAgentCompletionProcessMonitor } from "./agent-completion-process-monitor"
+import { createPendingTitleController } from "./agent-completion-pending-title"
 import {
   createAgentCompletionNotificationController,
   type CompletionState
-} from './agent-completion-notification-controller'
-import { createAgentCompletionTitleObserver } from './agent-completion-title-observer'
-import { createAgentCompletionHookObserver } from './agent-completion-hook-observer'
-import { createAgentCompletionLifecycle } from './agent-completion-lifecycle'
+} from "./agent-completion-notification-controller"
+import { createAgentCompletionTitleObserver } from "./agent-completion-title-observer"
+import { createAgentCompletionHookObserver } from "./agent-completion-hook-observer"
+import { createAgentCompletionLifecycle } from "./agent-completion-lifecycle"
+import type { ProcessMonitorState } from "./agent-completion-process-types"
 
 type CompletionSource = 'hook' | 'title' | 'process-exit'
 
@@ -43,18 +43,18 @@ export function createAgentCompletionCoordinator(
     pendingHookDonePayload: null
   }
   // Why: output/title activity can arrive before async PTY bind; only re-arm cadence after bind starts process tracking.
-  const processState = {
+  const processState: ProcessMonitorState = {
     disposed: false,
     inspectionInFlight: false,
     inspectionGeneration: 0,
     consecutiveInspectionErrors: 0,
     pollTrackingStarted: false,
-    pollTimer: null as ReturnType<typeof setTimeout> | null,
-    pollTimerTier: null as 'active' | 'idle' | 'hidden' | 'no-evidence' | null,
+    pollTimer: null,
+    pollTimerTier: null,
     lastPaneActivityAt: null,
     hasAgentRunEvidence: false,
     pendingProcessExit: null,
-    lastForegroundAgent: null as RecognizedAgentProcess | null,
+    lastForegroundAgent: null,
     processSession: 0
   }
   const titleClaim = createTitleCompletionClaim({

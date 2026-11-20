@@ -1,6 +1,7 @@
-import type { ResolvedBrowserCommandTarget } from '../session-routing/agent-browser-command-target'
-import { BrowserError } from '../../browser-error'
-import { normalizeCdpPointerButton } from '../../cdp/input/cdp-pointer-targets'
+import { BrowserWindow } from 'electron'
+import type { ResolvedBrowserCommandTarget } from "../session-routing/agent-browser-command-target"
+import { BrowserError } from "../../browser-error"
+import { normalizeCdpPointerButton } from "../../cdp/input/cdp-pointer-targets"
 import {
   assertFinitePointerValues,
   cdpPointerStateFor,
@@ -8,14 +9,14 @@ import {
   releaseCdpPointerButton,
   resolveCdpPointerReleaseButton,
   type CdpPointerState
-} from '../../cdp/input/cdp-pointer-input'
-import { acquireElectronDebugger } from '../../cdp/debugger/electron-debugger-lease'
-import { assertExpectedPageUrlForStep } from '../../cdp/input/browser-expected-page-url'
-import { sendGuestCdpCommand } from '../../cdp/debugger/guest-cdp-command'
-import { AgentBrowserBridgeInputCommands } from './agent-browser-bridge-input-commands'
-import { isEmbeddedGuest } from '../../cdp/input/guest-direct-key-input'
-import { enablePageFocusEmulation } from '../../cdp/input/agent-input-focus-guard'
-import { waitForGuestFirstPaint } from '../../cdp/debugger/guest-first-paint'
+} from "../../cdp/input/cdp-pointer-input"
+import { acquireElectronDebugger } from "../../cdp/debugger/electron-debugger-lease"
+import { assertExpectedPageUrlForStep } from "../../cdp/input/browser-expected-page-url"
+import { sendGuestCdpCommand } from "../../cdp/debugger/guest-cdp-command"
+import { AgentBrowserBridgeInputCommands } from "./agent-browser-bridge-input-commands"
+import { isEmbeddedGuest } from "../../cdp/input/guest-direct-key-input"
+import { enablePageFocusEmulation } from "../../cdp/input/agent-input-focus-guard"
+import { waitForGuestFirstPaint } from "../../cdp/debugger/guest-first-paint"
 
 type CdpPointerEventParams = {
   type: 'mouseMoved' | 'mousePressed' | 'mouseReleased' | 'mouseWheel'
@@ -91,17 +92,20 @@ export abstract class AgentBrowserBridgePointerCommands extends AgentBrowserBrid
     )
   }
 
-  // Guard embedded-guest presses to restore user focus; emulation prevents page blur.
-  // Offscreen pages need native focus for caret and IME input.
+  // Emulation keeps the page focused for the agent without taking the user's keyboard.
   protected async focusPageForPress(
     wc: Electron.WebContents,
     webContentsId: number
   ): Promise<() => void> {
+    await enablePageFocusEmulation((method, params) => wc.debugger.sendCommand(method, params))
     if (!isEmbeddedGuest(wc)) {
-      wc.focus()
+      // Native focus activates and raises a popup or serve window, so only use it inside a focused one.
+      // fromWebContents also returns the BaseWindow that hosts a popup's view.
+      if (BrowserWindow.fromWebContents(wc)?.isFocused()) {
+        wc.focus()
+      }
       return () => {}
     }
-    await enablePageFocusEmulation((method, params) => wc.debugger.sendCommand(method, params))
     return await this.browserManager.guardUserFocusForAgentInput(webContentsId)
   }
 
@@ -111,7 +115,7 @@ export abstract class AgentBrowserBridgePointerCommands extends AgentBrowserBrid
     worktreeId?: string,
     browserPageId?: string
   ): Promise<unknown> {
-    return this.enqueuePageAction(
+    return this.enqueueInertAction(
       worktreeId,
       browserPageId,
       async (sessionName, target) =>
@@ -191,7 +195,7 @@ export abstract class AgentBrowserBridgePointerCommands extends AgentBrowserBrid
     worktreeId?: string,
     browserPageId?: string
   ): Promise<unknown> {
-    return this.enqueuePageAction(
+    return this.enqueueInertAction(
       worktreeId,
       browserPageId,
       async (sessionName, target) =>

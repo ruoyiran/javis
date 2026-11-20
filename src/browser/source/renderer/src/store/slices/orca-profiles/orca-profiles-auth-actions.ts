@@ -1,14 +1,14 @@
 import type { StateCreator } from 'zustand'
 import { toast } from 'sonner'
-import { translate } from '@/i18n/i18n'
+import { translate } from "../../../i18n/i18n"
 import type {
   ConnectCurrentOrcaProfileResult,
   CreateCloudLinkedOrcaProfileResult,
   RefreshCurrentOrcaProfileAuthResult,
   SelectOrcaProfileOrgResult,
   SignOutCurrentOrcaProfileResult
-} from '../../../../../shared/orca-profiles'
-import type { AppState } from '../../types'
+} from "../../../../../shared/orca-profiles"
+import type { AppState } from "../../types"
 
 export type OrcaProfilesAuthActions = {
   createCloudLinkedOrcaProfile: (args: {
@@ -190,7 +190,7 @@ export const createOrcaProfilesAuthActions: StateCreator<
         })
         if (result.auth.state !== 'connected') {
           toast.success(
-            translate('auto.store.slices.orca.profiles.a37b5e6d37', 'Signed out of profile')
+            translate('auto.store.slices.orca.profiles.a37b5e6d37', 'Signed out of Orca')
           )
         }
         return result

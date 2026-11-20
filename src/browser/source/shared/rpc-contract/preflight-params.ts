@@ -1,11 +1,11 @@
 import { z } from 'zod'
-import { FLOATING_TERMINAL_WORKTREE_ID } from '../constants'
-import { parseRoutableExecutionHostId } from '../execution-host'
-import { OptionalExecutionHostId } from './worktree-params'
-import { RepoSelector } from './github-repo-target-params'
-import type { TuiAgent } from '../agent-launch/catalog/tui-agent'
-import type { WorkspaceLaunchKind } from '../agent-launch/contracts/workspace-launch-kind'
-import type { ProjectExecutionRuntimeResolution } from '../execution-host/project-execution-runtime'
+import { FLOATING_TERMINAL_WORKTREE_ID } from "../workspace/identity/floating-workspace-id"
+import { parseRoutableExecutionHostId } from "../execution-host"
+import { OptionalExecutionHostId } from "./worktree-params"
+import { RepoSelector } from "./github-repo-target-params"
+import type { TuiAgent } from "../agent-launch/catalog/tui-agent"
+import type { WorkspaceLaunchKind } from "../agent-launch/contracts/workspace-launch-kind"
+import type { ProjectExecutionRuntimeResolution } from "../execution-host/project-execution-runtime"
 
 export const PreflightCheck = z.object({
   force: z.boolean().optional()
@@ -36,6 +36,10 @@ export const PreflightAgentDetection = z
       ctx.addIssue({ code: 'custom', message: 'A routable host requires an existing workspace.' })
     }
   })
+
+export const PreflightAgentRefresh = PreflightAgentDetection.safeExtend({
+  userInitiated: z.boolean().optional()
+})
 
 export const PreflightProjectAgentDetection = PreflightAgentDetection.safeExtend({
   project: RepoSelector.extend({ repo: RepoSelector.shape.repo.pipe(z.string().max(4096)) })

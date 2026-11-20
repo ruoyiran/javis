@@ -1,32 +1,71 @@
 import {
   hasFeatureInteraction,
-  type FeatureInteractionId,
   type FeatureInteractionState
-} from './feature-interactions'
-import type { TelemetrySettings } from './telemetry-settings-types'
+} from "./feature-interactions"
+import type { FeatureInteractionId } from "./feature-interaction-catalog"
+import type { TelemetrySettings } from "./telemetry-settings-types"
 
 export type FeatureTipId =
   | 'chat-ui-here'
+  | 'bots-teammate'
   | 'voice-dictation'
   | 'orca-cli'
   | 'cmd-j-palette'
   | 'agent-session-search'
 
-export type FeatureTipSeenId = FeatureTipId | 'chat-ui-here-rollout-v1'
+const CHAT_UI_HERE_EXTRA_SEEN_IDS = ['chat-ui-here-rollout-v1', 'chat-ui-here-v2'] as const
+
+export type FeatureTipSeenId = FeatureTipId | (typeof CHAT_UI_HERE_EXTRA_SEEN_IDS)[number]
+
+type ChatUiLaunchTipSavedSettings = Pick<
+  TelemetrySettings,
+  'chatUiLaunchTipCohort' | 'chatUiLaunchTipRolloutCohort' | 'chatUiLaunchTipTargeting'
+>
+
+/** Saved values that keep their own targeting; anything else, including an unknown value, is a default profile. */
+export function isChatUiLaunchTipTargeted(telemetry: ChatUiLaunchTipSavedSettings | undefined) {
+  const saved = telemetry?.chatUiLaunchTipRolloutCohort ?? telemetry?.chatUiLaunchTipCohort
+  return (
+    saved === 'treatment' ||
+    saved === 'treatment-live-switch' ||
+    saved === 'treatment-swapped-buttons' ||
+    saved === 'treatment-center'
+  )
+}
+
+/** Not shown the tip earlier for a reason other than being on Chat UI. */
+function wasChatUiLaunchTipHeldBackOffChatUi(
+  telemetry: ChatUiLaunchTipSavedSettings | undefined
+): boolean {
+  const targeting = telemetry?.chatUiLaunchTipTargeting
+  return (
+    (telemetry?.chatUiLaunchTipRolloutCohort ?? telemetry?.chatUiLaunchTipCohort) === 'control' ||
+    (isChatUiLaunchTipTargeted(telemetry) &&
+      targeting?.mode === 'eligible-harnesses' &&
+      targeting.eligible !== true)
+  )
+}
 
 export function getFeatureTipSeenId(
   id: FeatureTipId,
-  telemetry: Pick<TelemetrySettings, 'chatUiLaunchTipRolloutCohort'> | undefined
+  telemetry: ChatUiLaunchTipSavedSettings | undefined
 ): FeatureTipSeenId {
-  return id === 'chat-ui-here' && telemetry?.chatUiLaunchTipRolloutCohort
-    ? 'chat-ui-here-rollout-v1'
-    : id
+  if (id !== 'chat-ui-here') {
+    return id
+  }
+  // Why: these profiles already have the older ids without having seen the card, so they need a fresh
+  // one; the saved assignment no longer changes, so neither does this id after delivery.
+  if (wasChatUiLaunchTipHeldBackOffChatUi(telemetry)) {
+    return 'chat-ui-here-v2'
+  }
+  return telemetry?.chatUiLaunchTipRolloutCohort ? 'chat-ui-here-rollout-v1' : id
 }
 
 export type FeatureTipPriority = 'new' | 'unseen'
 
 export type FeatureTipAction =
   | 'use-chat-ui'
+  | 'create-bot'
   | 'enable-voice'
   | 'setup-cli'
   | 'learn-cmd-j-palette'
@@ -35,7 +74,6 @@ export type FeatureTipAction =
 export type FeatureTip = {
   id: FeatureTipId
   priority: FeatureTipPriority
-  eyebrow: string
   title: string
   description: string
   action: FeatureTipAction
@@ -50,6 +88,8 @@ export type CompletedFeatureTipState = {
   sessionSearchTipCompleted: boolean
   /** Main's once-decided record leaves this profile out, or this client has no such profile. */
   chatUiLaunchTipCompleted: boolean
+  /** Bots are off, this client cannot make one, or this computer already has one. */
+  botsTipCompleted: boolean
   featureInteractions?: FeatureInteractionState
 }
 
@@ -58,7 +98,6 @@ export const FEATURE_TIPS = [
     // First, so upgraded profiles meet it on their first launch after Chat UI left Experimental.
     id: 'chat-ui-here',
     priority: 'new',
-    eyebrow: 'New',
     title: 'Chat UI is here',
     description: 'Agents can now open as a chat, with rich messages, visuals and images.',
     action: 'use-chat-ui',
@@ -66,9 +105,18 @@ export const FEATURE_TIPS = [
     completedByFeatureInteractions: []
   },
   {
+    id: 'bots-teammate',
+    priority: 'new',
+    title: 'Your AI teammate',
+    description:
+      'Ask it in a thread. It runs the work, gets it reviewed and brings back a pull request.',
+    action: 'create-bot',
+    ctaLabel: 'Create a bot',
+    completedByFeatureInteractions: []
+  },
+  {
     id: 'agent-session-search',
     priority: 'new',
-    eyebrow: 'New',
     title: 'Search every agent session',
     description:
       'Find any past conversation by what was said in it, then pick up where the agent left off.',
@@ -79,7 +127,6 @@ export const FEATURE_TIPS = [
   {
     id: 'orca-cli',
     priority: 'new',
-    eyebrow: 'Tip',
     title: 'Let agents drive Orca with the Orca CLI',
     description: 'Enable agents to coordinate child worktrees and communicate between worktrees.',
     action: 'setup-cli',
@@ -89,7 +136,6 @@ export const FEATURE_TIPS = [
   {
     id: 'cmd-j-palette',
     priority: 'new',
-    eyebrow: 'Tip',
     // The dialog replaces <shortcut> with a live platform-aware <kbd>.
     title: 'Jump to a worktree with <shortcut>',
     description:
@@ -101,7 +147,6 @@ export const FEATURE_TIPS = [
   {
     id: 'voice-dictation',
     priority: 'unseen',
-    eyebrow: 'Tip',
     title: 'Dictate into any pane',
     description: 'Start voice dictation in any focused pane, then use the shortcut again to stop.',
     action: 'enable-voice',
@@ -113,7 +158,7 @@ export const FEATURE_TIPS = [
 export const FEATURE_TIP_IDS = FEATURE_TIPS.map((tip) => tip.id)
 export const FEATURE_TIP_SEEN_IDS: readonly FeatureTipSeenId[] = [
   ...FEATURE_TIP_IDS,
-  'chat-ui-here-rollout-v1'
+  ...CHAT_UI_HERE_EXTRA_SEEN_IDS
 ]
 
 export function isFeatureTipId(value: unknown): value is FeatureTipId {
@@ -121,7 +166,7 @@ export function isFeatureTipId(value: unknown): value is FeatureTipId {
 }
 
 export function isFeatureTipSeenId(value: unknown): value is FeatureTipSeenId {
-  return value === 'chat-ui-here-rollout-v1' || isFeatureTipId(value)
+  return FEATURE_TIP_SEEN_IDS.some((id) => id === value)
 }
 
 export function normalizeFeatureTipIds(value: unknown): FeatureTipSeenId[] {
@@ -152,6 +197,9 @@ export function getCompletedFeatureTipIds(state: CompletedFeatureTipState): Set<
   if (state.chatUiLaunchTipCompleted) {
     completedIds.add('chat-ui-here')
   }
+  if (state.botsTipCompleted) {
+    completedIds.add('bots-teammate')
+  }
   for (const tip of FEATURE_TIPS) {
     if (
       tip.completedByFeatureInteractions?.some((id) =>
@@ -167,7 +215,7 @@ export function getCompletedFeatureTipIds(state: CompletedFeatureTipState): Set<
 export function getOrderedUnseenFeatureTips(args: {
   seenTipIds: ReadonlySet<FeatureTipSeenId>
   completedTipIds?: ReadonlySet<FeatureTipId>
-  telemetry?: Pick<TelemetrySettings, 'chatUiLaunchTipRolloutCohort'>
+  telemetry?: ChatUiLaunchTipSavedSettings
 }): FeatureTip[] {
   const completedTipIds = args.completedTipIds ?? new Set<FeatureTipId>()
   const unseenTips = FEATURE_TIPS.filter(

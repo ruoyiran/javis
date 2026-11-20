@@ -1,26 +1,29 @@
-import { FLOATING_TERMINAL_WORKTREE_ID } from '../../../../shared/constants'
-import type { BrowserWorkspace } from '../../../../shared/browser-workspace-types'
-import type { TabGroup } from '../../../../shared/tab-types'
-import { getGroupVisibleTabOrder } from '@/components/tab-bar/group-tab-order'
+import { FLOATING_TERMINAL_WORKTREE_ID } from "../../../../shared/workspace/identity/floating-workspace-id"
+import type { BrowserWorkspace } from "../../../../shared/browser-workspace-types"
+import type {
+  TabGroup,
+  WorkspaceVisibleTabType as TabCycleType
+} from "../../../../shared/tab-types"
+import { getGroupVisibleTabOrder } from "../tab-bar/group-tab-order"
 import {
   getNextTabAcrossAllTypes,
   getNextTerminalCycleTab,
   getNextTabWithinActiveType,
   getPreviousRecentTab,
-  type TabCycleType,
   type TypeCyclableTab
-} from '@/components/terminal/tab-type-cycle'
-import type { AppState } from '@/store/types'
+} from "../terminal/tab-type-cycle"
+import type { AppState } from "../../store/types"
 import {
   selectEmptyFloatingWorkspacePanelVisible,
   type EmptyFloatingWorkspacePanelState
-} from '@/store/workspaces/floating/floating-workspace-panel-selector'
-import { resolveBrowserWorkspaceOwner } from '../../lib/browser/workspace/browser-workspace-source-resolution'
-import { TOGGLE_FLOATING_TERMINAL_EVENT } from './floating-terminal'
-import { focusTerminalTabSurface } from '../terminal-pane/input/focus/focus-terminal-tab-surface'
-import { keybindingMatchesAction, type KeybindingOverrides } from '../../../../shared/keybindings'
-import './floating-workspace-tab-creation'
-import './floating-workspace-shortcut-policy'
+} from "../../store/workspaces/floating/floating-workspace-panel-selector"
+import { resolveBrowserWorkspaceOwner } from "../../lib/browser/workspace/browser-workspace-source-resolution"
+import { TOGGLE_FLOATING_TERMINAL_EVENT } from "./workspace/floating-workspace-open-intent"
+import { focusTerminalTabSurface } from "../terminal-pane/input/focus/focus-terminal-tab-surface"
+import { keybindingMatchesAction } from "../../../../shared/keybindings/matching"
+import type { KeybindingOverrides } from "../../../../shared/keybindings/types"
+import "./floating-workspace-tab-creation"
+import "./floating-workspace-shortcut-policy"
 
 type FloatingWorkspaceTabSwitchMode = 'same-type' | 'all-types' | 'terminal'
 

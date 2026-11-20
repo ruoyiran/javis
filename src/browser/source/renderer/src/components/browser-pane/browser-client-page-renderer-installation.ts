@@ -1,12 +1,10 @@
 import type {
   BrowserClientPageRendererOutcome,
   BrowserClientPageRendererRequest
-} from '../../../../shared/browser/client-hosting/browser-client-page-renderer-protocol'
-import {
-  BrowserClientPageRetainedRegistry,
-  type BrowserClientPageRendererMemoryProfile,
-  type BrowserClientPageVisibleAttachment
-} from './browser-client-page-retained-registry'
+} from "../../../../shared/browser/client-hosting/browser-client-page-renderer-protocol"
+import { BrowserClientPageRetainedRegistry } from "./browser-client-page-retained-registry"
+import type { BrowserClientPageRendererMemoryProfile } from "./browser-client-page-retained-memory-profile"
+import type { BrowserClientPageVisibleAttachment } from "./browser-client-page-visible-attachment"
 
 type RendererPageRegistry = {
   attachPage?(

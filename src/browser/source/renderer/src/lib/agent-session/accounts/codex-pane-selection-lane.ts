@@ -1,14 +1,9 @@
+import { FLOATING_TERMINAL_WORKTREE_ID } from '../../../../../shared/workspace/identity/floating-workspace-id'
 import { parseRemoteRuntimePtyId } from '../../../../../shared/remote-runtime/remote-runtime-pty-id'
-import {
-  getCodexSelectionLaneKey,
-  normalizeCodexAccountSelectionTarget
-} from '../../../../../shared/codex-selection-lane'
+import { getCodexSelectionLaneKey, normalizeCodexAccountSelectionTarget } from '../../../../../shared/codex-selection-lane'
 import type { CodexAccountSelectionTarget } from '../../../../../shared/codex-selection-lane'
-import { FLOATING_TERMINAL_WORKTREE_ID } from '../../../../../shared/constants'
-import {
-  isWslShellName,
-  resolveLocalWindowsTerminalRuntimeOptions
-} from '../../../../../shared/local-windows-terminal-runtime'
+
+import { isWslShellName, resolveLocalWindowsTerminalRuntimeOptions } from '../../../../../shared/local-windows-terminal-runtime'
 import type { LocalWindowsTerminalRuntimeOptions } from '../../../../../shared/local-windows-terminal-runtime'
 import { parseAppSshPtyId } from '../../../../../shared/ssh-pty-id'
 import { resolveTerminalStartupCwd } from '../../../../../shared/shell/launch/terminal-startup-cwd'
@@ -17,14 +12,8 @@ import { parseWslUncPath } from '../../../../../shared/wsl-paths'
 import { getLocalProjectExecutionRuntimeContext } from '../../../runtime/hosts/preflight/local-preflight-context'
 import { getRendererAppPlatform } from '../../../app-shell/platform/renderer-app-platform'
 import { wslHostDistroForTarget } from '../../../runtime/provider-accounts/ownership/wsl-host-account-owner'
-import {
-  getCachedWindowsTerminalCapabilities,
-  hasCachedWindowsTerminalCapabilities
-} from '../../../runtime/hosts/capabilities/windows-terminal-capabilities'
-import {
-  selectFolderWorkspaces,
-  selectWorktreesByRepo
-} from '@/store/workspaces/catalog/workspace-record-fields'
+import { getCachedWindowsTerminalCapabilities, hasCachedWindowsTerminalCapabilities } from '../../../runtime/hosts/capabilities/windows-terminal-capabilities'
+import { selectFolderWorkspaces, selectWorktreesByRepo } from '@/store/workspaces/catalog/workspace-record-fields'
 import type { AppState } from '@/store/types'
 import type { RuntimeClientTarget } from '../../../../../shared/runtime-client-target'
 import type { TerminalTab } from '../../../../../shared/workspace-layout/terminal-tab-types'

@@ -1,30 +1,30 @@
-import { useNativeChatPasteDestination } from './native-chat-paste-destination'
+import { useNativeChatPasteDestination } from "./native-chat-paste-destination"
 import { useCallback } from 'react'
-import { useNativeChatPasteLifetime } from './use-native-chat-paste-lifetime'
-import { nativeChatAttachmentOwnerUnchanged } from '../attachments/uploads/native-chat-resolved-path-ownership'
-import { assertClipboardTextWithinLimit } from '../../../../../shared/clipboard-text'
-import { setNativeChatPasteFailure } from '../composer/controls/native-chat-composer-notice'
-import { NATIVE_CHAT_CONTEXT_PASTE_MAX_BYTES } from './native-chat-context-paste-limit'
-import { isMacPlatform } from '../pane/routing/native-chat-shortcut'
+import { useNativeChatPasteLifetime } from "./use-native-chat-paste-lifetime"
+import { nativeChatAttachmentOwnerUnchanged } from "../attachments/uploads/native-chat-resolved-path-ownership"
+import { assertClipboardTextWithinLimit } from "../../../../../shared/clipboard-text"
+import { setNativeChatPasteFailure } from "../composer/controls/native-chat-composer-notice"
+import { NATIVE_CHAT_CONTEXT_PASTE_MAX_BYTES } from "./native-chat-context-paste-limit"
+import { isMacPlatform } from "../pane/routing/native-chat-shortcut"
 import {
   clipboardEventCopiedFilePaths,
   clipboardEventPastedText,
   readClipboardPasteText,
   type ClipboardEventLike
-} from './native-chat-clipboard-payload'
-import { clipboardEventImageFile } from '../../../../../shared/native-chat/input/native-chat-clipboard-event'
+} from "./native-chat-clipboard-payload"
+import { clipboardEventImageFile } from "../../../../../shared/native-chat/input/native-chat-clipboard-event"
 import {
   nativeChatLocalAttachmentUnsupportedNotice,
   nativeChatWorktreeNotReadyNotice
-} from '../attachments/intake/native-chat-attachment-notices'
+} from "../attachments/intake/native-chat-attachment-notices"
 
-import type { NativeChatAttachmentOwner } from '../attachments/uploads/native-chat-attachment-owner'
+import type { NativeChatAttachmentOwner } from "../attachments/uploads/native-chat-attachment-owner"
 import {
   ownerAcceptsClipboardImage,
   saveNativeChatPastedClipboardImage
-} from './native-chat-clipboard-image-save'
+} from "./native-chat-clipboard-image-save"
 
-import type { UseNativeChatComposerPasteArgs } from './native-chat-composer-paste-options'
+import type { UseNativeChatComposerPasteArgs } from "./native-chat-composer-paste-options"
 
 export function useNativeChatComposerPaste({
   targetKey,
@@ -99,12 +99,14 @@ export function useNativeChatComposerPaste({
       owner: NativeChatAttachmentOwner,
       pendingId: string | null,
       besideText: boolean,
-      ready?: () => void
+      ready?: () => void,
+      eventImage?: Blob
     ): Promise<boolean> => {
       const saved = await saveNativeChatPastedClipboardImage(owner, {
         pendingId,
         besideText,
         ready,
+        eventImage,
         canNotify: canComplete,
         setNotice
       })
@@ -212,7 +214,8 @@ export function useNativeChatComposerPaste({
         owner,
         pendingId,
         Boolean(text),
-        awaitServer ? reveal : undefined
+        awaitServer ? reveal : undefined,
+        imageFile
       ).then((settled) => {
         if (settled && !text) {
           setCaret(caretAtPaste)

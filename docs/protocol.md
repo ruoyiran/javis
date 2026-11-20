@@ -1,5 +1,7 @@
 # CLI, MCP, and gateway protocol
 
+Latest browser/CUA synchronization is pinned to Orca `d3a843d032f602cf09e392613683a94089efce07` (83 browser commands,16 desktop CUA commands). See [latest command parity](browser-parity/latest-command-parity.md) and its fixed parameter/method inventory. Earlier verification records below retain their original snapshot/evidence.
+
 For end-to-end workflows using these commands, see the [usage examples](examples.md).
 
 ## Browser entry points
@@ -40,12 +42,18 @@ The other action names are `set-value`, `type-text`, `press-key`, `hotkey`, `pas
 | `click` | `--element-index N` or `--x X --y Y` | `--click-count N`, `--mouse-button left|right|middle`, `--modifiers CHORD` |
 | `set-value` | `--element-index N`, `--value TEXT` or `--value-stdin` | — |
 | `type-text`, `paste-text` | `--text TEXT` or `--text-stdin` | — |
-| `press-key`, `hotkey` | `--key KEY` | — |
+| `launch-app` | positional app or `--app APP` | `--activate` |
+| `wait` | `--app APP` and one of `--text TEXT`, `--enabled TEXT`, `--window-title TEXT` | `--timeout MS` |
+| `press-key`, `hotkey` | `--key KEY` | `--allow-system-shortcut` |
 | `scroll` | `--element-index N` or `--x X --y Y`, and `--direction up|down|left|right` | `--pages N` |
 | `drag` | `--from-element-index N --to-element-index N` or all of `--from-x`, `--from-y`, `--to-x`, `--to-y` | — |
 | `perform-secondary-action` | `--element-index N --action NAME` | — |
 
 `--window-id N` and `--window-index N` are mutually exclusive, as are `--session ID` and `--worktree ID`. `--full-tree` replaces the default action-result tree diff, and `--no-screenshot` skips image capture. `--restore-window` requests foreground input where supported. `--text-stdin` and `--value-stdin` keep sensitive text out of shell history. The CLI parser in `src/cli/parse-call.ts` is the source of truth for validation.
+
+`get-app-state --element-index N` requests a verified subtree using prior indexes from the same app/window/context. `type-text --element-index N` targets a specific control and requires provider support. Observations and actions accept `--screenshot-format png|jpeg`, positive finite `--screenshot-scale`, and positive integer `--screenshot-max-edge`. Returned dimensions and scale describe the actual encoded image.
+
+`launch-app` defaults to background launch and leaves an already-running app unchanged; activation applies only to a newly launched app. macOS and Windows support it. `wait` uses passive reads, case-insensitive substring matching, and a default 10000 ms deadline with a 120000 ms maximum. Enabled waits require reported disabled state and every matching control enabled. Window-title waits exclude window selectors. A timeout returns `wait_timeout`.
 
 An observation with `--session` refreshes that explicit session; use the returned `result.sessionId` on a later action. Alternatively, use the same `--worktree` value for observation and action. Without either flag, the CLI derives a context from its canonical current directory; ordinary folders work, not only Git worktrees. The context is a session namespace on the selected host, not a host or desktop selector. Element indexes are labels from `snapshot.treeText`, may be sparse, and expire after UI changes or two minutes. An indexed action without a fresh observation in the same host/context fails. Coordinates are window-local. Convert screenshot pixels with `actionX = imageX / screenshot.scale` and likewise for Y.
 
@@ -73,17 +81,21 @@ Permission setup returns grant states, `nextStep`, `helperAppPath`, `permissionI
 
 ## MCP surface
 
-`javis mcp` speaks MCP over stdio. Its computer-use tools are `javis_capabilities`, `javis_permissions_status`, `javis_list_apps`, `javis_list_windows`, `javis_get_app_state`, `javis_click`, `javis_set_value`, `javis_type_text`, `javis_press_key`, `javis_hotkey`, `javis_paste_text`, `javis_scroll`, `javis_drag`, and `javis_perform_secondary_action`. Browser tools share the same server and use the browser contract described below.
+`javis mcp` speaks MCP over stdio. Its computer-use tools are `javis_capabilities`, `javis_permissions_status`, `javis_list_apps`, `javis_launch_app`, `javis_list_windows`, `javis_get_app_state`, `javis_wait`, `javis_click`, `javis_set_value`, `javis_type_text`, `javis_press_key`, `javis_hotkey`, `javis_paste_text`, `javis_scroll`, `javis_drag`, and `javis_perform_secondary_action`. Browser tools share the same server and use the browser contract described below.
 
 `javis_permissions_status` accepts an optional `host` SSH alias. It reads the selected host's macOS permission state through the allowlisted stdio bridge. Local status, setup, and reset share the long-lived daemon's paced permission gate; remote setup and reset require an explicit command on the remote host.
 
-Tool inputs use camelCase JSON fields such as `app`, `windowId`, `elementIndex`, `noScreenshot`, and `restoreWindow`. Computer tools accept optional `host`; observation and action tools also accept `worktree`. MCP keeps a separate session per connection, host, and worktree. A worktree never selects an SSH host. Each reply includes a JSON text content block. Captured screenshots add an MCP `image/png` block; the text omits PNG base64. Failed calls return an MCP error result with the Javis error code, message, and concrete next steps for recognized codes. Schema failures and unknown fields/tools return sanitized `invalid_argument` JSON without echoing supplied input. The permission tool reads status only; opening the macOS setup UI is a deliberate CLI or local settings operation.
+Tool inputs use camelCase JSON fields such as `app`, `windowId`, `elementIndex`, `rootElementIndex`, `screenshotFormat`, `noScreenshot`, and `restoreWindow`. Computer tools accept optional `host`; observation and action tools also accept `worktree`. MCP keeps a separate session per connection, host, and worktree. A worktree never selects an SSH host. Each reply includes a JSON text content block. Captured screenshots add an MCP `image/png` or `image/jpeg` block matching the returned format; the text omits image base64. Failed calls return an MCP error result with the Javis error code, message, and concrete next steps for recognized codes. Schema failures and unknown fields/tools return sanitized `invalid_argument` JSON without echoing supplied input. The permission tool reads status only; opening the macOS setup UI is a deliberate CLI or local settings operation.
 
 Action tools default to `treeDiff:true`. Use `fullTree:true` or `treeDiff:false` for the complete post-action tree; `fullTree:true` conflicts with `treeDiff:true`. Observation accepts optional `treeDiff`. Discovery inputs reflect their actual operation: listing windows accepts `app` and optional `host`, without window selectors or worktree state. Invalid action target combinations, key chords and modifiers are rejected before routing. Runtime calls additionally enforce numeric window selectors and boolean observation flags. A failed observation invalidates any previous snapshot and tree baseline in that session.
 
 ## SSH and mobile gateway
 
 `--host <SSH-alias>` selects an explicit remote Javis installation. The client runs `ssh -T <alias> javis rpc --stdio`; the alias must contain no command options or whitespace. The bridge accepts one newline-framed `{id,method,params}` request and returns one `{id,ok,result|error}` response. It only permits the declared computer methods; SSH host verification and authentication are delegated to OpenSSH. A timeout, disconnect, or malformed reply can mean an action was delivered. Inspect the target before another action, and do not automatically retry. Javis does not publish its daemon or helper endpoint on TCP.
+
+Passive read allowances are bounded to 120000 ms and travel as authenticated transport options through local/SSH queues and provider execution. Actions, launch, permissions, and state reads with `restoreWindow:true` retain their original delivery deadlines. The wait adapter is not a daemon/provider/SSH wait method and does not occupy the daemon queue between polls.
+
+Text/enabled waits first negotiate daemon-owned `observationStaging:true` through non-observing capabilities. Their transport-only stage/publish options on `getAppState` are absent from public tool and provider parameters. A poll clears addressed action authority and retains a bounded provisional observation; only an exact, current, same-target token publishes it, without rereading the provider. Failed or cancelled unpublished polls cannot authorize input even if cleanup is unreachable. Successful publication keeps the ordinary one-shot read delivery contract: an outer SSH reply lost after remote publication completes cannot prove final caller receipt. Refresh inspection after uncertain publication; never replay it automatically.
 
 `javis mobile serve` starts a separate gateway on the desktop to be controlled. Non-loopback binds require a TLS certificate and key. The printed pairing code is one-time and valid for five minutes. A paired browser gets an HttpOnly, SameSite=Strict cookie (Secure over HTTPS; omitted for loopback HTTP); protected mutation endpoints require same-origin and CSRF checks. The page chooses an app and window, gets a fresh observation, and can submit any of the nine actions. The gateway binds the selected target and session per device and accepts only action-specific parameters from the browser. A tap is converted from displayed CSS pixels to screenshot pixels, then divided by `screenshot.scale` for window-local points. After an uncertain action result, the page requires a new observation before another action. It controls desktop apps, not apps on the phone.
 

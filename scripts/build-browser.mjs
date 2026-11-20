@@ -1,7 +1,7 @@
 import { build } from 'esbuild'
 import { access, chmod, copyFile, cp, mkdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 import { spawnSync } from 'node:child_process'
 import { createRequire } from 'node:module'
 
@@ -65,7 +65,17 @@ const resources = process.platform === 'darwin' ? join(output, 'electron/Electro
 await mkdir(resources, { recursive: true })
 const nativeName = `agent-browser-${process.platform}-${process.arch}${process.platform === 'win32' ? '.exe' : ''}`
 const agentPackage = dirname(require.resolve('agent-browser/package.json'))
-await copyFile(join(agentPackage, 'bin', nativeName), join(resources, nativeName))
+const { findNativeBinary, nativeTarget } = await import(pathToFileURL(join(agentPackage, 'scripts/native.js')).href)
+const target = nativeTarget()
+if (!target) throw new Error('No agent-browser runtime is available for this platform')
+let nativeBinary = findNativeBinary(agentPackage, target)
+if (!nativeBinary) {
+  const install = spawnSync(process.execPath, [join(agentPackage, 'scripts/postinstall.js')], { cwd: root, stdio: 'inherit', windowsHide: true })
+  if (install.error) throw install.error
+  nativeBinary = findNativeBinary(agentPackage, target)
+  if (!nativeBinary) throw new Error('The pinned agent-browser runtime could not be installed')
+}
+await copyFile(nativeBinary, join(resources, nativeName))
 if (process.platform !== 'win32') await chmod(join(resources, nativeName), 0o755)
 const licenses = join(output, 'licenses')
 await mkdir(licenses, { recursive: true })

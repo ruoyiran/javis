@@ -343,9 +343,19 @@ export class BrowserHostCatalog {
       revision: status.startedAt,
     };
   }
-  async call(id: string, method: string, params: unknown) {
+  async call(id: string, method: string, params: unknown, expectedPairingRevision?: number) {
     if (id === "local") return this.bridge.call("local", method, params);
+    const pairingFailure = () => {
+      const environment = this.environment(id);
+      return expectedPairingRevision !== undefined && environment.pairingRevision !== expectedPairingRevision
+        ? { ok: false as const, error: { code: "runtime_environment_changed", message: "Runtime environment pairing changed; refresh and try again" }, _meta: { runtimeId: environment.runtimeId } }
+        : null;
+    };
+    const initialFailure = pairingFailure();
+    if (initialFailure) return initialFailure;
     await this.probe(id);
+    const preparedFailure = pairingFailure();
+    if (preparedFailure) return preparedFailure;
     return (
       invokePairedRuntimeBrowser(id, method, this.nativeParams(id, params)) ??
       this.bridge.call(

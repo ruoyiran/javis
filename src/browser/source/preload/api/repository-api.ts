@@ -1,7 +1,11 @@
-import type { RepoCreateFailure } from '../../shared/repo-create-failure-copy'
-import type { CloneTargetArgs, CloneTargetCheck } from '../../shared/git/clone/clone-target-check'
-import type { ExecutionHostId } from '../../shared/execution-host'
-import type { GhAccountBinding } from '../../shared/github/account-binding'
+import type { GroupHookCheckResult } from "../../shared/project/groups/project-group-hooks"
+import type { RepoCreateFailure } from "../../shared/repo-create-failure-copy"
+import type {
+  CloneTargetArgs,
+  CloneTargetCheck
+} from "../../shared/git/clone/clone-target-check"
+import type { ExecutionHostId } from "../../shared/execution-host"
+import type { GhAccountBinding } from "../../shared/github/account-binding"
 import type {
   NestedRepoScanResult,
   ProjectGroup,
@@ -9,7 +13,7 @@ import type {
   ProjectGroupMutation,
   ProjectGroupImportMode,
   ProjectGroupImportResult
-} from '../../shared/project-group-types'
+} from "../../shared/project-group-types"
 import type {
   Project,
   ProjectHostSetup,
@@ -22,10 +26,14 @@ import type {
   ProjectHostSetupUpdateArgs,
   ProjectHostSetupUpdateResult,
   ProjectUpdateArgs
-} from '../../shared/project-types'
-import type { BaseRefDefaultResult, BaseRefSearchResult, Repo } from '../../shared/repo-types'
-import type { WslMovedProject } from '../../shared/wsl-move/wsl-moved-project'
-import type { HostRepoCatalogSnapshot } from '../../shared/host-repo-catalog-snapshot'
+} from "../../shared/project/project-types"
+import type {
+  BaseRefDefaultResult,
+  BaseRefSearchResult,
+  Repo
+} from "../../shared/repo-types"
+import type { WslMovedProject } from "../../shared/wsl-move/wsl-moved-project"
+import type { HostRepoCatalogSnapshot } from "../../shared/host-repo-catalog-snapshot"
 
 export type RepositoryApi = {
   list: () => Promise<Repo[]>
@@ -76,7 +84,10 @@ export type RepositoryApi = {
       agentWorktreeVisibility?: Repo['agentWorktreeVisibility'] | null
       sourceControlAi?: Repo['sourceControlAi'] | null
       externalWorktreeDiscoverySuppressedAt?: Repo['externalWorktreeDiscoverySuppressedAt'] | null
+      hiddenAt?: Repo['hiddenAt'] | null
       ghAccount?: GhAccountBinding | null
+      workspaceCleanupPolicy?: Repo['workspaceCleanupPolicy'] | null
+      browserProfileId?: string | null
     }
   }) => Promise<Repo>
   pickFolder: () => Promise<string | null>
@@ -123,6 +134,7 @@ export type ProjectsApi = {
 }
 
 export type ProjectGroupsApi = {
+  checkHooks: (args: { groupId: string; background?: boolean }) => Promise<GroupHookCheckResult>
   list: () => Promise<ProjectGroup[]>
   create: (args: {
     name: string

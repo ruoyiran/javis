@@ -1,11 +1,16 @@
-import type { ToolSnapshot } from '../listener-event'
-import { deriveToolInputPreview, hasOwnField, readString, toolUpdate } from '../tool-input-preview'
+import type { ToolSnapshot } from "../listener-event"
+import {
+  deriveToolInputPreview,
+  hasOwnField,
+  readString,
+  toolUpdate
+} from "../tool-input-preview"
 import {
   clearActiveToolFieldsUpdate,
   deriveInteractivePrompt,
   extractToolResponseText
-} from '../interactive-tool'
-import { readLastAssistantFromTranscript } from '../transcript-lines'
+} from "../interactive-tool"
+import { readLastAssistantFromTranscript } from "../transcript-lines"
 
 export function extractClaudeToolFields(
   eventName: unknown,

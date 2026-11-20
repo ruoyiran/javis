@@ -1,5 +1,5 @@
-import type { PluginCapabilityKind } from './plugin-capabilities'
-import type { PluginExecutionProfile } from '../contributions/plugin-execution-profile'
+import type { PluginCapabilityKind } from "./plugin-capabilities"
+import type { PluginExecutionProfile } from "../contributions/plugin-execution-profile"
 
 /** Capabilities only a full-access worker can use: panels get no host method for them. */
 const WORKER_ONLY_CAPABILITIES: ReadonlySet<string> = new Set<PluginCapabilityKind>([
@@ -7,7 +7,11 @@ const WORKER_ONLY_CAPABILITIES: ReadonlySet<string> = new Set<PluginCapabilityKi
   'terminal:read',
   'workspace:write',
   'agent:launch',
-  'appearance:write'
+  'appearance:write',
+  'workspace:create',
+  'automation:read',
+  'automation:write',
+  'history:read'
 ])
 
 /** Whether a plugin of this profile can ever exercise the capability, so consent may name it. */

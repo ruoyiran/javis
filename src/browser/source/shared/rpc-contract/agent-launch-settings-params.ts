@@ -1,7 +1,7 @@
 import * as z from 'zod'
-import { isTuiAgent } from '../agent-launch/catalog/tui-agent-config'
-import { AGENT_PERMISSION_CHOICES } from '../agent-launch/permissions/tui-agent-permission-choice'
-import type { TuiAgent } from '../agent-launch/catalog/tui-agent'
+import { isTuiAgent } from "../agent-launch/catalog/tui-agent-config"
+import { AGENT_PERMISSION_CHOICES } from "../agent-launch/permissions/tui-agent-permission-choice"
+import type { TuiAgent } from "../agent-launch/catalog/tui-agent"
 
 const Agent = z.custom<TuiAgent>((value) => typeof value === 'string' && isTuiAgent(value))
 const Value = z
@@ -57,6 +57,17 @@ export const AgentLaunchSettingsMutation = z.discriminatedUnion('type', [
       choice: z.enum([...AGENT_PERMISSION_CHOICES, 'default']),
       agent: Agent.optional(),
       withoutAuto: z.literal(true).optional()
+    })
+    .strict(),
+  // A new permission choice value needs seed.v2: an unknown choice rejects the whole seed on older hosts.
+  z
+    .object({
+      type: z.literal('seed-permission'),
+      choice: z.enum(AGENT_PERMISSION_CHOICES),
+      // Agents this host doesn't know are dropped by the host, not refused.
+      overrides: z
+        .record(z.string().max(64), z.enum(AGENT_PERMISSION_CHOICES))
+        .refine((value) => Object.keys(value).length <= 128)
     })
     .strict(),
   z

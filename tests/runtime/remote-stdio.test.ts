@@ -143,6 +143,15 @@ describe('local stdio RPC bridge', () => {
     expect(result).toEqual({ id: 2, ok: true, result: {} })
   })
 
+  it.each([
+    { method: 'getAppState', params: { app: 'Fixture' }, timeoutMs: 120001 },
+    { method: 'getAppState', params: { app: 'Fixture', restoreWindow: true }, timeoutMs: 120000 },
+    { method: 'click', params: { app: 'Fixture' }, timeoutMs: 120000 }
+  ])('rejects an SSH envelope that would extend passive bounds or input delivery: %j', async request => {
+    const result = await stdioReply(JSON.stringify({ id: 1, ...request }) + '\n', async () => { throw new Error('Invalid deadline reached the daemon') })
+    expect(result).toMatchObject({ ok: false, error: { code: 'invalid_argument' } })
+  })
+
   it.each(['__shutdown', 'permissionsOpen', 'unknown'])('rejects disallowed method %s before daemon delivery', async method => {
     let delivered = false
     const result = await stdioReply(JSON.stringify({ id: 1, method, params: {} }) + '\n', async () => {

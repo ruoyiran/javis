@@ -1,23 +1,23 @@
-import { analyzeAgentChoiceArgs } from '../choices/agent-choice-args'
-import { reconcileAgentChoiceArgsDetailed } from '../choices/agent-choice-reconciliation'
-import { projectAgentLaunchProfile } from '../choices/agent-launch-profile'
-import { agentPickerPanelArguments } from './agent-launch-picker-arguments'
-import { TEXT_ACTION_DEFAULT_MODEL } from './agent-launch-picker-text-action'
-import { agentPickerArgumentsText } from './agent-launch-picker-authority'
-import { agentPickerEffectiveChoices } from './agent-launch-picker-effective-choices'
-import type { AgentPickerDraft, AgentPickerEntry } from './agent-launch-picker'
-import type { AgentChoicePatch } from '../choices/agent-launch-choices'
-import type { AgentPermissionChoice } from '../permissions/tui-agent-permission-choice'
-import { patchKeys, publishAccepted } from './agent-launch-picker-receipt'
+import { analyzeAgentChoiceArgs } from "../choices/agent-choice-args"
+import { reconcileAgentChoiceArgsDetailed } from "../choices/agent-choice-reconciliation"
+import { projectAgentLaunchProfile } from "../choices/agent-launch-profile"
+import { agentPickerPanelArguments } from "./agent-launch-picker-arguments"
+import { TEXT_ACTION_DEFAULT_MODEL } from "./agent-launch-picker-text-action"
+import { agentPickerArgumentsText } from "./agent-launch-picker-authority"
+import { agentPickerEffectiveChoices } from "./agent-launch-picker-effective-choices"
+import type { AgentPickerDraft, AgentPickerEntry } from "./agent-launch-picker"
+import type { AgentChoicePatch } from "../choices/agent-launch-choices"
+import type { AgentPermissionChoice } from "../permissions/tui-agent-permission-choice"
+import { patchKeys, publishAccepted } from "./agent-launch-picker-receipt"
 import {
   agentPickerArgumentPermission,
   editAgentPickerPermission
-} from './agent-launch-picker-permission'
-import { editAgentPickerSpeed, removeAgentPickerSpeed } from './agent-launch-picker-speed'
+} from "./agent-launch-picker-permission"
+import { editAgentPickerSpeed, removeAgentPickerSpeed } from "./agent-launch-picker-speed"
 import {
   findCatalogModel,
   getAgentSessionOptionLaunchCatalog
-} from '../../agent-session/options/agent-session-option-catalog'
+} from "../../agent-session/options/agent-session-option-catalog"
 
 export type AgentPickerEdit =
   | { kind: 'choice'; patch: AgentChoicePatch }
@@ -173,7 +173,10 @@ export function applyAgentPickerEdit(
   }
   const patch: AgentChoicePatch =
     edit.kind === 'choice'
-      ? edit.patch
+      ? edit.patch.options?.effort === TEXT_ACTION_DEFAULT_MODEL
+        ? // The Default level delegates effort, so the launch sends none and the agent picks.
+          { ...edit.patch, options: { ...edit.patch.options, effort: null } }
+        : edit.patch
       : edit.kind === 'permission'
         ? { permissionMode: edit.value }
         : edit.kind === 'speed'

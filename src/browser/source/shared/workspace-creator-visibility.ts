@@ -1,8 +1,8 @@
-import type { RuntimeStatus } from './runtime-types'
-import type { PublicKnownRuntimeEnvironment } from './remote-runtime/host-catalog/runtime-environments'
-import type { FolderWorkspace } from './folder-workspaces/folder-workspace-types'
-import { folderWorkspaceToWorktree } from './folder-workspaces/folder-workspace-worktree'
-import { normalizeWorkspaceCreatorProvenance } from './workspace-creator-provenance'
+import type { RuntimeStatus } from "./runtime-session-contracts"
+import type { PublicKnownRuntimeEnvironment } from "./remote-runtime/host-catalog/runtime-environments"
+import type { FolderWorkspace } from "./folder-workspaces/folder-workspace-types"
+import { folderWorkspaceToWorktree } from "./folder-workspaces/folder-workspace-worktree"
+import { normalizeWorkspaceCreatorProvenance } from "./workspace-creator-provenance"
 
 type RuntimeStatusEntry = { status: Pick<RuntimeStatus, 'pairedDeviceId'> | null }
 

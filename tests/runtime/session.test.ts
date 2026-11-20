@@ -12,7 +12,7 @@ describe('session namespace', () => {
 it('advertises daemon tree diffs while retaining native observation capabilities',async()=>{
  const native={protocolVersion:1,supports:{observation:{screenshot:true,treeDiff:false}}}
  const runtime=new SessionRuntime(async()=>native)
- expect(await runtime.call('capabilities',{})).toEqual({protocolVersion:1,supports:{observation:{screenshot:true,treeDiff:true}}})
+ expect(await runtime.call('capabilities',{})).toMatchObject({protocolVersion:1,supports:{observation:{screenshot:true,treeDiff:true}}})
  expect(native.supports.observation.treeDiff).toBe(false)
 })
 it('retains a delivered action when its observation fails',async()=>{

@@ -1,3 +1,4 @@
+import { browserFixtureDistribution } from './browser-fixture-distribution.mjs'
 import assert from 'node:assert/strict'
 import { build } from 'esbuild'
 import { createRequire } from 'node:module'
@@ -11,7 +12,7 @@ import { chromium } from 'playwright-core'
 process.env.ORCA_BACKGROUND_LAUNCH = '1'
 const directory = await mkdtemp(join(tmpdir(), 'javis-stdio-acceptance-'))
 const copied = join(directory, 'independent', 'dist')
-await cp(resolve('dist'), copied, { recursive: true, verbatimSymlinks: true })
+await cp(browserFixtureDistribution, copied, { recursive: true, verbatimSymlinks: true })
 const entry = join(copied, 'cli.cjs')
 const remoteState = join(directory, 'remote-state')
 const wrapper = join(directory, 'local-stdio-as-ssh.cjs')

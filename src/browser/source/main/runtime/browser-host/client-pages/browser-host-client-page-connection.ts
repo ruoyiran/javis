@@ -1,21 +1,23 @@
-import type { BrowserHostLeaseState } from '../leases/browser-host-lease-records'
-import type { BrowserHostPagePlacementRegistry } from '../reconciliation/browser-host-page-placement'
+export type BrowserClientPageConnectionInput = {
+  browserPageId: string
+  placement: RuntimeBrowserClientPlacement
+  pairedDeviceId: string
+  connectionId: string
+  /** File transfers only: a staged profile-switch guest downloads before its generation commits. */
+  admitPendingProfileSwitch?: boolean
+}
+
+import type { BrowserHostLeaseState } from "../leases/browser-host-lease-records"
+import type { BrowserHostPagePlacementRegistry } from "../reconciliation/browser-host-page-placement"
 import {
   sameRuntimeBrowserPlacement,
   type RuntimeBrowserClientPlacement
-} from '../../../../shared/runtime-browser-placement'
-import { requireBrowserHostLeaseState } from '../leases/browser-host-lease-state-resolution'
-import { pendingBrowserHostProfileSwitches } from '../profiles/browser-host-client-profile-switch'
+} from "../../../../shared/runtime-browser-placement"
+import { requireBrowserHostLeaseState } from "../leases/browser-host-lease-state-resolution"
+import { pendingBrowserHostProfileSwitches } from "../profiles/browser-host-client-profile-switch"
 
 export function requireBrowserClientPageConnection(
-  input: {
-    browserPageId: string
-    placement: RuntimeBrowserClientPlacement
-    pairedDeviceId: string
-    connectionId: string
-    /** File transfers only: a staged profile-switch guest downloads before its generation commits. */
-    admitPendingProfileSwitch?: boolean
-  },
+  input: BrowserClientPageConnectionInput,
   dependencies: {
     authorityRuntimeId: string
     authorityEpoch: string

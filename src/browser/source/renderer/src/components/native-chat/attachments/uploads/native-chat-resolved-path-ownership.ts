@@ -1,9 +1,9 @@
-import { resolveContinuedRuntimeEnvironmentRevision } from '@/runtime/rpc/environment-revisions/runtime-environment-revision'
-import { translate } from '@/i18n/i18n'
+import { resolveContinuedRuntimeEnvironmentRevision } from "../../../../runtime/rpc/environment-revisions/runtime-environment-revision"
+import { translate } from "../../../../i18n/i18n"
 import type {
   NativeChatAttachmentOwner,
   NativeChatStructuredAttachmentSession
-} from './native-chat-attachment-owner'
+} from "./native-chat-attachment-owner"
 
 export type NativeChatAttachmentFocusOptions = { focus?: boolean }
 
@@ -43,8 +43,13 @@ export function nativeChatAttachmentOwnerUnchanged(
     )
   }
   if (captured.kind === 'remote' && current.kind === 'remote') {
-    // Why: an image saved on one server is unreadable on another.
-    return captured.clipboardImageEnvironmentId === current.clipboardImageEnvironmentId
+    // Why: a file saved on one server or worktree is unreadable from another.
+    return (
+      captured.clipboardImageEnvironmentId === current.clipboardImageEnvironmentId &&
+      captured.staging?.environmentId === current.staging?.environmentId &&
+      captured.staging?.worktreeId === current.staging?.worktreeId &&
+      captured.staging?.executionHostId === current.staging?.executionHostId
+    )
   }
   return captured.kind === current.kind && captured.kind !== 'not-ready'
 }

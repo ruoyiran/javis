@@ -1,17 +1,12 @@
-import { FLOATING_TERMINAL_WORKTREE_ID } from '../../../../../shared/constants'
+import { FLOATING_TERMINAL_WORKTREE_ID } from '../../../../../shared/workspace/identity/floating-workspace-id'
+
 import { folderWorkspaceKey } from '../../../../../shared/workspace-scope'
 import type { TabsSlice, TabsSliceGet, TabsSliceSet } from './tabs-slice-contract'
 import { addAdditionalValidWorkspaceKeys } from '@/lib/workspace/persistence/workspace-session-hydration-keys'
-import {
-  buildValidWorktreeIdsForSessionHydration,
-  collectPersistedWorktreeIdsForSessionHydration
-} from '../../../../../shared/worktree/degraded-repo-worktree-validity'
+import { buildValidWorktreeIdsForSessionHydration, collectPersistedWorktreeIdsForSessionHydration } from '../../../../../shared/worktree/degraded-repo-worktree-validity'
 import { buildHydratedTabState } from './tabs-hydration'
 import { projectWorktreeTabModelReconciliation } from './tabs-reconciliation'
-import {
-  createWorktreeTabModelReconciliationBatch,
-  finishReconciliationDrafts
-} from './tabs-reconciliation-batch'
+import { createWorktreeTabModelReconciliationBatch, finishReconciliationDrafts } from './tabs-reconciliation-batch'
 import type { AppState } from '../../types'
 import { ORCA_LAYOUT_OWNER_IS_MAIN } from '../../../../../shared/layout-owner-switch'
 import { selectFolderWorkspaces } from '../../workspaces/catalog/workspace-record-fields'

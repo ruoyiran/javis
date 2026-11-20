@@ -1,11 +1,11 @@
 // Deliver answers as pasted messages or Claude/Codex selector keystrokes.
 
-import type { AgentJournalSubmission } from '../../agent-session/journal/agent-session-journal-types'
-import { agentJournalSubmissionKey } from '../../agent-session/journal/agent-session-journal-item-key'
-import { STRUCTURED_AGENT_SESSION_SUBMISSION_MISSING } from '../../agent-session/requests/structured-agent-session-send-evidence'
-import type { AskPrompt, AskQuestion } from './native-chat-ask-types'
-import type { NativeChatMessage } from '../native-chat-types'
-import type { AsyncQuestionContributor } from './native-chat-ask'
+import type { AgentJournalSubmission } from "../../agent-session/journal/agent-session-journal-types"
+import { agentJournalSubmissionKey } from "../../agent-session/journal/agent-session-journal-item-key"
+import { STRUCTURED_AGENT_SESSION_SUBMISSION_MISSING } from "../../agent-session/requests/structured-agent-session-send-evidence"
+import type { AskPrompt, AskQuestion } from "./native-chat-ask-types"
+import type { NativeChatMessage } from "../native-chat-types"
+import type { AsyncQuestionContributor } from "./native-chat-ask"
 
 function isHumanSend(message: NativeChatMessage): boolean {
   return (
@@ -236,8 +236,14 @@ export function nativeChatAnswerOperationEvidence(
   }
   const key = agentJournalSubmissionKey(clientMessageId)
   const message = messages.find((row) => row.id === key)
-  const submission = submissions.find((row) => row.clientMessageId === clientMessageId)
-  if (submission && submission.reason !== STRUCTURED_AGENT_SESSION_SUBMISSION_MISSING) {
+  // Queue handoff gives the answer a new submission ID before its transcript row catches up;
+  // snapshots order submissions oldest first, so the last linked row is the newest attempt.
+  const submission = submissions.findLast(
+    (row) =>
+      (row.clientMessageId === clientMessageId || row.queuedMessageId === clientMessageId) &&
+      row.reason !== STRUCTURED_AGENT_SESSION_SUBMISSION_MISSING
+  )
+  if (submission) {
     return submission.dispatchState === 'pending'
   }
   if (message && isDeliveredNativeChatUserMessage(message)) {

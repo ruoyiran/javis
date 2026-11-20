@@ -1,28 +1,28 @@
-import { FLOATING_TERMINAL_WORKTREE_ID } from '../../../../shared/constants'
-import type { RuntimeMobileSessionTabsResult } from '../../../../shared/runtime-types'
+import { FLOATING_TERMINAL_WORKTREE_ID } from "../../../../shared/workspace/identity/floating-workspace-id"
+import type { RuntimeMobileSessionTabsResult } from "../../../../shared/runtime-session-contracts"
 import {
   latestSessionTabsSnapshotByWorktree,
   replayableSessionTabsSnapshotByWorktree,
   type SessionTabsStreamEvent,
   sessionTabsFreshnessKey
-} from './state'
+} from "./state"
 import {
   acceptSessionTabsRuntimeId,
   isRetiredSessionTabsPublicationEpoch,
   isHeadlessMergeSessionTabsPublication,
   noteSessionTabsPublicationEpoch,
   sameSessionTabsPublicationLineage
-} from './publisher-identity-fences'
+} from "./publisher-identity-fences"
 
 import {
   rememberHostTerminalTabCount,
   trackWebSessionTabsWorktree,
   recordAcceptedWebSessionTabsEnvironment
-} from './tracking'
-import { clearWebSessionTabsTrackingForWorktree } from './tracking-lifecycle'
-import { queueAcceptedWebSessionTerminalSnapshot } from './terminal-handles/web-session-terminal-handle-events'
-import { shouldAutoCreateInitialTerminal } from '@/components/terminal/initial-terminal'
-import { hostSnapshotAffirmsWorktreeContents } from './hydration/host-session-snapshot-authority'
+} from "./tracking"
+import { clearWebSessionTabsTrackingForWorktree } from "./tracking-lifecycle"
+import { queueAcceptedWebSessionTerminalSnapshot } from "./terminal-handles/web-session-terminal-handle-events"
+import { shouldAutoCreateInitialTerminal } from "../../components/terminal/initial-terminal"
+import { hostSnapshotAffirmsWorktreeContents } from "./hydration/host-session-snapshot-authority"
 
 /** A frame's fate, paired with whether that fate is host evidence for the worktree. */
 export type WebSessionTabsSnapshotDecision = {
@@ -76,6 +76,15 @@ export function decideWebSessionTabsSnapshot(
     return WEB_SESSION_TABS_FRAME_UNMIRRORED
   }
   const current = latestSessionTabsSnapshotByWorktree.get(key)
+  const sameVersion =
+    current?.publicationEpoch === snapshot.publicationEpoch &&
+    current.snapshotVersion === snapshot.snapshotVersion
+  const follows = snapshot.navigationIntent === 'follow'
+  if (sameVersion && follows && current.followApplied) {
+    return WEB_SESSION_TABS_FRAME_OUTRANKED
+  }
+  // Ordinary publication can project a new selection before its one-shot follow arrives.
+  const unconsumedFollow = sameVersion && follows && !current.followApplied
   const currentSharesPublicationLineage = Boolean(
     current &&
     sameSessionTabsPublicationLineage(current.publicationEpoch, snapshot.publicationEpoch)
@@ -107,7 +116,8 @@ export function decideWebSessionTabsSnapshot(
     comparePublicationVersions &&
     sameSessionTabsPublicationLineage(current.publicationEpoch, snapshot.publicationEpoch) &&
     snapshot.snapshotVersion <= current.snapshotVersion &&
-    !isExactCurrentReplay
+    !isExactCurrentReplay &&
+    !unconsumedFollow
   ) {
     return WEB_SESSION_TABS_FRAME_OUTRANKED
   }
@@ -119,7 +129,8 @@ export function decideWebSessionTabsSnapshot(
   }
   latestSessionTabsSnapshotByWorktree.set(key, {
     publicationEpoch: snapshot.publicationEpoch,
-    snapshotVersion: snapshot.snapshotVersion
+    snapshotVersion: snapshot.snapshotVersion,
+    ...(follows || (sameVersion && current.followApplied) ? { followApplied: true as const } : {})
   })
   trackWebSessionTabsWorktree(environmentId, snapshot.worktree)
   recordAcceptedWebSessionTabsEnvironment(environmentId, snapshot)

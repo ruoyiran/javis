@@ -10,7 +10,7 @@ export class DesktopScriptRequestQueue {
     private readonly onDrained: () => void
   ) {}
 
-  enqueue<T>(run: () => Promise<T>): Promise<T> {
+  enqueue<T>(run: () => Promise<T>, waitTimeoutMs = this.waitTimeoutMs): Promise<T> {
     const queued = this.tail
     if (!queued) {
       return this.track(run())
@@ -21,10 +21,10 @@ export class DesktopScriptRequestQueue {
       waitTimer = setTimeout(() => {
         expiry = new JavisError(
           'action_timeout',
-          `desktop provider timed out after ${this.waitTimeoutMs}ms waiting for earlier operations`
+          `desktop provider timed out after ${waitTimeoutMs}ms waiting for earlier operations`
         )
         reject(expiry)
-      }, this.waitTimeoutMs)
+      }, waitTimeoutMs)
       waitTimer.unref?.()
     })
     // Expired requests must never deliver input after the caller was told they failed.

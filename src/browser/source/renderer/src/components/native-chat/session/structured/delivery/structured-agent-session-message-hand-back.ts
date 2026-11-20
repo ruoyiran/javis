@@ -1,14 +1,14 @@
-import { agentSessionAttachmentUploadIdOfPath } from '../../../../../../../shared/agent-session/agent-session-attachments'
-import type { AgentJournalMessageItem } from '../../../../../../../shared/agent-session/journal/agent-session-journal-types'
-import type { NativeChatComposerDraftImage } from '../../../drafts/native-chat-composer-draft-storage'
-import { appendToNativeChatComposerDraft } from '../../../drafts/native-chat-composer-draft-store'
-import { structuredAgentSessionDraftScopeKey } from '../../../drafts/native-chat-draft-scope'
-import { unavailableNativeChatComposerDraftImage } from '../../../drafts/native-chat-composer-draft-persistence'
-import { promptMarkersToImageReferences } from '../../../../../../../shared/native-chat/transcript/native-chat-image-transcript-markers'
+import { agentSessionAttachmentUploadIdOfPath } from "../../../../../../../shared/agent-session/agent-session-attachments"
+import type { AgentJournalMessageItem } from "../../../../../../../shared/agent-session/journal/agent-session-journal-types"
+import type { NativeChatComposerDraftImage } from "../../../drafts/native-chat-composer-draft-storage"
+import { appendToNativeChatComposerDraft } from "../../../drafts/native-chat-composer-draft-store"
+import { structuredAgentSessionDraftScopeKey } from "../../../drafts/native-chat-draft-scope"
+import { unavailableNativeChatComposerDraftImage } from "../../../drafts/native-chat-composer-draft-persistence"
+import { promptMarkersToImageReferences } from "../../../../../../../shared/native-chat/transcript/images/native-chat-sent-image-prompt-markers"
 import {
   promptTextContent,
   seedPromptSkillReferences
-} from '../../../composer/editor/native-chat-prompt-document-text'
+} from "../../../composer/editor/native-chat-prompt-document-text"
 
 export function structuredAgentSessionMessageText(body: AgentJournalMessageItem): string {
   return body.blocks.flatMap((block) => (block.type === 'text' ? [block.text] : [])).join('\n')

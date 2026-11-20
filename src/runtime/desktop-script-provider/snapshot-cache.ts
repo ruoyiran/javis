@@ -144,26 +144,25 @@ export function lookupCachedSnapshotKey(
   app: string,
   params: Record<string, unknown>,
   windowId: number | undefined,
-  windowIndex: number | undefined
+  windowIndex: number | undefined,
+  appQualifiedOnly = false
 ): string[] {
   const namespace = snapshotNamespace(params)
   const keys: string[] = []
   if (windowId !== undefined) {
-    keys.push(
-      namespacedSnapshotKey(namespace, canonicalWindowIdKey(windowId)),
-      namespacedSnapshotKey(namespace, snapshotWindowKey(app, windowId))
-    )
+    if (!appQualifiedOnly) keys.push(namespacedSnapshotKey(namespace, canonicalWindowIdKey(windowId)))
+    keys.push(namespacedSnapshotKey(namespace, snapshotWindowKey(app, windowId)))
     if (!isExplicitSnapshotNamespace(namespace)) {
-      keys.push(canonicalWindowIdKey(windowId), snapshotWindowKey(app, windowId))
+      if (!appQualifiedOnly) keys.push(canonicalWindowIdKey(windowId))
+      keys.push(snapshotWindowKey(app, windowId))
     }
   }
   if (windowIndex !== undefined) {
-    keys.push(
-      namespacedSnapshotKey(namespace, canonicalWindowIndexKey(windowIndex)),
-      namespacedSnapshotKey(namespace, snapshotWindowIndexKey(app, windowIndex))
-    )
+    if (!appQualifiedOnly) keys.push(namespacedSnapshotKey(namespace, canonicalWindowIndexKey(windowIndex)))
+    keys.push(namespacedSnapshotKey(namespace, snapshotWindowIndexKey(app, windowIndex)))
     if (!isExplicitSnapshotNamespace(namespace)) {
-      keys.push(canonicalWindowIndexKey(windowIndex), snapshotWindowIndexKey(app, windowIndex))
+      if (!appQualifiedOnly) keys.push(canonicalWindowIndexKey(windowIndex))
+      keys.push(snapshotWindowIndexKey(app, windowIndex))
     }
   }
   keys.push(namespacedSnapshotKey(namespace, app))

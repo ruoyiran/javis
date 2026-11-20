@@ -1,10 +1,9 @@
-import { labelFromModelId } from '../../model-id-label'
 import {
   isDefaultServiceTier,
   type SessionOptionDescriptor,
   type SessionOptionDisabledReason,
   type SessionOptionSelectChoice
-} from './native-chat-session-options'
+} from "./native-chat-session-options"
 
 // English pieces for the session option pickers; desktop translates each one, mobile shows them as is.
 export const NATIVE_CHAT_SESSION_OPTION_COPY = {
@@ -14,6 +13,7 @@ export const NATIVE_CHAT_SESSION_OPTION_COPY = {
   speed: 'Speed',
   thinking: 'Thinking',
   standard: 'Standard',
+  none: 'None',
   minimal: 'Minimal',
   low: 'Low',
   medium: 'Medium',
@@ -46,6 +46,7 @@ export const sayNativeChatSessionOptionEnglish: NativeChatSessionOptionSay = (id
     : NATIVE_CHAT_SESSION_OPTION_COPY[id].replaceAll('{{value0}}', () => values.value0)
 
 const LEVEL_IDS = {
+  none: 'none',
   minimal: 'minimal',
   low: 'low',
   medium: 'medium',
@@ -123,6 +124,9 @@ export function nativeChatSessionChoiceShortLabel(
   say: NativeChatSessionOptionSay,
   optionId?: string
 ): string {
+  if (choice.shortLabel) {
+    return choice.shortLabel
+  }
   const id = levelId(SHORT_LEVEL_IDS, choice.value)
   return id ? say(id) : nativeChatSessionChoiceLabel(choice, say, optionId)
 }
@@ -159,20 +163,12 @@ export function nativeChatModelPillLabel(
 ): string {
   // The tooltip names the category; default sources still identify a model, while unknown sources do not.
   const choice = descriptor.valueSource === 'unknown' ? null : selectedNativeChatChoice(descriptor)
-  const selected = choice ? nativeChatSessionChoiceLabel(choice, say) : say('model')
-  const reported = descriptor.reportedModel
-  if (!reported || (choice && reported === choice.value.replace(/\[[^\]]*\]$/u, ''))) {
-    return selected
+  if (choice) {
+    return nativeChatSessionChoiceLabel(choice, say)
   }
-  const reportedChoice =
-    descriptor.kind.type === 'select'
-      ? descriptor.kind.choices.find((entry) => entry.value === reported)
-      : undefined
-  const label = reportedChoice
-    ? nativeChatSessionChoiceLabel(reportedChoice, say)
-    : labelFromModelId(reported)
-  const actual = selected.startsWith('Claude ') ? label : label.replace(/^Claude /, '')
-  return actual
+  return descriptor.kind.type === 'select'
+    ? (descriptor.kind.placeholder ?? say('model'))
+    : say('model')
 }
 
 export function nativeChatOptionsPillTitle(

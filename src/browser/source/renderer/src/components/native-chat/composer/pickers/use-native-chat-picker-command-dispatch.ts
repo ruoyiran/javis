@@ -1,25 +1,26 @@
 import { useCallback, type Dispatch, type SetStateAction } from 'react'
-import type { AgentType } from '../../../../../../shared/agent-status/contracts/agent-status-types'
+import type { AgentType } from "../../../../../../shared/agent-status/contracts/agent-status-types"
 import {
   emitNativeChatMessageSent,
   emitNativeChatPickerItemAccepted,
   emitNativeChatSendClassified
-} from '@/components/native-chat/telemetry/native-chat-telemetry'
+} from "../../telemetry/native-chat-telemetry"
 import {
   sendNativeChatMessage,
-  sendNativeChatTypedCommand
-} from '../../session/terminal/send/native-chat-runtime-send'
+  sendNativeChatTypedCommand,
+  type NativeChatSendHandle
+} from "../../session/terminal/send/native-chat-runtime-send"
 import {
   nativeChatComposerTargetIsRemote,
   type NativeChatResolvedTarget
-} from '../submit/native-chat-composer-target'
-import type { NativeChatPickerItem } from '../../../../../../shared/native-chat/input/native-chat-picker-items'
-import type { NativeChatSendLifecycle } from '../../session/terminal/send/use-native-chat-send-lifecycle'
-import type { NativeChatPtySessionOptionsSurface } from '../../../../../../shared/native-chat/input/native-chat-pty-session-options'
+} from "../submit/native-chat-composer-target"
+import type { NativeChatPickerItem } from "../../../../../../shared/native-chat/input/native-chat-picker-items"
+import type { NativeChatSendLifecycle } from "../../session/terminal/send/use-native-chat-send-lifecycle"
+import type { NativeChatPtySessionOptionsSurface } from "../../../../../../shared/native-chat/input/native-chat-pty-session-options"
 import {
   answerNativeChatCommandInComposer,
   type NativeChatLocalCommandAnswer
-} from '../../session/options/terminal/use-native-chat-local-command-answer'
+} from "../../session/options/terminal/use-native-chat-local-command-answer"
 
 export function useNativeChatPickerCommandDispatch(args: {
   agent: AgentType
@@ -27,6 +28,7 @@ export function useNativeChatPickerCommandDispatch(args: {
   isDispatchingSessionOption: boolean
   resolveTarget: () => NativeChatResolvedTarget | null
   onSlashCommand?: (command: string, output?: string) => void
+  onCommandSent?: (command: string, delivery: NativeChatSendHandle) => void
   answerCommandLocally?: NativeChatLocalCommandAnswer
   onSubmitted?: () => void
   sessionOptionsSurface: NativeChatPtySessionOptionsSurface | null
@@ -44,6 +46,7 @@ export function useNativeChatPickerCommandDispatch(args: {
     isDispatchingSessionOption,
     resolveTarget,
     onSlashCommand,
+    onCommandSent,
     answerCommandLocally,
     onSubmitted,
     sessionOptionsSurface,
@@ -80,16 +83,17 @@ export function useNativeChatPickerCommandDispatch(args: {
         setActiveSuggestion(0)
         return
       }
-      trackPendingSend(
+      const delivery =
         agent === 'codex'
           ? sendNativeChatTypedCommand(target.ptyId, text)
           : sendNativeChatMessage(target.ptyId, text)
-      )
+      trackPendingSend(delivery)
       emitNativeChatPickerItemAccepted({ agent, itemKind: 'command' })
       // Match typed-command telemetry and composer cleanup; stale attachments must not ride the next prompt.
       emitNativeChatSendClassified({ agent, outcome: 'command' })
       onSlashCommand?.(text)
       sessionOptionsSurface?.recordOutgoingCommand(text)
+      onCommandSent?.(text, delivery)
       emitNativeChatMessageSent({
         agent,
         runtime: nativeChatComposerTargetIsRemote(target.ptyId) ? 'remote' : 'local'
@@ -109,6 +113,7 @@ export function useNativeChatPickerCommandDispatch(args: {
       clearSkillOrigin,
       disabled,
       isDispatchingSessionOption,
+      onCommandSent,
       onSlashCommand,
       onSubmitted,
       resolveTarget,

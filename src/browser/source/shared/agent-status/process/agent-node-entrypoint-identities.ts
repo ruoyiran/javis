@@ -1,4 +1,4 @@
-import type { TuiAgent } from '../../agent-launch/catalog/tui-agent'
+import type { TuiAgent } from "../../agent-launch/catalog/tui-agent"
 
 // Node CLIs whose shims launch a generic script (cli.js, versioned index.js), so
 // only the exact install path is an authoritative identity signal.
@@ -52,5 +52,11 @@ export const EXACT_NODE_ENTRYPOINT_IDENTITIES: readonly {
     pattern: /(?:^|\/)node_modules\/@moonshot-ai\/kimi-code\/dist\/main\.mjs$/,
     agent: 'kimi',
     processName: 'kimi'
+  },
+  // Command Code's npm bin is a generic `dist/index.mjs`; its process.title cannot rename node.exe on Windows.
+  {
+    pattern: /(?:^|\/)node_modules\/command-code\/dist\/index\.mjs$/,
+    agent: 'command-code',
+    processName: 'command-code'
   }
 ]

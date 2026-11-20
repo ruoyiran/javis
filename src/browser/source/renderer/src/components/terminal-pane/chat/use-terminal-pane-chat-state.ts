@@ -1,18 +1,17 @@
-import { useTerminalPaneTabState } from '../controller/use-terminal-pane-tab-state'
+import { useTerminalPaneTabState } from "../controller/use-terminal-pane-tab-state"
 import { useCallback, useEffect, useRef } from 'react'
-import { useAppStore } from '../../../store/index'
-import { resolveNativeChatLeafTitleAgent } from './native-chat-leaf-title-agent'
-import { useTerminalPaneStoreActions } from '../controller/use-terminal-pane-store-actions'
-import { selectUnifiedTerminalTabFields } from '../controller/tab-state/terminal-unified-tab-lookup'
-import { canToggleNativeChat } from '../../../../../shared/native-chat/native-chat-availability'
+import { useAppStore } from "../../../store/index"
+import { resolveNativeChatLeafTitleAgent } from "./native-chat-leaf-title-agent"
+import { useTerminalPaneStoreActions } from "../controller/use-terminal-pane-store-actions"
+import { selectUnifiedTerminalTabFields } from "../controller/tab-state/terminal-unified-tab-lookup"
+import { canToggleNativeChat } from "../../../../../shared/native-chat/native-chat-availability"
 import {
   nativeChatLaunchAgentForLeaf,
   resolveNativeChatLeafRoute,
   type NativeChatLeafRoute
-} from '../../native-chat/pane/routing/native-chat-leaf-routing'
-import type { TerminalPaneTitleController } from '../titles/use-terminal-pane-title-state'
-import { readTerminalCursorLineContext } from '../../../../../shared/terminal/input/terminal-cursor-line-context'
-import { readTerminalComposerTypedText } from '../../../../../shared/terminal/input/terminal-composer-draft'
+} from "../../native-chat/pane/routing/native-chat-leaf-routing"
+import type { TerminalPaneTitleController } from "../titles/use-terminal-pane-title-state"
+import { readTerminalComposerDraft } from "./terminal-composer-draft-read"
 
 export function useTerminalPaneChatState(controller: TerminalPaneTitleController) {
   const {
@@ -237,11 +236,7 @@ export function useTerminalPaneChatState(controller: TerminalPaneTitleController
   )
   const readNativeChatTerminalDraft = useCallback((): string | null => {
     const pane = findNativeChatPane()
-    return pane
-      ? readTerminalComposerTypedText(
-          readTerminalCursorLineContext(pane.terminal, pane.terminal.rows)
-        )
-      : null
+    return pane ? readTerminalComposerDraft(pane.terminal) : null
   }, [findNativeChatPane])
 
   return {

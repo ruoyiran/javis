@@ -1,75 +1,75 @@
 import type {
   WorktreeFetchOptions,
   DirectSshWorktreeFetchOptions
-} from './listing/worktree-fetch-options'
+} from "./listing/worktree-fetch-options"
 import type {
   WorktreeMetaUpdateOptions,
   WorktreeMetaBatchUpdate
-} from './metadata/worktree-meta-update-options'
+} from "./metadata/worktree-meta-update-options"
 import type {
   WorktreeRenameRequest,
   ActiveWorktreeStateTransition
-} from './session/worktree-selection-contract'
+} from "./session/worktree-selection-contract"
 
-import type { WorkspaceAttachmentMutation } from '../../../../../shared/workspace-attachments/workspace-attachment-mutation'
-import type { WorkspaceReferenceObservationContext } from '@/lib/workspace/attachments/workspace-attachment-observed-origin'
+import type { WorkspaceAttachmentMutation } from "../../../../../shared/workspace-attachments/workspace-attachment-mutation"
+import type { WorkspaceReferenceObservationContext } from "../../../lib/workspace/attachments/workspace-attachment-observed-origin"
 import type {
   CreateWorktreeCallOptions,
   CreatedWorktreeResult
-} from './create/worktree-create-payload'
-import type { WorktreeCatalogVersion } from '../../../../../shared/worktree/catalog-version'
-import type { WorkspaceKey } from '../../../../../shared/workspace-scope'
-import type { TuiAgent } from '../../../../../shared/agent-launch/catalog/tui-agent'
-import type { WorkspaceSource as WorkspaceCreateTelemetrySource } from '../../../../../shared/workspace-source'
+} from "./create/worktree-create-payload"
+import type { WorktreeCatalogVersion } from "../../../../../shared/worktree/catalog-version"
+import type { WorkspaceKey } from "../../../../../shared/workspace-scope"
+import type { TuiAgent } from "../../../../../shared/agent-launch/catalog/tui-agent"
+import type { WorkspaceSource as WorkspaceCreateTelemetrySource } from "../../../../../shared/workspace/creation/workspace-source"
 import type {
   WorktreeBaseStatusEvent,
   WorktreeRemoteBranchConflictEvent
-} from '../../../../../shared/worktree/base-ref-drift-types'
+} from "../../../../../shared/worktree/base-ref-drift-types"
 import type {
   CreateSparseCheckoutRequest,
   ForceDeleteWorktreeBranchResult,
   SetupDecision
-} from '../../../../../shared/worktree/create-types'
-import type { WorktreeStartupLaunch } from '../../../../../shared/worktree/launch-types'
+} from "../../../../../shared/worktree/create-types"
+import type { WorktreeStartupLaunch } from "../../../../../shared/worktree/launch-types"
 import type {
   WorkspaceLineage,
   WorktreeLineage
-} from '../../../../../shared/worktree/lineage-types'
-import type { WorktreeMeta } from '../../../../../shared/worktree/meta-types'
+} from "../../../../../shared/worktree/lineage-types"
+import type { WorktreeMeta } from "../../../../../shared/worktree/meta-types"
 import type {
   DetectedWorktree,
   DetectedWorktreeListResult,
   GitPushTarget,
   WorkspaceStatus,
   Worktree
-} from '../../../../../shared/worktree/types'
-import type { WorktreeRemovalTarget } from '../../../../../shared/worktree/removal'
-import type { TerminalGitHubPRLink } from '../../../../../shared/terminal/links/terminal-github-pr-link-detector'
-import type { ExecutionHostId } from '../../../../../shared/execution-host'
-import type { TerminalPaneRecoveryOutcome } from '../../../../../shared/workspace-layout/terminal-tab-types'
+} from "../../../../../shared/worktree/types"
+import type { WorktreeRemovalTarget } from "../../../../../shared/worktree/removal"
+import type { TerminalGitHubPRLink } from "../../../../../shared/terminal/links/terminal-github-pr-link-detector"
+import type { ExecutionHostId } from "../../../../../shared/execution-host"
+import type { TerminalPaneRecoveryOutcome } from "../../../../../shared/workspace-layout/terminal-tab-types"
 import type {
   TerminalRecoveryRemountRequest,
   TerminalRecoveryRemountResult
-} from '../../terminals/terminal-tab-recovery-ledger'
-import type { RemoveWorktreeOptions } from './teardown/worktree-removal-options'
-import type { HostQualifiedDetectedWorktreeResult } from '../../../../../shared/detected-worktree-provider-contract'
+} from "../../terminals/terminal-tab-recovery-ledger"
+import type { RemoveWorktreeOptions } from "./teardown/worktree-removal-options"
+import type { HostQualifiedDetectedWorktreeResult } from "../../../../../shared/detected-worktree-provider-contract"
 
 import type {
   PendingWorktreeCreation,
   WorktreeCreationPhase
-} from '@/lib/workspace/creation/pending-worktree-creation'
+} from "../../../lib/workspace/creation/pending-worktree-creation"
 
-import type { WorktreeRefreshAllOptions } from './listing/worktree-refresh-options'
-import type { WorktreeRefreshResult } from './listing/worktree-refresh-result'
+import type { WorktreeRefreshAllOptions } from "./listing/worktree-refresh-options"
+import type { WorktreeRefreshResult } from "./listing/worktree-refresh-result"
 
-import type { WorktreePurgeTargets } from './teardown/worktree-purge-target'
+import type { WorktreePurgeTargets } from "./teardown/worktree-purge-target"
 
 import type {
   WorktreeDeleteState,
   WorktreeDeleteStateTarget
-} from './teardown/worktree-delete-state-types'
+} from "./teardown/worktree-delete-state-types"
 
-import type { RendererRemoveWorktreeResult } from './teardown/renderer-remove-worktree-result'
+import type { RendererRemoveWorktreeResult } from "./teardown/renderer-remove-worktree-result"
 
 export type WorktreeSlice = {
   worktreesByRepo: Record<string, Worktree[]>
@@ -128,13 +128,27 @@ export type WorktreeSlice = {
   /** `executionHostId` names the clicked row's host, so a same-id twin elsewhere is never the target. */
   updateWorktreeLineage: (
     worktreeId: string,
-    args: { parentWorktreeId?: string; noParent?: boolean; executionHostId?: ExecutionHostId }
+    args: {
+      parentWorktreeId?: string
+      noParent?: boolean
+      executionHostId?: ExecutionHostId
+      /** Apply only while the current parent is this workspace key; a newer move stands. */
+      ifParentWorkspace?: string
+    }
   ) => Promise<void>
   assignWorktreeParent: (
     worktreeId: string,
-    args: { parentWorktreeId: string; executionHostId?: ExecutionHostId }
+    args: {
+      parentWorktreeId: string
+      executionHostId?: ExecutionHostId
+      ifParentWorkspace?: string
+    }
   ) => Promise<void>
-  assignCrossStoreWorktreeParent: (children: readonly Worktree[], parent: Worktree) => Promise<void>
+  assignCrossStoreWorktreeParent: (
+    children: readonly Worktree[],
+    parent: Worktree,
+    options?: { ifParentWorkspace?: string }
+  ) => Promise<void>
   createWorktree: (
     repoId: string,
     name: string,

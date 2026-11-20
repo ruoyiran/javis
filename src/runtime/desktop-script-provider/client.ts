@@ -3,6 +3,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import type {
   ComputerActionResult,
+  ComputerLaunchAppResult,
   ComputerListAppsResult,
   ComputerListWindowsResult,
   ComputerProviderCapabilities,
@@ -16,11 +17,13 @@ import {
   desktopActionWindowTarget,
   elementParam,
   isWindowChangedAction,
+  isReplayableTool,
   verifyDesktopAction
 } from './action.js'
 import { validateComputerProviderActionParams } from '../computer-provider-action-validation.js'
 import { execBridge, mapBridgeError } from './bridge.js'
 import {
+  screenshotRequestParams,
   optionalNumberParam,
   optionalStringParam,
   stringParam
@@ -39,7 +42,10 @@ import { DesktopScriptSnapshotStore } from './snapshot-store.js'
 import { normalizeBridgeApp, renderSnapshot } from './snapshot-rendering.js'
 import { normalizeComputerActionResult } from '../computer-action-verification-normalization.js'
 import { JavisError } from '../error.js'
+import { launchBridgeApp } from './apps.js'
+import { readSubtreeSnapshot } from './subtree-snapshot.js'
 import type { JavisProvider } from '../provider.js'
+import type { ProviderReadOptions } from '../computer-read-options.js'
 
 export function shouldUseDesktopScriptProvider(): boolean {
   if (process.platform !== 'linux' && process.platform !== 'win32') return false
@@ -82,13 +88,14 @@ export class DesktopScriptProviderClient implements JavisProvider {
     this.providerCapabilities = null
   }
 
-  async call(method: string, params: Record<string, unknown>): Promise<unknown> {
+  async call(method: string, params: Record<string, unknown>, options: ProviderReadOptions = {}): Promise<unknown> {
     switch (method) {
       case 'handshake':
-      case 'capabilities': return this.capabilities()
-      case 'listApps': return this.listApps()
-      case 'listWindows': return this.listWindows(params)
-      case 'getAppState': return this.snapshot(params)
+      case 'capabilities': return this.capabilities(options)
+      case 'listApps': return this.listApps(options)
+      case 'launchApp': return this.launchApp(params)
+      case 'listWindows': return this.listWindows(params, options)
+      case 'getAppState': return this.snapshot(params, params.restoreWindow === true ? {} : options)
       case 'click':
       case 'performSecondaryAction':
       case 'scroll':
@@ -102,12 +109,12 @@ export class DesktopScriptProviderClient implements JavisProvider {
     }
   }
 
-  async listApps(): Promise<ComputerListAppsResult> {
-    const capabilities = await this.readCapabilities()
+  async listApps(options: ProviderReadOptions = {}): Promise<ComputerListAppsResult> {
+    const capabilities = await this.readCapabilities(options)
     if (!capabilities.supports.apps.list) {
       throw new JavisError('unsupported_capability', `${capabilities.provider} does not support apps.list`)
     }
-    const response = await this.callBridge({ tool: 'list_apps' })
+    const response = await this.callBridge({ tool: 'list_apps' }, options)
     return {
       apps: (response.apps ?? []).map((app) => ({
         name: app.name,
@@ -120,12 +127,16 @@ export class DesktopScriptProviderClient implements JavisProvider {
     }
   }
 
-  async capabilities(): Promise<ComputerProviderCapabilities> {
-    return await this.readCapabilities()
+  async capabilities(options: ProviderReadOptions = {}): Promise<ComputerProviderCapabilities> {
+    return await this.readCapabilities(options)
   }
 
-  async listWindows(params: Record<string, unknown>): Promise<ComputerListWindowsResult> {
-    const capabilities = await this.readCapabilities()
+  async launchApp(params: Record<string, unknown>): Promise<ComputerLaunchAppResult> {
+    return launchBridgeApp(await this.readCapabilities(), request => this.callBridge(request), params)
+  }
+
+  async listWindows(params: Record<string, unknown>, options: ProviderReadOptions = {}): Promise<ComputerListWindowsResult> {
+    const capabilities = await this.readCapabilities(options)
     if (!capabilities.supports.windows.list) {
       throw new JavisError(
         'unsupported_capability',
@@ -135,7 +146,7 @@ export class DesktopScriptProviderClient implements JavisProvider {
     const response = await this.callBridge({
       tool: 'list_windows',
       app: stringParam(params, 'app')
-    })
+    }, options)
     return {
       app: normalizeBridgeApp(response.app),
       windows: (response.windows ?? []).map((window) => ({
@@ -155,17 +166,19 @@ export class DesktopScriptProviderClient implements JavisProvider {
     }
   }
 
-  async snapshot(params: Record<string, unknown>): Promise<ComputerSnapshotResult> {
+  async snapshot(params: Record<string, unknown>, options: ProviderReadOptions = {}): Promise<ComputerSnapshotResult> {
     const app = stringParam(params, 'app')
-    await this.ensureWindowTargetSupported(params)
+    await this.ensureWindowTargetSupported(params, options)
+    const rootElementIndex = optionalNumberParam(params, 'rootElementIndex')
+    if (rootElementIndex !== undefined) return readSubtreeSnapshot(this.snapshotStore, request => this.callBridge(request, options), { app, rootElementIndex, params })
     const response = await this.callBridge({
       tool: 'get_app_state',
       app,
       windowId: optionalNumberParam(params, 'windowId'),
       windowIndex: optionalNumberParam(params, 'windowIndex'),
-      noScreenshot: params.noScreenshot === true,
+      ...screenshotRequestParams(params),
       restoreWindow: params.restoreWindow === true
-    })
+    }, options)
     return this.rememberAndRender(app, response, params.noScreenshot === true, params)
   }
 
@@ -176,6 +189,7 @@ export class DesktopScriptProviderClient implements JavisProvider {
     const app = await validateComputerProviderActionParams(method, params)
     await this.ensureWindowTargetSupported(params)
     await this.ensureActionSupported(method)
+    if (method === 'typeText' && params.elementIndex !== undefined && (await this.readCapabilities()).supports.actions.typeTextElement !== true) throw new JavisError('unsupported_capability', 'The provider cannot type into a specific element')
     const explicitWindowId = optionalNumberParam(params, 'windowId')
     const explicitWindowIndex = optionalNumberParam(params, 'windowIndex')
     const current = this.snapshotStore.current(app, explicitWindowId, params)
@@ -210,7 +224,7 @@ export class DesktopScriptProviderClient implements JavisProvider {
       value: optionalStringParam(params, 'value'),
       windowBounds: null,
       ...actionWindowTarget,
-      noScreenshot: params.noScreenshot === true,
+      ...screenshotRequestParams(params),
       restoreWindow: params.restoreWindow === true
     })
     const action = verifyDesktopAction(
@@ -263,7 +277,7 @@ export class DesktopScriptProviderClient implements JavisProvider {
     }
   }
 
-  private async ensureWindowTargetSupported(params: Record<string, unknown>): Promise<void> {
+  private async ensureWindowTargetSupported(params: Record<string, unknown>, options: ProviderReadOptions = {}): Promise<void> {
     if (params.windowId !== undefined && params.windowIndex !== undefined) {
       throw new JavisError('invalid_argument', 'Window targeting accepts either windowId or windowIndex')
     }
@@ -273,7 +287,7 @@ export class DesktopScriptProviderClient implements JavisProvider {
         throw new JavisError('invalid_argument', `${key} must be a non-negative integer`)
       }
     }
-    const capabilities = await this.readCapabilities()
+    const capabilities = await this.readCapabilities(options)
     if (params.windowId !== undefined && !capabilities.supports.windows.targetById) {
       throw new JavisError('unsupported_capability', `${capabilities.provider} does not support windows.targetById`)
     }
@@ -282,12 +296,13 @@ export class DesktopScriptProviderClient implements JavisProvider {
     }
   }
 
-  private async callBridge(request: BridgeRequest): Promise<BridgeResponse> {
+  private async callBridge(request: BridgeRequest, options: ProviderReadOptions = {}): Promise<BridgeResponse> {
     this.checkDelivery()
+    const readOptions = isReplayableTool(request.tool) && request.restoreWindow !== true ? options : {}
     const host = this.runtimeHost
     if (host) {
       try {
-        return checkedBridgeResponse(await host.request(request), '')
+        return checkedBridgeResponse(await host.request(request, readOptions), '')
       } catch (error) {
         // Fall back only for unavailable hosts; retain the host so its cooldown can restore service.
         if (!isRuntimeHostUnavailable(error)) {
@@ -296,10 +311,10 @@ export class DesktopScriptProviderClient implements JavisProvider {
         this.checkDelivery()
       }
     }
-    return await this.callOneShotBridge(request)
+    return await this.callOneShotBridge(request, readOptions)
   }
 
-  private callOneShotBridge(request: BridgeRequest): Promise<BridgeResponse> {
+  private callOneShotBridge(request: BridgeRequest, options: ProviderReadOptions): Promise<BridgeResponse> {
     const controller = new AbortController()
     const operation = (async () => {
       const operationDirectory = await mkdtemp(join(tmpdir(), 'javis-computer-use-'))
@@ -307,6 +322,7 @@ export class DesktopScriptProviderClient implements JavisProvider {
       try {
         await writeFile(operationPath, JSON.stringify(request), { encoding: 'utf8', mode: 0o600 })
         const { stdout, stderr } = await execBridge(this.platform, this.scriptPath, operationPath, undefined, {
+          ...options,
           request,
           signal: controller.signal,
           canDeliver: () => this.deliveryAllowed()
@@ -349,11 +365,11 @@ export class DesktopScriptProviderClient implements JavisProvider {
     }
   }
 
-  private async readCapabilities(): Promise<ComputerProviderCapabilities> {
+  private async readCapabilities(options: ProviderReadOptions = {}): Promise<ComputerProviderCapabilities> {
     if (this.providerCapabilities) {
       return this.providerCapabilities
     }
-    const response = await this.callBridge({ tool: 'handshake' })
+    const response = await this.callBridge({ tool: 'handshake' }, options)
     if (!response.capabilities) {
       throw new JavisError(
         'accessibility_error',

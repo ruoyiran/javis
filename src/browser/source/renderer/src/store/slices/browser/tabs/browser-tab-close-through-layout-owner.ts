@@ -1,18 +1,19 @@
+import { annotateBrowserPageHandles } from "../hosts/browser-initialization-presentation-ownership"
 // Main frames drop tab/record before reply; then run window cleanup from captured drawn state for reopen history, host pages and document grants.
 
 import type {
   BrowserPage,
   BrowserWorkspace
-} from '../../../../../../shared/browser-workspace-types'
-import { dedupeTabOrder } from '../../../../../../shared/workspace-layout/tab-order'
-import type { AppState } from '../../../types'
-import { pickNextActiveTab } from '../../tabs/tab-selection-history'
+} from "../../../../../../shared/browser-workspace-types"
+import { dedupeTabOrder } from "../../../../../../shared/workspace-layout/tab-order"
+import type { AppState } from "../../../types"
+import { pickNextActiveTab } from "../../tabs/tab-selection-history"
 import {
   getRecentlyClosedTabPosition,
   type RecentlyClosedTabPosition
-} from '../../tabs/recently-closed-tab-position'
-import { closeContentTabThroughLayoutOwner } from '../../tabs/content-tab-close-through-layout-owner'
-import type { BrowserSliceGet, RemoteBrowserPageHandle } from '../browser-slice-contract'
+} from "../../tabs/recently-closed-tab-position"
+import { closeContentTabThroughLayoutOwner } from "../../tabs/content-tab-close-through-layout-owner"
+import type { BrowserSliceGet, RemoteBrowserPageHandle } from "../browser-slice-contract"
 
 /** A browser tab as the window drew it when it asked main to close it. */
 export type DrawnBrowserTab = {
@@ -33,10 +34,11 @@ export function withDrawnBrowserPages(state: AppState, drawn: DrawnBrowserTab): 
       ...state.browserPagesByWorkspace,
       [record.id]: state.browserPagesByWorkspace[record.id] ?? drawn.pages
     },
-    remoteBrowserPageHandlesByPageId: {
-      ...drawn.handles,
-      ...state.remoteBrowserPageHandlesByPageId
-    }
+    remoteBrowserPageHandlesByPageId: annotateBrowserPageHandles(
+      { ...drawn.handles, ...state.remoteBrowserPageHandlesByPageId },
+      Object.keys(drawn.handles),
+      state.remoteBrowserPageHandlesByPageId
+    )
   }
 }
 

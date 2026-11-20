@@ -1,23 +1,26 @@
-import { retireStructuredAgentSessionReadOwner } from '@/components/native-chat/session/structured/read/structured-agent-session-read-owner-registry'
-import { structuredAgentSessionTargetForHost } from '@/runtime/native-chat/session-ownership/structured-agent-session-owner'
-import { LOCAL_EXECUTION_HOST_ID, type ExecutionHostId } from '../../../../../shared/execution-host'
-import { ORCA_LAYOUT_OWNER_IS_MAIN } from '../../../../../shared/layout-owner-switch'
-import { markStructuredAgentLaunchCancellation } from './structured-agent-session-launch-cancellation'
-import { cancelStructuredAgentLaunchOnLocalHost } from './structured-agent-session-local-launch-cancel'
-import { forgetStructuredSessionSelection } from '../options/structured-agent-session-selection-controller'
+import { retireStructuredAgentSessionReadOwner } from "../../../components/native-chat/session/structured/read/structured-agent-session-read-owner-registry"
+import { structuredAgentSessionTargetForHost } from "../../../runtime/native-chat/session-ownership/structured-agent-session-owner"
+import {
+  LOCAL_EXECUTION_HOST_ID,
+  type ExecutionHostId
+} from "../../../../../shared/execution-host"
+import { ORCA_LAYOUT_OWNER_IS_MAIN } from "../../../../../shared/layout-owner-switch"
+import { markStructuredAgentLaunchCancellation } from "./structured-agent-session-launch-cancellation"
+import { cancelStructuredAgentLaunchOnLocalHost } from "./structured-agent-session-local-launch-cancel"
+import { forgetStructuredSessionSelection } from "../options/structured-agent-session-selection-controller"
 import {
   hasStructuredAgentLaunchCancellationTombstonePersisted,
   readStructuredAgentLaunchRecord
-} from './structured-agent-session-launch-persistence'
+} from "./structured-agent-session-launch-persistence"
 import {
   removeStructuredLaunchSlot,
   type StructuredLaunchSlotOwner
-} from './structured-agent-session-launch-slot'
+} from "./structured-agent-session-launch-slot"
 import {
   deleteStructuredLaunchStateIfCurrent,
   getStructuredLaunchStateBySessionId,
   notifyStructuredLaunchListeners
-} from './structured-agent-session-launch-state-store'
+} from "./structured-agent-session-launch-state-store"
 
 function markStructuredAgentSessionLaunchCancelledInternal(
   worktreeId: string,

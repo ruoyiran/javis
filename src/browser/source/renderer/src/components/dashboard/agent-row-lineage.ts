@@ -1,5 +1,5 @@
-import type { DashboardAgentRow } from './useDashboardData'
-import { buildAgentRowLineageTree } from './agent-row-lineage-model'
+import type { DashboardAgentRow } from "./rows/dashboard-agent-row"
+import { buildAgentRowLineageTree } from "./agent-row-lineage-model"
 
 export type AgentRowLineagePresentation = {
   depth: 0 | 1
@@ -70,10 +70,10 @@ export function applyAgentRowLineage(rows: DashboardAgentRow[]): DashboardAgentR
   return ordered
 }
 
-export function dashboardCardParentPaneKey(row: DashboardAgentRowWithLineage): string | undefined {
+export function dashboardCardParentPaneKey(row: DashboardAgentRow): string | undefined {
   const directParentPaneKey = row.entry.orchestration?.parentPaneKey
   return (
-    row.lineage.parentPaneKey ??
+    row.lineage?.parentPaneKey ??
     (directParentPaneKey === row.paneKey ? undefined : directParentPaneKey)
   )
 }

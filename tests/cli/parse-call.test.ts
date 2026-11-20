@@ -2,6 +2,15 @@ import { describe, expect, it } from 'vitest'
 import { parseCall } from '../../src/cli/parse-call.js'
 
 describe('parseCall', () => {
+  it('launches an app without constructing an observation context', () => {
+    expect(parseCall(['computer', 'launch-app', 'TextEdit', '--activate', '--json'])).toEqual({ method: 'launchApp', params: { app: 'TextEdit', activate: true }, json: true })
+    expect(() => parseCall(['computer', 'launch-app', 'TextEdit', '--app', 'Finder'])).toThrow()
+  })
+  it('preserves screenshot controls and subtree or element typing targets', () => {
+    expect(parseCall(['get-app-state', '--app', 'Fixture', '--element-index', '7', '--screenshot-format', 'jpeg', '--screenshot-scale', '0.5', '--screenshot-max-edge', '640']).params).toEqual({ app: 'Fixture', rootElementIndex: 7, screenshotFormat: 'jpeg', screenshotScale: 0.5, screenshotMaxEdge: 640 })
+    expect(parseCall(['type-text', '--app', 'Fixture', '--element-index', '7', '--text', 'sample']).params).toMatchObject({ elementIndex: 7, text: 'sample' })
+    expect(parseCall(['hotkey', '--app', 'Fixture', '--key', 'Cmd+Q', '--allow-system-shortcut']).params).toMatchObject({ allowSystemShortcut: true })
+  })
   it('accepts flags before and between command words and inline values', () => {
     expect(parseCall(['--json', 'computer', '--host=devbox', 'click', '--app=Finder', '--element-index=7', '--click-count=2', '--modifiers=CmdOrCtrl+Shift'])).toEqual({
       method: 'click', json: true, host: 'devbox', params: { app: 'Finder', elementIndex: 7, clickCount: 2, modifiers: 'CmdOrCtrl+Shift', treeDiff: true }

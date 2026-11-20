@@ -1,48 +1,54 @@
+import { recordBrowserExtensionInstalled } from "../../telemetry/browser-extensions-banner"
+import { startBrowserExtensionsForSettings } from "./profile-sessions/browser-extension-idle-profiles"
 import { isAbsolute } from 'node:path'
 import type {
   BrowserExtensionActionResult,
   BrowserExtensionListResult,
   InstalledBrowserExtension
-} from '../../../shared/browser/extensions/browser-extension-types'
-import { browserSessionRegistry } from '../sessions/profiles/browser-session-registry'
-import { openBrowserExtensionOptionsPage } from './tabs-and-windows/browser-extension-options-page'
-import { getBrowserExtensionInstallStore } from './installation/browser-extension-install-store'
-import { reloadBrowserExtensionWhereEnabled } from './profile-sessions/browser-extension-profile-reload'
+} from "../../../shared/browser/extensions/browser-extension-types"
+import { browserSessionRegistry } from "../sessions/profiles/browser-session-registry"
+import { openBrowserExtensionOptionsPage } from "./tabs-and-windows/browser-extension-options-page"
+import { getBrowserExtensionInstallStore } from "./installation/browser-extension-install-store"
+import { reloadBrowserExtensionWhereEnabled } from "./profile-sessions/browser-extension-profile-reload"
 import {
   readBrowserExtensionIconDataUrl,
   readBrowserExtensionManifest
-} from './installation/browser-extension-manifest'
+} from "./installation/browser-extension-manifest"
 import {
   getBrowserExtensionSessionForProfile,
   listBrowserExtensionSessions,
   loadBrowserExtensionFolderIntoProfile,
   loadBrowserExtensionIntoProfile,
   unloadBrowserExtensionEverywhere,
-  unloadBrowserExtensionFromProfile
-} from './profile-sessions/browser-extension-session-loader'
-import { clearBrowserExtensionSessionData } from './profile-storage/browser-extension-data-removal'
+  unloadBrowserExtensionFromProfile,
+  whenBrowserExtensionProfileLoaded
+} from "./profile-sessions/browser-extension-session-loader"
+import { clearBrowserExtensionSessionData } from "./profile-storage/browser-extension-data-removal"
 import {
   forgetHeldBrowserExtensionUpdate,
   getHeldBrowserExtensionUpdate
-} from './web-store/browser-extension-held-updates'
-import { browserExtensionIdForUnpackedFolder } from './installation/browser-extension-load-directory'
+} from "./web-store/browser-extension-held-updates"
+import {
+  browserExtensionIdForUnpackedFolder,
+  forgetPreparedBrowserExtensionDirectory
+} from "./installation/browser-extension-load-directory"
 import {
   forgetBrowserExtensionLoadFailures,
   getBrowserExtensionLoadFailure
-} from './profile-sessions/browser-extension-load-errors'
-import { notifyBrowserExtensionListChanged } from './installation/browser-extension-list-changes'
-import { reviewHeldBrowserExtensionUpdate } from './web-store/browser-extension-webstore-updater'
-import { withBrowserExtensionLock } from './installation/browser-extension-mutation-lock'
-import { isBrowserExtensionSupportEnabled } from './browser-extension-support'
+} from "./profile-sessions/browser-extension-load-errors"
+import { notifyBrowserExtensionListChanged } from "./installation/browser-extension-list-changes"
+import { reviewHeldBrowserExtensionUpdate } from "./web-store/browser-extension-webstore-updater"
+import { withBrowserExtensionLock } from "./installation/browser-extension-mutation-lock"
+import { isBrowserExtensionSupportEnabled } from "./browser-extension-support"
 import {
   withExtensionEnabled,
   withoutExtension
-} from './profile-sessions/browser-extension-profile-enablement'
-import { forgetPinnedBrowserExtension } from './actions/browser-extension-toolbar-pins'
-import { getBrowserExtensionProfileStateStore } from './profile-storage/browser-extension-profile-state-store'
-import { getBrowserExtensionSyncStorageStore } from './profile-storage/browser-extension-sync-storage-store'
-import { getBrowserExtensionDnrStore } from './declarative-net-request/session/browser-extension-dnr-store'
-import { notifyChromeWebStoreUninstalled } from './web-store/browser-extension-webstore-events'
+} from "./profile-sessions/browser-extension-profile-enablement"
+import { forgetPinnedBrowserExtension } from "./actions/browser-extension-toolbar-pins"
+import { getBrowserExtensionProfileStateStore } from "./profile-storage/browser-extension-profile-state-store"
+import { getBrowserExtensionSyncStorageStore } from "./profile-storage/browser-extension-sync-storage-store"
+import { getBrowserExtensionDnrStore } from "./declarative-net-request/session/browser-extension-dnr-store"
+import { notifyChromeWebStoreUninstalled } from "./web-store/browser-extension-webstore-events"
 
 /** Settings actions. Each returns a result instead of throwing so the renderer can show the reason. */
 
@@ -108,6 +114,7 @@ export function setBrowserExtensionEnabled(
       if (!installed) {
         throw new Error('Extension is not installed')
       }
+      await startBrowserExtensionsForSettings(browserProfileId)
       await loadBrowserExtensionIntoProfile(browserProfileId, installed)
       browserSessionRegistry.updateEnabledExtensionIds((byProfile) =>
         withExtensionEnabled(byProfile, browserProfileId, extensionId, true)
@@ -141,11 +148,17 @@ export function removeBrowserExtension(extensionId: string): Promise<BrowserExte
       )
       forgetPinnedBrowserExtension(extensionId)
       getBrowserExtensionProfileStateStore().forgetExtension(extensionId)
-      getBrowserExtensionSyncStorageStore().forgetExtension(extensionId)
-      getBrowserExtensionDnrStore().forgetExtension(extensionId)
+      // Why awaited: keep the install record until the extension's saved data is deleted.
+      await Promise.all([
+        getBrowserExtensionSyncStorageStore().forgetExtension(extensionId),
+        getBrowserExtensionDnrStore().forgetExtension(extensionId)
+      ])
       forgetBrowserExtensionLoadFailures({ extensionId })
       forgetHeldBrowserExtensionUpdate(extensionId)
-      await getBrowserExtensionInstallStore().remove(extensionId)
+      const removed = await getBrowserExtensionInstallStore().remove(extensionId)
+      if (removed) {
+        forgetPreparedBrowserExtensionDirectory(removed.path)
+      }
       notifyChromeWebStoreUninstalled(extensionId)
       notifyBrowserExtensionListChanged()
     })
@@ -226,6 +239,7 @@ export function addUnpackedBrowserExtension(
       }
       let loaded: Electron.Extension
       try {
+        await startBrowserExtensionsForSettings(browserProfileId)
         loaded = await loadBrowserExtensionFolderIntoProfile(
           browserProfileId,
           extensionId,
@@ -243,6 +257,9 @@ export function addUnpackedBrowserExtension(
       browserSessionRegistry.updateEnabledExtensionIds((byProfile) =>
         withExtensionEnabled(byProfile, browserProfileId, loaded.id, true)
       )
+      if (!existing) {
+        recordBrowserExtensionInstalled('unpacked')
+      }
     })
     notifyBrowserExtensionListChanged()
   })
@@ -253,11 +270,13 @@ export function openBrowserExtensionOptions(
   extensionId: string
 ): Promise<BrowserExtensionActionResult> {
   return settle(async () => {
+    await startBrowserExtensionsForSettings(browserProfileId)
+    await whenBrowserExtensionProfileLoaded(browserProfileId)
     const extension =
       getBrowserExtensionSessionForProfile(browserProfileId)?.extensions.getExtension(extensionId)
     if (!extension) {
       throw new Error('Turn the extension on to open its options')
     }
-    await openBrowserExtensionOptionsPage(browserProfileId, extension)
+    await openBrowserExtensionOptionsPage(browserProfileId, extension, { active: true })
   })
 }

@@ -9,7 +9,7 @@ export default defineConfig({
   base: './',
   plugins: [react(), tailwind()],
   resolve: { alias: { '@': resolve(root, '../source/renderer/src'), '@renderer': resolve(root, '../source/renderer/src'), '@shared': resolve(root, '../source/shared') } },
-  define: { ORCA_BUILD_COMMIT: JSON.stringify('729f757b592244176420a86114c1ea23911eeeba'), ORCA_BUILD_IDENTITY: 'null', ORCA_POSTHOG_WRITE_KEY: 'null', ORCA_DIAGNOSTICS_TOKEN_URL: 'null' },
+  define: { ORCA_BUILD_COMMIT: JSON.stringify('d3a843d032f602cf09e392613683a94089efce07'), ORCA_BUILD_IDENTITY: 'null', ORCA_POSTHOG_WRITE_KEY: 'null', ORCA_DIAGNOSTICS_TOKEN_URL: 'null' },
   build: { outDir: resolve(root, '../../../dist/browser/renderer'), emptyOutDir: true, target: 'es2022' },
   worker: { format: 'es' }
 })

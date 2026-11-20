@@ -11,6 +11,7 @@ import { launchHelperApp } from './helper-launch.js'
 import { reapHelper } from './helper-reaping.js'
 import type { JavisProvider } from './provider.js'
 import { JsonLineDecoder } from './transport.js'
+import { isComputerRead, providerReadTimeout, type ProviderReadOptions } from './computer-read-options.js'
 
 type Options = { stateDirectory?: string; requestTimeoutMs?: number; canDeliver?: () => boolean }
 type Generation = {
@@ -76,6 +77,7 @@ function request(socket: net.Socket, id: number, method: string, params: Record<
 function requiredCapability(method:string, capabilities:ComputerProviderCapabilities): boolean {
   const supports=capabilities.supports
   if(method==='listApps')return supports.apps?.list===true
+  if(method==='launchApp')return supports.apps?.launch===true
   if(method==='listWindows')return supports.windows?.list===true
   const actionKey:Record<string,keyof ComputerProviderCapabilities['supports']['actions']>={
     click:'click',performSecondaryAction:'performAction',scroll:'scroll',drag:'drag',typeText:'typeText',pressKey:'pressKey',hotkey:'hotkey',pasteText:'pasteText',setValue:'setValue'
@@ -116,7 +118,7 @@ export function createMacOSProvider(options:Options={}):JavisProvider {
     return current.closing
   }
 
-  async function startGeneration():Promise<Generation> {
+  async function startGeneration(options:ProviderReadOptions):Promise<Generation> {
     checkDelivery()
     const app=resolve(process.env.JAVIS_APP_PATH??join(homedir(),'Applications/Javis.app'))
     const executable=join(app,'Contents/MacOS/javis-helper')
@@ -141,7 +143,7 @@ export function createMacOSProvider(options:Options={}):JavisProvider {
       socket=await waitConnect(socketPath,Date.now()+10_000)
       socket.on('error',()=>{})
       checkDelivery()
-      const capabilities=await request(socket,nextId++,'handshake',{},token,timeoutMs) as ComputerProviderCapabilities
+      const capabilities=await request(socket,nextId++,'handshake',{},token,providerReadTimeout('handshake', {}, options, timeoutMs)) as ComputerProviderCapabilities
       if(capabilities?.protocolVersion!==1 || !capabilities.supports)throw new JavisError('provider_incompatible','Expected helper protocol version 1 and capability flags')
       checkDelivery()
       await rm(tokenPath,{force:true})
@@ -159,20 +161,22 @@ export function createMacOSProvider(options:Options={}):JavisProvider {
     }
   }
 
-  async function execute(method:string,params:Record<string,unknown>):Promise<unknown> {
+  async function execute(method:string,params:Record<string,unknown>,options:ProviderReadOptions):Promise<unknown> {
     checkDelivery()
+    const readOptions=isComputerRead(method,params)?options:{}
     if(generation?.socket.destroyed)await closeGeneration(generation)
-    const current=generation??await startGeneration()
+    const current=generation??await startGeneration(readOptions)
     checkDelivery()
     if(method==='handshake')return current.capabilities
+    if(method==='typeText' && params.elementIndex !== undefined && current.capabilities.supports.actions.typeTextElement !== true)throw new JavisError('unsupported_capability','The Javis macOS helper cannot type into a specific element')
     if(!requiredCapability(method,current.capabilities))throw new JavisError('unsupported_capability',`The Javis macOS helper does not support ${method}`)
-    try{return await request(current.socket,nextId++,method,params,current.token,timeoutMs)}
+    try{return await request(current.socket,nextId++,method,params,current.token,providerReadTimeout(method, params, readOptions, timeoutMs))}
     catch(error){await closeGeneration(current).catch(()=>{});throw error}
   }
 
   return {
-    call(method,params){
-      const pending=serial.catch(()=>{}).then(()=>execute(method,params))
+    call(method,params,options={}){
+      const pending=serial.catch(()=>{}).then(()=>execute(method,params,options))
       serial=pending
       return pending
     },

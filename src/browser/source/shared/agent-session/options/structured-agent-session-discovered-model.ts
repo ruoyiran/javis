@@ -1,8 +1,11 @@
-import type { CatalogModel, CatalogOption } from './agent-session-option-catalog-types'
-import type { AgentSessionOptionChoice } from '../agent-session-wire'
-import type { AgentSessionOptionsResult } from './agent-session-options-result'
-import type { AgentType } from '../../agent-status/contracts/agent-status-types'
-import { usesModelSpecificAcpEfforts } from './agent-model-catalog-ownership'
+import type {
+  CatalogModel,
+  CatalogOption
+} from "./agent-session-option-catalog-types"
+import type { AgentSessionOptionChoice } from "../agent-session-wire"
+import type { AgentSessionOptionsResult } from "./agent-session-options-result"
+import type { AgentType } from "../../agent-status/contracts/agent-status-types"
+import { usesModelSpecificAcpEfforts } from "./agent-model-catalog-ownership"
 
 export function structuredModelEfforts(
   model: AgentSessionOptionsResult['models'][number]
@@ -32,12 +35,12 @@ function effortOption(
   }
 }
 
-function fastModeOption(): CatalogOption {
+function fastModeOption(defaultValue: boolean): CatalogOption {
   return {
     id: 'fastMode',
     label: 'Fast mode',
     category: 'mode',
-    kind: { type: 'boolean', defaultValue: false },
+    kind: { type: 'boolean', defaultValue },
     apply: {}
   }
 }
@@ -89,7 +92,7 @@ export function discoveredModel(
       ...(serviceTier
         ? [serviceTier]
         : sessionSupportsFastMode && model.supportsFastMode === true
-          ? [fastModeOption()]
+          ? [fastModeOption(model.defaultFastMode === true)]
           : [])
     ]
   }

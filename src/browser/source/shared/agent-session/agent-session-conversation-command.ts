@@ -1,12 +1,15 @@
-import type { AgentSessionFailureFact } from './failures/agent-session-failure'
-import type { AgentSessionFailureSentence } from './failures/agent-session-failure-words'
-import type { AgentSessionQueuedSendReceipt } from './agent-session-wire'
+import type { AgentSessionFailureFact } from "./failures/agent-session-failure"
+import type { AgentSessionFailureSentence } from "./failures/agent-session-failure-words"
+import type { AgentSessionQueuedSendReceipt } from "./agent-session-wire"
 
 export type AgentSessionConversationCommand = 'clear' | 'compact'
 
-/** What the user typed and what a text-driven agent receives. */
-export function agentSessionCompactCommandText(instructions?: string): string {
-  return instructions ? `/compact ${instructions}` : '/compact'
+/** What the user typed and what a text-driven agent receives; `command` is the agent's own name for it. */
+export function agentSessionCompactCommandText(
+  instructions?: string,
+  command = '/compact'
+): string {
+  return instructions ? `${command} ${instructions}` : command
 }
 
 /** The fields a command's mutation is fingerprinted over: host and clients must build the same ones. */

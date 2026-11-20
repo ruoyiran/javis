@@ -1,18 +1,20 @@
-import type { ClassifiedError } from '../classified-error'
-import type { ExecutionHostId } from '../execution-host'
-import type { PRCheckDetail } from './check-types'
-import type { GitHubIssueTimelineItem, PRComment } from './comment-types'
+import type { ClassifiedError } from "../classified-error"
+import type { ExecutionHostId } from "../execution-host"
+import type { PRCheckDetail } from "./check-types"
+import type { GitHubIssueTimelineItem, PRComment } from "./comment-types"
 import type {
   GitHubAssignableUser,
-  GitHubOwnerRepo,
   GitHubPRFile,
   GitHubPRMergeMethodSettings,
   GitHubPRReviewSummary,
-  GitHubRepositoryIdentity,
   PRMergeableState,
   PRReviewDecision,
   ProviderCheckSummary
-} from './pull-request-types'
+} from "./pull-request-types"
+import type {
+  GitHubRepositoryIdentity as GitHubOwnerRepo,
+  GitHubRepositoryIdentity
+} from "./repositories/repository-identity"
 
 export type GitHubWorkItem = {
   id: string

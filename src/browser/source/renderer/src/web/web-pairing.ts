@@ -1,12 +1,12 @@
 import {
   RuntimeHostDescriptorSchema,
   type RuntimeHostDescriptor
-} from '../../../shared/remote-runtime/host-status/runtime-host-descriptor'
-import { normalizePairingBase64 } from '../../../shared/remote-runtime/pairing/mobile-pairing-base64'
-import { PAIRING_INPUT_MAX_CHARACTERS } from '../../../shared/remote-runtime/pairing/mobile-pairing-protocol-limits'
-import type { DeviceScope } from '../../../shared/runtime-types'
-import { classifyRuntimeHostRePair } from '../../../shared/remote-runtime/host-status/runtime-host-pairing-identity'
-import type { StoredWebRuntimeEnvironment } from './web-runtime-environment'
+} from "../../../shared/remote-runtime/host-status/runtime-host-descriptor"
+import { normalizePairingBase64 } from "../../../shared/remote-runtime/pairing/mobile-pairing-base64"
+import { PAIRING_INPUT_MAX_CHARACTERS } from "../../../shared/remote-runtime/pairing/mobile-pairing-protocol-limits"
+import type { DeviceScope } from "../../../shared/runtime-session-contracts"
+import { classifyRuntimeHostRePair } from "../../../shared/remote-runtime/host-status/runtime-host-pairing-identity"
+import type { StoredWebRuntimeEnvironment } from "./web-runtime-environment"
 
 type SavedServerIdentity = Pick<StoredWebRuntimeEnvironment, 'hostDescriptor'> & {
   endpoints: readonly Pick<

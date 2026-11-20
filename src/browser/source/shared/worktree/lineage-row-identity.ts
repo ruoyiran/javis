@@ -1,6 +1,10 @@
-import { parseWorkspaceKey, worktreeWorkspaceKey, type WorkspaceKey } from '../workspace-scope'
-import type { CrossStoreParentRef } from './lineage-types'
-import type { Worktree } from './types'
+import {
+  parseWorkspaceKey,
+  worktreeWorkspaceKey,
+  type WorkspaceKey
+} from "../workspace-scope"
+import type { CrossStoreParentRef } from "./lineage-types"
+import type { Worktree } from "./types"
 
 export function workspaceKeyOfRow(row: Pick<Worktree, 'id'>): WorkspaceKey {
   // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: folder rows carry their folder WorkspaceKey as id (folderWorkspaceToWorktree).

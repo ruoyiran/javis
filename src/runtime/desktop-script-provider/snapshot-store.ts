@@ -40,9 +40,17 @@ export class DesktopScriptSnapshotStore {
     windowId: number | undefined,
     params: Record<string, unknown>
   ): BridgeSnapshot | null {
+    return this.lookupCurrent(app, windowId, params, false)
+  }
+
+  currentForObservedApp(app: string, windowId: number | undefined, params: Record<string, unknown>): BridgeSnapshot | null {
+    return this.lookupCurrent(app, windowId, params, true)
+  }
+
+  private lookupCurrent(app: string, windowId: number | undefined, params: Record<string, unknown>, appQualifiedOnly: boolean): BridgeSnapshot | null {
     this.prune()
     const windowIndex = optionalNumberParam(params, 'windowIndex')
-    const keys = lookupCachedSnapshotKey(app, params, windowId, windowIndex)
+    const keys = lookupCachedSnapshotKey(app, params, windowId, windowIndex, appQualifiedOnly)
     const hasExplicitWindowTarget = windowId !== undefined || windowIndex !== undefined
     for (const key of keys) {
       if (

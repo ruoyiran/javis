@@ -1,79 +1,80 @@
 import type {
   RuntimeEditorTabReveal,
   RuntimeFileOpenPosition
-} from '../../shared/file-access/runtime-editor-file-open'
-import type { JiraQuickFilterState } from '../../shared/jira/jira-quick-filters'
+} from "../../shared/file-access/runtime-editor-file-open"
+import type { JiraQuickFilterState } from "../../shared/jira/jira-quick-filters"
 import type {
   JiraSavedFilterState,
   JiraSavedFilterMutation
-} from '../../shared/jira/jira-saved-filters'
-import type { BrowserTabCreateRequest } from '../../shared/browser-tab-create-request'
-import type { MarkdownDocument } from '../../shared/file-listing/file-document'
-import type { PersistedUIState } from '../../shared/persisted-ui-state-types'
-import type { TuiAgent } from '../../shared/agent-launch/catalog/tui-agent'
+} from "../../shared/jira/jira-saved-filters"
+import type { BrowserTabCreateRequest } from "../../shared/browser-tab-create-request"
+import type { MarkdownDocument } from "../../shared/file-listing/file-document"
+import type { PersistedUIState } from "../../shared/persisted-ui-state-types"
+import type { TuiAgent } from "../../shared/agent-launch/catalog/tui-agent"
 import type {
   AgentLaunchTabPublishReply,
   AgentLaunchTabViewerRule,
   AgentLaunchTabPublishRequest
-} from '../../shared/agent-launch/contracts/agent-launch-tab-publication'
-import type { AgentLaunchPaneVerdictEvent } from '../../shared/agent-launch/contracts/agent-launch-pane-verdict'
-import type { PaneLaunchRecipe } from '../../shared/terminal/pty/lifecycle/terminal-attachment-launch-result'
+} from "../../shared/agent-launch/contracts/agent-launch-tab-publication"
+import type { AgentLaunchPaneVerdictEvent } from "../../shared/agent-launch/contracts/agent-launch-pane-verdict"
+import type { PaneLaunchRecipe } from "../../shared/terminal/pty/lifecycle/terminal-attachment-launch-result"
 import type {
   TerminalPaneMoveToNewTabReply,
   TerminalPaneMoveToNewTabRequest
-} from '../../shared/workspace-layout/terminal-leaf-move'
+} from "../../shared/workspace-layout/terminal-leaf-move"
 import type {
   TerminalPaneRevealReply,
   TerminalPaneRevealRequest
-} from '../../shared/workspace-layout/terminal-pane-reveal'
+} from "../../shared/workspace-layout/terminal-pane-reveal"
 import type {
   AgentPaneActivityReply,
   AgentPaneActivityRequest
-} from '../../shared/agent-status/presentation/agent-list-status'
-import type { RuntimeNavigationTarget } from '../../shared/runtime-navigation'
+} from "../../shared/agent-status/presentation/agent-list-status"
+import type { RuntimeNavigationTarget } from "../../shared/runtime-navigation"
 import type {
   ProjectMovePauseRequest,
   ProjectMovePauseResponse
-} from '../../shared/project-move-pause'
-import type { TerminalSurfaceCloseTarget } from '../../shared/workspace-layout/terminal-surface-close-target'
+} from "../../shared/project-move-pause"
+import type { TerminalSurfaceCloseTarget } from "../../shared/workspace-layout/terminal-surface-close-target"
 import type {
   WorktreeDefaultTabsLaunch,
   WorktreeSetupLaunch,
   WorktreeStartupLaunch
-} from '../../shared/worktree/launch-types'
-import type { FeatureInteractionId } from '../../shared/feature-interactions'
-import type { KeybindingActionId } from '../../shared/keybindings'
-import type { BrowserFindSource } from '../../shared/browser-find-source'
+} from "../../shared/worktree/launch-types"
+import type { FeatureInteractionId } from "../../shared/feature-interaction-catalog"
+import type { KeybindingActionId } from "../../shared/keybindings/types"
+import type { BrowserFindSource } from "../../shared/browser-find-source"
 import type {
   BrowserHistoryNavigateCommand,
   BrowserPageCommandTarget,
   BrowserPageTabShortcut
-} from '../../shared/browser-page-command-target'
-import type { BrowserPageZoomCommand } from '../../shared/browser-page-zoom'
+} from "../../shared/browser-page-command-target"
+import type { BrowserPageZoomCommand } from "../../shared/browser-page-zoom"
 import type {
   AgentProviderSessionMetadata,
   SleepingAgentLaunchConfig
-} from '../../shared/agent-session/lifecycle/agent-session-resume'
-import type { TerminalPaneSplitSource } from '../../shared/feature-education-telemetry'
+} from "../../shared/agent-session/lifecycle/agent-session-resume"
+import type { TerminalPaneSplitSource } from "../../shared/feature-education-telemetry"
+import type { RendererTerminalSplitRequest } from "../../shared/workspace-layout/terminal-topology/renderer-terminal-split-request"
+import type { RuntimeMobileSessionTabMove } from "../../shared/runtime-session-contracts"
 import type {
-  RuntimeMobileSessionTabMove,
   RuntimeTerminalCreateRequestPayload,
   RuntimeTerminalPresentation
-} from '../../shared/runtime-types'
-import type { TerminalTabCreateReply } from '../../shared/workspace-layout/terminal-reveal-identity'
+} from "../../shared/runtime-terminal-contracts"
+import type { TerminalTabCreateReply } from "../../shared/workspace-layout/terminal-reveal-identity"
 import type {
   TerminalTabCloseRequest,
   TerminalTabCloseResponse
-} from '../../shared/workspace-layout/terminal-tab-close'
+} from "../../shared/workspace-layout/terminal-tab-close"
 import type {
   SessionTabCloseRequest,
   SessionTabCloseResponse
-} from '../../shared/session-tab-close'
-import type { WorkspaceSleepNotice } from '../../shared/workspace-sleep'
+} from "../../shared/session-tab-close"
+import type { WorkspaceSleepNotice } from "../../shared/workspace-sleep"
 import type {
   RemoteCliBrowserScopeQuery,
   RemoteCliBrowserScopeReply
-} from '../../shared/desktop-browser-bridge-protocol'
+} from "../../shared/desktop-browser-bridge-protocol"
 
 export type CloseActiveTabPayload = { sourceId: string }
 
@@ -117,7 +118,6 @@ export type UiCommandEventApi = {
   onOpenQuickOpen: (callback: () => void) => () => void
   onToggleQuickCommandsMenu: (callback: () => void) => () => void
   onOpenNewWorkspace: (callback: () => void) => () => void
-  onDeleteCurrentWorkspace: (callback: () => void) => () => void
   onOpenWorkspaceBoard: (callback: () => void) => () => void
   onOpenTasks: (callback: () => void) => () => void
   onToggleAgentDashboard: (callback: () => void) => () => void
@@ -231,18 +231,7 @@ export type UiCommandEventApi = {
   replyTerminalPaneReveal: (reply: TerminalPaneRevealReply) => void
   onApplyAgentPaneActivity: (callback: (data: AgentPaneActivityRequest) => void) => () => void
   replyAgentPaneActivity: (reply: AgentPaneActivityReply) => void
-  onSplitTerminal: (
-    callback: (data: {
-      tabId: string
-      paneRuntimeId: number
-      direction: 'horizontal' | 'vertical'
-      command?: string
-      worktreeId?: string
-      sourceLeafId?: string
-      telemetrySource?: TerminalPaneSplitSource
-      newLeafId?: string
-    }) => void
-  ) => () => void
+  onSplitTerminal: (callback: (data: RendererTerminalSplitRequest) => void) => () => void
   onRenameTerminal: (
     callback: (data: { tabId: string; title: string | null; recordInteraction?: false }) => void
   ) => () => void

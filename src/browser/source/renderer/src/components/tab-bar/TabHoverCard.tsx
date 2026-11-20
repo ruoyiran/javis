@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode, type SyntheticEvent } from 'react'
 import { flushSync } from 'react-dom'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip"
 
 export function TabHoverCard({
   children,
@@ -9,17 +9,22 @@ export function TabHoverCard({
   programName,
   description,
   alert,
-  showWhenUnclipped = false
+  showWhenUnclipped = false,
+  programNameIsProse = false
 }: {
   children: ReactNode
   title: string
   icon: ReactNode
   programName: string
-  description?: string
+  /** A function is read only while the card is open. */
+  description?: string | (() => string)
   /** Controls below the program row; the card then stays open under the pointer. */
   alert?: ReactNode | ((dismiss: () => void) => ReactNode)
-  /** The program row says something the tab cannot, so the card opens even for a full title. */
+  /** The card says something the tab cannot (a program row, a group room's members), so it opens
+   *  even for a full title. */
   showWhenUnclipped?: boolean
+  /** The program row is a sentence or name list, so it wraps at words instead of anywhere. */
+  programNameIsProse?: boolean
 }): React.JSX.Element {
   const [open, setOpen] = useState(false)
   const triggerRef = useRef<HTMLElement>(null)
@@ -87,7 +92,7 @@ export function TabHoverCard({
             <div className="break-words font-medium" data-tab-hover-card-title>
               {title}
             </div>
-            {description && <div className="break-all text-muted-foreground">{description}</div>}
+            <TabHoverCardDescription description={description} />
           </div>
           <div
             className="flex items-center gap-2 text-muted-foreground"
@@ -96,7 +101,9 @@ export function TabHoverCard({
             <span className="flex h-4 min-w-4 shrink-0 items-center justify-center" aria-hidden>
               {icon}
             </span>
-            <span className="min-w-0 break-all">{programName}</span>
+            <span className={`min-w-0 ${programNameIsProse ? 'break-words' : 'break-all'}`}>
+              {programName}
+            </span>
           </div>
           {typeof alert === 'function' ? alert(dismiss) : alert}
         </div>
@@ -107,4 +114,14 @@ export function TabHoverCard({
 
 function stopTabStripEvent(event: SyntheticEvent): void {
   event.stopPropagation()
+}
+
+// Only mounted while the card is open, so a function description is read then.
+function TabHoverCardDescription({
+  description
+}: {
+  description: string | (() => string) | undefined
+}): React.JSX.Element | null {
+  const text = typeof description === 'function' ? description() : description
+  return text ? <div className="break-all text-muted-foreground">{text}</div> : null
 }

@@ -1,10 +1,10 @@
 import { toast } from 'sonner'
-import type { ExecutionHostId } from '../../../../shared/execution-host'
-import type { RuntimeStatus } from '../../../../shared/runtime-types'
-import { refreshRuntimeProjectWorktreesAndLineage } from '@/hooks/runtime-project-refresh-scheduler'
-import { translate } from '@/i18n/i18n'
-import { unwrapRuntimeRpcResult } from '@/runtime/rpc/calls/runtime-rpc-result'
-import { useAppStore } from '../../store'
+import type { ExecutionHostId } from "../../../../shared/execution-host"
+import type { RuntimeStatus } from "../../../../shared/runtime-session-contracts"
+import { refreshRuntimeProjectWorktreesAndLineage } from "../../hooks/runtime-project-refresh-scheduler"
+import { translate } from "../../i18n/i18n"
+import { unwrapRuntimeRpcResult } from "../../runtime/rpc/calls/runtime-rpc-result"
+import { useAppStore } from "../../store/index"
 
 export async function connectRuntimeEnvironmentAndRecordStatus(
   environmentId: string,

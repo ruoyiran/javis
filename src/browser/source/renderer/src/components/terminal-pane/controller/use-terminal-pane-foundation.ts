@@ -1,29 +1,32 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 import type { IDisposable } from '@xterm/xterm'
-import { useAppStore } from '../../../store/index'
-import { hydrateRuntimeEnvironmentSshState } from '@/runtime/hosts/ssh/runtime-environment-ssh-state'
-import { LOCAL_EXECUTION_HOST_ID, type ExecutionHostId } from '../../../../../shared/execution-host'
-import type { TerminalKittyKeyboardModeTracker } from '../../../../../shared/terminal/protocol/input-modes/terminal-kitty-keyboard-mode-tracker'
-import type { PaneManager } from '@/lib/pane-manager/pane-manager'
-import type { PtyTransport } from '../pty-transport/pty-transport-types'
-import type { SearchState } from '../input/keyboard/terminal-keyboard-shortcut-matching'
-import type { CloseTerminalDialogCopyKind } from '../layout/close/CloseTerminalDialog'
+import { useAppStore } from "../../../store/index"
+import { hydrateRuntimeEnvironmentSshState } from "../../../runtime/hosts/ssh/runtime-environment-ssh-state"
+import {
+  LOCAL_EXECUTION_HOST_ID,
+  type ExecutionHostId
+} from "../../../../../shared/execution-host"
+import type { TerminalKittyKeyboardModeTracker } from "../../../../../shared/terminal/protocol/input-modes/terminal-kitty-keyboard-mode-tracker"
+import type { PaneManager } from "../../../lib/pane-manager/pane-manager"
+import type { PtyTransport } from "../pty-transport/pty-transport-types"
+import type { SearchState } from "../input/keyboard/terminal-keyboard-shortcut-matching"
+import type { CloseTerminalDialogCopyKind } from "../layout/close/CloseTerminalDialog"
 
-import type { TerminalLinkActionRequest } from '../links/terminal-link-action-request'
-import { closeLinkActionRequest as closeTerminalLinkActionRequest } from '@/components/link-actions/link-action-request'
-import type { PreparedAgentSessionFork } from '../session-fork/terminal-agent-session-fork'
-import type { AgentSessionContinuationRequest } from '@/lib/agent-session/context/agent-session-continuation'
-import { createTerminalQuickCommandDraft } from '@/components/terminal-quick-commands/TerminalQuickCommandDialog'
-import { useDaemonActions } from '@/components/shared/useDaemonActions'
-import { useMobileOverlayTicks } from '../mobile-driver/use-mobile-overlay-ticks'
-import type { TerminalPaneProps } from './terminal-pane-types'
-import { useVisibleTerminalTabClaim } from '../viewport/visibility/use-visible-terminal-tab-claim'
-import type { VisiblePtyRecoveryState } from '../pty-transport/remote-runtime/recovery/terminal-remote-runtime-recovery-ui-state'
-import type { PaneProcessExit } from '../process-exit/pane-process-exit'
-import type { PaneCwdMap } from '../layout/split/resolve-split-cwd'
-import type { TerminalErrorsByPaneId } from '../errors/terminal-error-accumulation'
-import { selectTerminalPaneHostState } from '../host-state/terminal-pane-host-state'
+import type { TerminalLinkActionRequest } from "../links/terminal-link-action-request"
+import { closeLinkActionRequest as closeTerminalLinkActionRequest } from "../../link-actions/link-action-request"
+import type { PreparedAgentSessionFork } from "../session-fork/terminal-agent-session-fork"
+import type { AgentSessionContinuationRequest } from "../../../lib/agent-session/context/agent-session-continuation"
+import { createTerminalQuickCommandDraft } from "../../terminal-quick-commands/TerminalQuickCommandDialog"
+import { useDaemonActions } from "../../shared/useDaemonActions"
+import { useMobileOverlayTicks } from "../mobile-driver/use-mobile-overlay-ticks"
+import type { TerminalPaneProps } from "./terminal-pane-types"
+import { useVisibleTerminalTabClaim } from "../viewport/visibility/use-visible-terminal-tab-claim"
+import type { VisiblePtyRecoveryState } from "../pty-transport/remote-runtime/recovery/terminal-remote-runtime-recovery-ui-state"
+import type { PaneProcessExit } from "../process-exit/pane-process-exit"
+import type { PaneCwdMap } from "../layout/split/resolve-split-cwd"
+import type { TerminalErrorsByPaneId } from "../errors/terminal-error-accumulation"
+import { selectTerminalPaneHostState } from "../host-state/terminal-pane-host-state"
 
 export function useTerminalPaneFoundation(props: TerminalPaneProps) {
   const {

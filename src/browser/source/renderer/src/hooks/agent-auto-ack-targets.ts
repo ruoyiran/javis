@@ -1,13 +1,18 @@
-import { FLOATING_TERMINAL_WORKTREE_ID } from '../../../shared/constants'
-import { isOrcaWindowForegroundFocused } from '@/attention/orca-window-foreground-focus'
-import { isStructuredTab } from '../../../shared/agent-session/view/structured-agent-session-tab'
-import type { Tab, TabGroup, TabGroupLayoutNode } from '../../../shared/tab-types'
-import { collectTabGroupLayoutGroupIds } from '../../../shared/workspace-layout/tab-group-moves'
-import { isPresenceConfirmed } from './agent-auto-ack-presence'
+import { FLOATING_TERMINAL_WORKTREE_ID } from "../../../shared/workspace/identity/floating-workspace-id"
+import { isOrcaWindowForegroundFocused } from "../attention/orca-window-foreground-focus"
+import { isStructuredTab } from "../../../shared/agent-session/view/structured-agent-session-tab"
+import type {
+  Tab,
+  TabGroup,
+  TabGroupLayoutNode
+} from "../../../shared/tab-types"
+import { collectTabGroupLayoutGroupIds } from "../../../shared/workspace-layout/tab-group-moves"
+import { isPresenceConfirmed } from "./agent-auto-ack-presence"
+import { botGroupRoomSessions } from "../lib/bot-group-room-sessions"
 import {
   selectFloatingWorkspacePanelVisible,
   type FloatingWorkspacePanelVisibilityState
-} from '@/store/workspaces/floating/floating-workspace-panel-selector'
+} from "../store/workspaces/floating/floating-workspace-panel-selector"
 
 export type AutoAckTabTarget = {
   tabId: string
@@ -43,6 +48,11 @@ function resolveWorkspaceAutoAckTargets(
       targets.push({ tabId: tab.id, worktreeId, surfaceKind: 'structured' })
     } else if (tab?.contentType === 'terminal') {
       targets.push({ tabId: tab.entityId, worktreeId, surfaceKind: 'terminal' })
+    } else if (tab?.contentType === 'room') {
+      // A room shows only its own members' chats, never its sibling threads'.
+      for (const session of botGroupRoomSessions(tab.entityId)) {
+        targets.push({ tabId: session.id, worktreeId, surfaceKind: 'structured' })
+      }
     }
   }
   return targets

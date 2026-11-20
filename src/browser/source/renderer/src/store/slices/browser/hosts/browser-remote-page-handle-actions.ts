@@ -1,8 +1,9 @@
+import { copyBrowserPageHandles } from "./browser-initialization-presentation-ownership"
 import type {
   BrowserSlice,
   BrowserSliceSet,
   RemoteBrowserPageHandle
-} from '../browser-slice-contract'
+} from "../browser-slice-contract"
 
 export function createBrowserRemotePageHandleActions(
   set: BrowserSliceSet
@@ -10,10 +11,10 @@ export function createBrowserRemotePageHandleActions(
   return {
     setRemoteBrowserPageHandle: (pageId, handle) => {
       set((s) => ({
-        remoteBrowserPageHandlesByPageId: {
-          ...s.remoteBrowserPageHandlesByPageId,
-          [pageId]: handle
-        }
+        remoteBrowserPageHandlesByPageId: Object.assign(
+          copyBrowserPageHandles(s.remoteBrowserPageHandlesByPageId, [pageId]),
+          { [pageId]: handle }
+        )
       }))
     },
     removeRemoteBrowserPageHandle: (pageId, remotePageId) => {
@@ -24,9 +25,10 @@ export function createBrowserRemotePageHandleActions(
           return s
         }
         removedHandle = current
-        const nextRemoteBrowserPageHandlesByPageId = {
-          ...s.remoteBrowserPageHandlesByPageId
-        }
+        const nextRemoteBrowserPageHandlesByPageId = copyBrowserPageHandles(
+          s.remoteBrowserPageHandlesByPageId,
+          [pageId]
+        )
         delete nextRemoteBrowserPageHandlesByPageId[pageId]
         return { remoteBrowserPageHandlesByPageId: nextRemoteBrowserPageHandlesByPageId }
       })

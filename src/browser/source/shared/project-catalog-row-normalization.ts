@@ -1,5 +1,5 @@
-import { LOCAL_EXECUTION_HOST_ID } from './execution-host'
-import type { Project, ProjectHostSetup } from './project-types'
+import { LOCAL_EXECUTION_HOST_ID } from "./execution-host"
+import type { Project, ProjectHostSetup } from "./project/project-types"
 
 /** Normalize persisted/mixed-version Project/ProjectHostSetup rows at ingress; null/missing strings otherwise crash trim consumers
  * (3bcc5be3). Coerce only: keep row membership, optional-key presence and valid references for selector/useMemo stability.

@@ -1,7 +1,7 @@
 import type React from 'react'
-import { getAgentCatalog, getAgentLabel } from '../../../lib/agent-catalog/agent-catalog'
-import { ClaudeIcon, DroidIcon, OpenAIIcon } from '@/components/status-bar/icons'
-import type { TerminalAgent } from '../../../../../shared/agent-status/identity/terminal-agent'
+import { getAgentCatalog, getAgentLabel } from "../../../lib/agent-catalog/agent-catalog"
+import { ClaudeIcon, DroidIcon, OpenAIIcon } from "../../status-bar/accounts/provider-icons"
+import type { TerminalAgent } from "../../../../../shared/agent-status/identity/terminal-agent"
 import {
   AgentLetterIcon,
   AiderIcon,
@@ -10,8 +10,8 @@ import {
   OmpIcon,
   OpenCodeIcon,
   PiIcon
-} from './agent-icon-glyphs'
-import { AGENT_FAVICON_ASSETS } from './agent-favicon-assets'
+} from "./agent-icon-glyphs"
+import { AGENT_FAVICON_ASSETS } from "./agent-favicon-assets"
 
 export function AgentIcon({
   agent,

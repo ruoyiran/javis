@@ -1,44 +1,46 @@
-import { matchPaletteDocument } from '../../../../../../shared/palette-match/match-document'
-import { preparePaletteQuery } from '../../../../../../shared/palette-match/palette-query'
-import type { MatchRange } from '../../../../../../shared/palette-match/normalized-text'
-import type { PaletteResultQualityClass } from '../../../../../../shared/palette-match/match-quality'
+import { isWorktreeRetiredByRemoval } from "../../../../../../shared/worktree/removal/removal-visibility"
+import { matchPaletteDocument } from "../../../../../../shared/palette-match/match-document"
+import { preparePaletteQuery } from "../../../../../../shared/palette-match/palette-query"
+import type { MatchRange } from "../../../../../../shared/palette-match/normalized-text"
+import type { PaletteResultQualityClass } from "../../../../../../shared/palette-match/match-quality"
 import type {
   PaletteDocument,
   PaletteDocumentMatch,
   PaletteDocumentRank
-} from '../../../../../../shared/palette-match/palette-document'
+} from "../../../../../../shared/palette-match/palette-document"
 import {
   buildWorktreePaletteDocuments,
   WORKTREE_PALETTE_BRANCH_FIELD_ID,
   WORKTREE_PALETTE_HOST_FIELD_ID,
   WORKTREE_PALETTE_NAME_FIELD_ID,
   WORKTREE_PALETTE_REPO_FIELD_ID
-} from './worktree-palette-document'
-import type { WorktreePaletteDocumentSources } from './worktree-palette-document'
+} from "./worktree-palette-document"
+import type { WorktreePaletteDocumentSources } from "./worktree-palette-document"
 import {
   applyWorktreeCommentSnippet,
   type PaletteSupportingKind
-} from './worktree-palette-evidence'
-import type { HostedReviewInfo } from '../../../../../../shared/source-control/hosted-review/hosted-review-contracts'
-import type { Repo } from '../../../../../../shared/repo-types'
-import type { Worktree } from '../../../../../../shared/worktree/types'
-import { getWorkspaceLastActiveAt } from '../../../../../../shared/workspace-last-active'
-import { getWorktreeVisitTimestamp } from '../../activation/worktree-visit-recency'
+} from "./worktree-palette-evidence"
+import type { HostedReviewInfo } from "../../../../../../shared/source-control/hosted-review/hosted-review-contracts"
+import type { Repo } from "../../../../../../shared/repo-types"
+import type { Worktree } from "../../../../../../shared/worktree/types"
+import { getWorkspaceLastActiveAt } from "../../../../../../shared/workspace-last-active"
+import { getWorktreeVisitTimestamp } from "../../activation/worktree-visit-recency"
 import {
   getPaletteWorktreeExecutionHostId,
   getPaletteWorktreeIdentity,
   resolvePaletteRepoForWorktree
-} from '../palette-repo-resolution'
+} from "../palette-repo-resolution"
 import {
   matchWorktreePaletteTaskUrl,
   parseCmdJTaskSourceUrl
-} from './worktree-palette-task-url-match'
+} from "./worktree-palette-task-url-match"
 import {
   createPaletteSearchContext,
   preparePaletteActivity,
   type PaletteActivityRank,
   type PaletteSearchContext
-} from '../../../../../../shared/palette-match/palette-ranking'
+} from "../../../../../../shared/palette-match/palette-ranking"
+import type { HiddenProjects } from "../../../../../../shared/project/catalog/hidden-projects"
 
 export type PaletteMatchedField = 'displayName' | 'branch' | 'repo' | 'host' | PaletteSupportingKind
 
@@ -70,17 +72,32 @@ export type PaletteSearchResult = {
 
 const NO_RANGES: readonly MatchRange[] = []
 
+/** What a typed search may surface: filter-hidden workspaces come back, hidden projects' never do. */
+export function isPaletteSearchableWorktree(
+  worktree: Worktree,
+  hiddenProjects: HiddenProjects
+): boolean {
+  return (
+    !worktree.isArchived &&
+    !isWorktreeRetiredByRemoval(worktree) &&
+    !hiddenProjects.isRowHidden(worktree)
+  )
+}
+
 export function getWorktreePaletteSearchScope(args: {
   hasQuery: boolean
   allWorktrees: readonly Worktree[]
   emptyQueryWorktrees: readonly Worktree[]
+  hiddenProjects: HiddenProjects
 }): Worktree[] {
   if (!args.hasQuery) {
     return [...args.emptyQueryWorktrees]
   }
 
   // Explicit search recovers sleeping/default-branch workspaces hidden by sidebar filters.
-  return args.allWorktrees.filter((worktree) => !worktree.isArchived)
+  return args.allWorktrees.filter((worktree) =>
+    isPaletteSearchableWorktree(worktree, args.hiddenProjects)
+  )
 }
 
 function makeEmptyPaletteSearchResult(

@@ -1,14 +1,14 @@
 import type { KeyboardEvent } from 'react'
-import { getShortcutPlatform } from '@/lib/keyboard/shortcut-platform'
-import { keybindingMatchesAction } from '../../../../../../shared/keybindings/matching'
+import { getShortcutPlatform } from "../../../../lib/keyboard/shortcut-platform"
+import { keybindingMatchesAction } from "../../../../../../shared/keybindings/matching"
 import type {
   KeybindingInput,
   KeybindingOverrides
-} from '../../../../../../shared/keybindings/types'
-import type { NativeChatContextMenuActions } from '../actions/use-native-chat-context-menu'
+} from "../../../../../../shared/keybindings/types"
+import type { NativeChatContextMenuActions } from "../actions/use-native-chat-context-menu"
 
 export type NativeChatSplitDirection = 'right' | 'down'
-type NativeChatPaneShortcut = NativeChatSplitDirection | 'equalize'
+export type NativeChatPaneShortcut = NativeChatSplitDirection | 'equalize'
 
 type NativeChatTerminalPaneShortcutActions = Pick<
   NativeChatContextMenuActions,

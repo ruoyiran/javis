@@ -1,14 +1,14 @@
-import type { ExecutionHostId } from '../../../../../shared/execution-host'
+import type { ExecutionHostId } from "../../../../../shared/execution-host"
 
 import {
   type WorkspaceCleanupCandidate,
   type WorkspaceCleanupScanError,
   type WorkspaceCleanupUnverifiedRemovalConsent,
   shouldForceWorkspaceCleanupRemoval
-} from '../../../../../shared/workspace-cleanup/workspace-cleanup'
-import { getRepoIdFromWorktreeId } from '../../../../../shared/worktree/id'
-import { translate } from '@/i18n/i18n'
-import type { WorkspaceCleanupFailure } from './workspace-cleanup-removal'
+} from "../../../../../shared/workspace-cleanup/workspace-cleanup"
+import { getRepoIdFromWorktreeId } from "../../../../../shared/worktree/id"
+import { translate } from "../../../i18n/i18n"
+import type { WorkspaceCleanupFailure } from "./workspace-cleanup-removal"
 
 type PreflightFailureTarget = {
   worktreeId: string
@@ -119,4 +119,8 @@ export function getWorkspaceCleanupGitUnavailableFailure(
 }
 
 // Unlike unknown-base and git-status-error, these facts prove known work is at risk.
-const WORKSPACE_CLEANUP_CONCRETE_RISK_BLOCKERS = ['dirty-files', 'unpushed-commits'] as const
+const WORKSPACE_CLEANUP_CONCRETE_RISK_BLOCKERS = [
+  'dirty-files',
+  'ignored-files',
+  'unpushed-commits'
+] as const

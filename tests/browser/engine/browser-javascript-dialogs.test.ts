@@ -68,6 +68,7 @@ describe('browser JavaScript dialogs', () => {
     expect(getBrowserJavaScriptDialog(guest.id)).toEqual({
       type: 'confirm',
       message: 'Delete everything?',
+      origin: 'https://shop.example',
       defaultPromptText: ''
     })
     expect(shownPrompts()).toEqual([
@@ -76,6 +77,7 @@ describe('browser JavaScript dialogs', () => {
         details: {
           type: 'confirm',
           message: 'Delete everything?',
+      origin: 'https://shop.example',
           defaultPromptText: '',
           origin: 'https://shop.example'
         }

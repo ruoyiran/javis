@@ -1,42 +1,41 @@
 import { webContents } from 'electron'
-import type { InstalledBrowserExtension } from '../../../../shared/browser/extensions/browser-extension-types'
+import type { InstalledBrowserExtension } from "../../../../shared/browser/extensions/browser-extension-types"
 import {
   parseChromeWebStoreExtensionInput,
   type BrowserExtensionWebStoreInstallResult
-} from '../../../../shared/browser/extensions/browser-extension-webstore'
-import { browserManager } from '../../guest-lifecycle/manager/browser-manager'
-import { browserSessionRegistry } from '../../sessions/profiles/browser-session-registry'
-import { getBrowserExtensionInstallStore } from '../installation/browser-extension-install-store'
-import { requestBrowserExtensionInstallPrompt } from '../permissions/browser-extension-install-prompt'
-import { removeBrowserExtension } from '../browser-extension-management'
-import { readBrowserExtensionIconDataUrl } from '../installation/browser-extension-manifest'
-import { samePermissionSummary } from '../permissions/browser-extension-permission-summary'
-import type { BrowserExtensionAccessLists as BrowserExtensionPermissionSummary } from '../../../../shared/browser/extensions/browser-extension-permission-warnings'
-import { getBrowserExtensionSessionForProfile } from '../profile-sessions/browser-extension-session-loader'
-import { isBrowserExtensionSupportEnabled } from '../browser-extension-support'
+} from "../../../../shared/browser/extensions/browser-extension-webstore"
+import { browserManager } from "../../guest-lifecycle/manager/browser-manager"
+import { browserSessionRegistry } from "../../sessions/profiles/browser-session-registry"
+import { getBrowserExtensionInstallStore } from "../installation/browser-extension-install-store"
+import { requestBrowserExtensionInstallPrompt } from "../permissions/browser-extension-install-prompt"
+import { removeBrowserExtension } from "../browser-extension-management"
+import { readBrowserExtensionIconDataUrl } from "../installation/browser-extension-manifest"
+import { samePermissionSummary } from "../permissions/browser-extension-permission-summary"
+import type { BrowserExtensionAccessLists as BrowserExtensionPermissionSummary } from "../../../../shared/browser/extensions/browser-extension-permission-warnings"
+import { isBrowserExtensionSupportEnabled } from "../browser-extension-support"
 import {
   downloadWebStoreCrx,
   fetchWebStoreIconDataUrl,
   isAllowedWebStoreIconUrl
-} from './browser-extension-webstore-download'
+} from "./browser-extension-webstore-download"
 import {
   notifyChromeWebStoreInstalled,
   notifyChromeWebStoreUninstalled
-} from './browser-extension-webstore-events'
+} from "./browser-extension-webstore-events"
 import {
   commitStagedWebStoreExtension,
   discardStagedWebStoreExtension,
   stageWebStoreExtension
-} from '../installation/browser-extension-webstore-install'
+} from "../installation/browser-extension-webstore-install"
 import {
   isBrowserExtensionBusy,
   withBrowserExtensionLock
-} from '../installation/browser-extension-mutation-lock'
+} from "../installation/browser-extension-mutation-lock"
 import {
   ChromeWebStoreInstallFlow,
   InvalidIconUrlError,
   type ChromeWebStoreFrame
-} from './browser-extension-webstore-install-flow'
+} from "./browser-extension-webstore-install-flow"
 
 /** Real dependencies for the store page flow, plus the Settings "Add from Chrome Web Store" action. */
 
@@ -143,7 +142,7 @@ export async function installBrowserExtensionFromWebStore(
       error: 'Paste a Chrome Web Store link or a 32-letter extension ID'
     }
   }
-  if (!getBrowserExtensionSessionForProfile(profileId)) {
+  if (!browserSessionRegistry.getProfile(profileId)) {
     return { status: 'failed', error: 'Browser profile is not available for extensions' }
   }
   const existing = getBrowserExtensionInstallStore().get(extensionId)

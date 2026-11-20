@@ -1,12 +1,15 @@
-import { getRepoExecutionHostId } from './execution-host'
+import { getRepoExecutionHostId } from "./execution-host"
 import {
   normalizeProjectHostSetupRow,
   normalizeProjectRow
-} from './project-catalog-row-normalization'
-import { normalizeGitHubRemoteHost } from './git/remotes/git-remote-host-alias'
-import { githubRepoIdentityKey, isDefaultGitHubHost } from './github/repository-identity-key'
-import type { Project, ProjectHostSetup, ProjectProviderIdentity } from './project-types'
-import type { Repo } from './repo-types'
+} from "./project-catalog-row-normalization"
+import { normalizeGitHubRemoteHost } from "./git/remotes/git-remote-host-alias"
+import {
+  githubRepoIdentityKey,
+  isDefaultGitHubHost
+} from "./github/repository-identity-key"
+import type { Project, ProjectHostSetup, ProjectProviderIdentity } from "./project/project-types"
+import type { Repo } from "./repo-types"
 
 /** Own fresh mutable project drafts: using persisted/caller rows leaks mergeProjectRepo writes. Mirror sourceRepoIds in a set
  * to avoid membership rescans. */

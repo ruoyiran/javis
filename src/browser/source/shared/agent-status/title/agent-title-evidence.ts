@@ -5,36 +5,37 @@ import {
   GEMINI_SILENT_WORKING,
   GEMINI_WORKING,
   containsAgentSpinnerGlyph
-} from './agent-title-glyphs'
+} from "./agent-title-glyphs"
 import {
   isClaudeIdentityFrameSegment,
   isClaudeManagementTitle,
   isCursorNativeAgentTitle,
-  isGrokRotatingWorkingTitle
-} from './agent-title-core'
+  grokFrameTitleStatus
+} from "./agent-title-core"
 import {
   isOpenCodeNativeTitle,
   isOpenCodeNativeTitleHeader,
   isDirectOpenCodeNativeTitle
-} from './providers/opencode-terminal-title'
+} from "./providers/opencode-terminal-title"
 import {
   hasDeepSeekBuildWorkingTitlePrefix,
   isDeepSeekBuildWorkingTitle,
   isDeepSeekBuildTerminalTitle
-} from './providers/dsb-terminal-title'
-import { stripLeadingAgentTitleDecorationOrEmpty } from './agent-title-decoration'
+} from "./providers/dsb-terminal-title"
+import { stripLeadingAgentTitleDecorationOrEmpty } from "./agent-title-decoration"
 import {
   getPiCompatibleSyntheticAgentLabel,
   getPiCompatibleTitleBrand,
   isLegacyPiCompatibleTitle
-} from './providers/pi-compatible-synthetic-title'
-import { isDshTerminalTitle } from './providers/dsh-terminal-title'
-import { hasQoderTitleLabelPayload, isQoderTerminalTitle } from './providers/qoder-terminal-title'
+} from "./providers/pi-compatible-synthetic-title"
+import { isDshTerminalTitle } from "./providers/dsh-terminal-title"
+import { hasQoderTitleLabelPayload, isQoderTerminalTitle } from "./providers/qoder-terminal-title"
+import { isJcodeIdentityTerminalTitle } from "./providers/jcode-terminal-title"
 import {
   SYNTHETIC_AGENT_TITLE_AGENTS,
   SYNTHETIC_AGENT_TITLE_PROFILES
-} from './synthetic-agent-title'
-import type { TerminalAgent } from '../identity/terminal-agent'
+} from "./synthetic-agent-title"
+import type { TerminalAgent } from "../identity/terminal-agent"
 import {
   agentForNativeFrame,
   agentForNamedTitlePrefix,
@@ -44,7 +45,7 @@ import {
   agentForWholeTitle,
   namesConsumedByAnchoredLabels,
   namesIn
-} from './agent-title-name-anchoring'
+} from "./agent-title-name-anchoring"
 
 /** Collect before ranking: anchored identity names outrank vendor glyphs, which outrank free-text mentions. Free text alone never identifies a pane; prefer no icon to a wrong one. Activity parsing handles generic busy signals separately. */
 export type AgentTitleEvidenceReason =
@@ -178,6 +179,9 @@ function collectAnchoredNames(
     if (synthetic) {
       anchored.add(synthetic)
     }
+    if (grokFrameTitleStatus(segment)) {
+      anchored.add('grok')
+    }
     if (isClaudeIdentityFrameSegment(segment)) {
       anchored.add('claude')
     }
@@ -259,12 +263,13 @@ function collectObserverAnchors(title: string): TerminalAgent[] {
     agent = agentForNativeFrame(segment) === 'claude' ? 'claude' : null
   } else {
     agent =
-      (isGrokRotatingWorkingTitle(segment) ? 'grok' : null) ??
+      (grokFrameTitleStatus(segment) ? 'grok' : null) ??
       (isDeepSeekBuildWorkingTitle(segment) ||
       (!segment.includes('|') && isDeepSeekBuildTerminalTitle(segment))
         ? 'dsb'
         : null) ??
       agentForNativeFrame(segment) ??
+      (isJcodeIdentityTerminalTitle(segment) ? 'jcode' : null) ??
       agentForWholeTitle(segment) ??
       agentForSyntheticTitle(segment) ??
       (ANTIGRAVITY_MODEL_TITLE_RE.test(undecorated) ? 'antigravity' : null) ??

@@ -1,5 +1,6 @@
+import { FLOATING_TERMINAL_WORKTREE_ID } from '../../../../../shared/workspace/identity/floating-workspace-id'
 import type { IDisposable } from '@xterm/xterm'
-import { FLOATING_TERMINAL_WORKTREE_ID } from '../../../../../shared/constants'
+
 import type { PaneManagerOptions } from '@/lib/pane-manager/pane-manager-types'
 import { useAppStore } from '@/store/index'
 import { resolveTerminalLigaturesEnabled } from '../../../../../shared/terminal/appearance/terminal-ligatures'
@@ -7,12 +8,7 @@ import { resolveTerminalFontWeights } from '../../../../../shared/terminal/appea
 import { normalizeTerminalLineHeight } from '../../../../../shared/terminal/appearance/terminal-line-height-settings'
 import { normalizeDesktopTerminalScrollbackRows } from '../../../../../shared/terminal/replay/terminal-scrollback-policy'
 import { normalizeTerminalTuiMouseWheelMultiplier } from '@/lib/pane-manager/terminal-input/pane-terminal-tui-wheel-reports'
-import {
-  normalizeTerminalFastScrollSensitivity,
-  normalizeTerminalScrollSensitivity,
-  resolveTerminalCursorInactiveStyle,
-  resolveTerminalScrollOnUserInput
-} from '@/lib/pane-manager/pane-terminal-options'
+import { normalizeTerminalFastScrollSensitivity, normalizeTerminalScrollSensitivity, resolveTerminalCursorInactiveStyle, resolveTerminalScrollOnUserInput } from '@/lib/pane-manager/pane-terminal-options'
 import { buildFontFamily } from '../../../../../shared/monospace-font-family'
 import { pluginFontFamilyWhenLoaded } from '@/store/plugins/appearance/plugin-fonts'
 import { buildWindowsPtyCompatibilityOptions } from '@/lib/pane-manager/terminal-protocol/windows-pty-compatibility'
@@ -25,10 +21,7 @@ import { handleTerminalWebLinkClick } from '../links/http/terminal-web-link-clic
 import { createTerminalPaneCreatedHandler } from './terminal-pane-created-handler'
 import { createTerminalPaneClosedHandler } from './terminal-pane-closed-handler'
 import { formatTerminalUrlTooltip } from '../links/terminal-url-tooltip'
-import {
-  reportActiveRendererPtyForPane,
-  syncPaneOutputCadences
-} from '../pty-transport/renderer-active-pty'
+import { reportActiveRendererPtyForPane, syncPaneOutputCadences } from '../pty-transport/renderer-active-pty'
 import { resolveTerminalLayoutActiveLeafId } from '../layout/ownership/terminal-layout-active-leaf'
 import type { TerminalPaneManagerOptionsContext } from './terminal-pane-mount-context'
 import { resolveTerminalInlineImagesEnabled } from '../../../../../shared/terminal/images/terminal-inline-images-settings'

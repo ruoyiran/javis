@@ -2,13 +2,13 @@ import {
   agentChildRowDetailText as sharedAgentChildRowDetailText,
   agentChildRowLeadTrail,
   agentChildRowName as sharedAgentChildRowName
-} from '../../../shared/agent-status/presentation/agent-child-row-lead-trail'
-import type { AgentChildRowModel } from '../../../shared/agent-status/presentation/agent-child-row-model'
-import { agentStateLabel } from '@/components/AgentStateDot'
-import { sayBackgroundTaskTranslated } from '@/components/native-chat/tools/tasks/background-task-words-text'
-import { translate } from '@/i18n/i18n'
-import type { Translate } from '@/i18n/use-translate'
-import { agentNoUpdateLabel } from '../../../shared/agent-status/presentation/agent-row-decay-state'
+} from "../../../shared/agent-status/presentation/agent-child-row-lead-trail"
+import type { AgentChildRowModel } from "../../../shared/agent-status/presentation/agent-child-row-model"
+import { agentStateLabel } from "./AgentStateDot"
+import { sayBackgroundTaskTranslated } from "./native-chat/tools/tasks/background-task-words-text"
+import { translate } from "../i18n/i18n"
+import type { Translate } from "../i18n/use-translate"
+import { agentNoUpdateLabel } from "../../../shared/agent-status/presentation/agent-row-decay-state"
 
 export type AgentChildRowText = {
   /** Leads the line; kept when the row truncates. */
@@ -49,5 +49,5 @@ export function agentChildRowName(row: AgentChildRowModel): string {
 }
 
 export function agentChildRowText(row: AgentChildRowModel, now: number): AgentChildRowText {
-  return agentChildRowLeadTrail(row, agentChildRowName(row), agentChildRowDetailText(row, now))
+  return agentChildRowLeadTrail(agentChildRowName(row), agentChildRowDetailText(row, now))
 }

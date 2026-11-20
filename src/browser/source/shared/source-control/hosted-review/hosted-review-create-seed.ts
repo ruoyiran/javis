@@ -1,9 +1,9 @@
-import { escapeRegex } from '../../string-utils'
-import { JIRA_ISSUE_KEY_PATTERN } from '../../jira/jira-issue-url'
-import { prefixJiraReviewTitle } from '../../jira/jira-review-title'
-import { humanizeBranchSlug } from '../ai/naming/branch-name-from-work'
-import type { HostedReviewCreationEligibility } from './hosted-review-contracts'
-import { normalizeHostedReviewHeadRef } from './hosted-review-refs'
+import { escapeRegex } from "../../text/regex-escaping"
+import { JIRA_ISSUE_KEY_PATTERN } from "../../jira/jira-issue-url"
+import { prefixJiraReviewTitle } from "../../jira/jira-review-title"
+import { humanizeBranchSlug } from "../ai/naming/branch-name-from-work"
+import type { HostedReviewCreationEligibility } from "./hosted-review-contracts"
+import { normalizeHostedReviewHeadRef } from "./hosted-review-refs"
 
 export function resolveCreateReviewDraftTitle({
   branch,

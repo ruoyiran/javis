@@ -1,37 +1,37 @@
-import { foldComparableGitHubHost } from '../../../../../../shared/git/remotes/git-remote-host-alias'
+import { foldComparableGitHubHost } from "../../../../../../shared/git/remotes/git-remote-host-alias"
 import {
   matchGitRemoteKeyParts,
   splitGitRemoteKey,
   type GitRemoteKeyParts
-} from '../../../../../../shared/git/remotes/git-remote-identity'
-import type { HostedReviewInfo } from '../../../../../../shared/source-control/hosted-review/hosted-review-contracts'
+} from "../../../../../../shared/git/remotes/git-remote-identity"
+import type { HostedReviewInfo } from "../../../../../../shared/source-control/hosted-review/hosted-review-contracts"
 import {
   parseGitHubIssueOrPRLink,
   type GitHubIssueOrPRLink,
   type RepoSlug
-} from '../../../../../../shared/github/links'
-import { githubRepoIdentityKey } from '../../../../../../shared/github/repository-identity-key'
-import { parseGitLabIssueOrMRLink } from '../../../../../../shared/new-workspace/gitlab-links'
+} from "../../../../../../shared/github/repositories/links"
+import { githubRepoIdentityKey } from "../../../../../../shared/github/repository-identity-key"
+import { parseGitLabIssueOrMRLink } from "../../../../../../shared/new-workspace/gitlab-links"
 import {
   parseJiraIssueUrl,
   type ParsedJiraIssueUrl
-} from '../../../../../../shared/jira/jira-issue-url'
+} from "../../../../../../shared/jira/jira-issue-url"
 import {
   parseLinearIssueUrlIntent,
   type LinearIssueUrlIntent
-} from '../../../../../../shared/linear/links'
-import type { Repo } from '../../../../../../shared/repo-types'
-import { getWorkspaceAttachments } from '../../../../../../shared/workspace-attachments/workspace-attachments'
-import type { Worktree } from '../../../../../../shared/worktree/types'
-import { normalizeLinearIdentifier } from '../../../work-items/linear/linear-issue-workspace-attachment'
+} from "../../../../../../shared/linear/links"
+import type { Repo } from "../../../../../../shared/repo-types"
+import { getWorkspaceAttachments } from "../../../../../../shared/workspace-attachments/workspace-attachments"
+import type { Worktree } from "../../../../../../shared/worktree/types"
+import { normalizeLinearIdentifier } from "../../../work-items/linear/linear-issue-workspace-attachment"
 import {
   worktreeMatchesGitLabUrl,
   type GitLabIssueOrMRLink
-} from './worktree-palette-gitlab-url-match'
-import { isWorktreePaletteQueryTooLarge } from '../../../../../../shared/palette-match/worktree-palette-query-bounds'
-import { buildWorktreePaletteTaskUrlResult } from './worktree-palette-task-url-result'
-import type { PaletteSearchResult } from './worktree-palette-search'
-import { getPaletteWorktreeExecutionHostId } from '../palette-repo-resolution'
+} from "./worktree-palette-gitlab-url-match"
+import { isWorktreePaletteQueryTooLarge } from "../../../../../../shared/palette-match/worktree-palette-query-bounds"
+import { buildWorktreePaletteTaskUrlResult } from "./worktree-palette-task-url-result"
+import type { PaletteSearchResult } from "./worktree-palette-search"
+import { getPaletteWorktreeExecutionHostId } from "../palette-repo-resolution"
 
 export type CmdJTaskSourceUrl =
   | { provider: 'github'; link: GitHubIssueOrPRLink }

@@ -1,30 +1,27 @@
-import type { BrowserScreenshotOptions } from '../../../../shared/rpc-contract/browser-observation-params'
+import type { BrowserScreenshotOptions } from "../../../../shared/rpc-contract/browser-observation-params"
 import { z } from 'zod'
 import { app, nativeImage, type WebContents } from 'electron'
 import type {
   BrowserScreenshotResult,
   BrowserEvalResult
-} from '../../../../shared/browser/runtime/runtime-browser-contracts'
-import { BrowserError } from '../../browser-error'
-import {
-  captureFullPageScreenshot,
-  SCREENSHOT_TIMEOUT_MS,
-  withTimeout
-} from '../../cdp/commands/cdp-screenshot'
+} from "../../../../shared/browser/runtime/runtime-browser-contracts"
+import { BrowserError } from "../../browser-error"
+import { SCREENSHOT_TIMEOUT_MS, withTimeout } from "../../cdp/commands/cdp-screenshot"
+import { captureFullPageScreenshot } from "../../cdp/commands/cdp-full-page-screenshot"
 import {
   agentBrowserScreenshotArgs,
   readAgentBrowserScreenshot
-} from '../observation/agent-browser-screenshot-arguments'
-import { readRasterImageDimensions } from '../../../../shared/file-preview/raster-image-dimensions'
-import { acquireElectronDebugger } from '../../cdp/debugger/electron-debugger-lease'
-import { sendGuestCdpCommand } from '../../cdp/debugger/guest-cdp-command'
-import { AgentBrowserBridgeUtilityCommands } from './agent-browser-bridge-page-commands'
-import { ORCA_TAB_SESSION_PREFIX } from '../session-lifecycle/agent-browser-session-name'
-import { captureRemoteCliBrowserWorkBound } from '../../../runtime/desktop-browser-bridge/remote-cli-browser-scope'
+} from "../observation/agent-browser-screenshot-arguments"
+import { readRasterImageDimensions } from "../../../../shared/file-preview/raster-image-dimensions"
+import { acquireElectronDebugger } from "../../cdp/debugger/electron-debugger-lease"
+import { sendGuestCdpCommand } from "../../cdp/debugger/guest-cdp-command"
+import { AgentBrowserBridgeUtilityCommands } from "./agent-browser-bridge-page-commands"
+import { ORCA_TAB_SESSION_PREFIX } from "../session-lifecycle/agent-browser-session-name"
+import { captureRemoteCliBrowserWorkBound } from "../../../runtime/desktop-browser-bridge/remote-cli-browser-scope"
 import {
   throwIfSignalAborted,
   waitForPromiseWithSignal
-} from '../../../../shared/abort-signal-reason'
+} from "../../../../shared/abort-signal-reason"
 
 export abstract class AgentBrowserBridgeCaptureCommands extends AgentBrowserBridgeUtilityCommands {
   async screenshot(

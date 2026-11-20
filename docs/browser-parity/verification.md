@@ -1,5 +1,7 @@
 # Browser migration verification
 
+This is the historical 2026-11-19 migration record. The current migration uses Orca `d3a843d032f602cf09e392613683a94089efce07`; see the [latest command parity](latest-command-parity.md) and [latest verification](latest-verification.md).
+
 The implementation is pinned to Orca `729f757b592244176420a86114c1ea23911eeeba` and starts from Javis `4de676041a74217228dc1c3c4aeda89aa394ca47`. The fixed [source inventory](orca-729f757-baseline.json) records 83 browser CLI commands and 97 browser RPC methods. Inventory coverage establishes the interface scope; it does not certify every browser behavior.
 
 The implementation lives in Javis on `feat/orca-browser-parity`. The approved design allows Electron only for the separate browser subsystem. Javis owns the source, renderer, transport, daemon, data directory and distribution. Existing native desktop CUA providers remain independent.

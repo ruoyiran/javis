@@ -1,8 +1,11 @@
-import { toVisibleTabType, type Tab } from '../../../../../../shared/tab-types'
+import {
+  toVisibleTabType,
+  type Tab
+} from "../../../../../../shared/tab-types"
 import type {
   BuildSearchableWorkspaceTabsOptions,
   WorkspaceTabContentType
-} from './workspace-tab-search-types'
+} from "./workspace-tab-search-types"
 
 export function getActiveUnifiedTabId({
   worktreeId,

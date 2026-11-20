@@ -1,23 +1,23 @@
 import type {
   BrowserClientHostedPageInventory,
   BrowserClientHostCommandEvent
-} from '../../../../shared/browser/client-hosting/browser-client-host-protocol'
+} from "../../../../shared/browser/client-hosting/browser-client-host-protocol"
 import {
   assertBrowserClientPageCommandNotAborted,
   assertCurrentBrowserClientPageRenderer
-} from '../execution/browser-client-page-command-admission'
-import { browserClientPageIdentity } from '../renderer/browser-client-page-renderer-contract'
-import { sameBrowserClientPageAuthority } from '../../client-hosts/commands/browser-client-host-command-authority'
-import { BrowserClientPageCommandError } from '../execution/browser-client-page-command-failure'
+} from "../execution/browser-client-page-command-admission"
+import { browserClientPageIdentity } from "../renderer/browser-client-page-renderer-contract"
+import { sameBrowserClientPageAuthority } from "../../client-hosts/commands/browser-client-host-command-authority"
+import { BrowserClientPageCommandError } from "../execution/browser-client-page-command-failure"
 import {
   createBrowserClientPageInventory,
   updateBrowserClientPageInventoryCurrentUrl
-} from './browser-client-page-inventory'
+} from "./browser-client-page-inventory"
 import type {
   BrowserClientPageLifecycleRegistry,
   BrowserClientRetainedPage
-} from './browser-client-page-retained-state'
-import type { BrowserClientPageRendererIdentity } from '../../../../shared/browser/client-hosting/browser-client-page-renderer-protocol'
+} from "./browser-client-page-retained-state"
+import type { BrowserClientPageRendererIdentity } from "../../../../shared/browser/client-hosting/browser-client-page-renderer-protocol"
 
 type BrowserClientPageReconciliationContext = {
   pages: Map<string, BrowserClientRetainedPage>
@@ -154,7 +154,6 @@ async function closeReconciledPage(
   const page = context.pages.get(event.browserPageId)
   if (
     !page ||
-    page.retiring ||
     page.reconciling ||
     event.pageHostGeneration !== event.command.targetAuthority.pageHostGeneration ||
     !sameBrowserClientPageAuthority(page.inventory, event.command.targetAuthority)
@@ -203,15 +202,14 @@ async function failClosedRekeyedPage(
   previousRendererPage?: Readonly<BrowserClientPageRendererIdentity>
 ): Promise<never> {
   page.reconciling = false
-  page.retiring ??= context.cleanupPage(page, previousRendererPage)
+  page.retiring = context.cleanupPage(page, previousRendererPage)
   try {
     await page.retiring
     if (context.pages.get(page.inventory.browserPageId) === page) {
       context.pages.delete(page.inventory.browserPageId)
     }
   } catch (cleanupError) {
-    context.pages.delete(page.inventory.browserPageId)
-    context.failedPages.set(page.inventory.browserPageId, page.inventory)
+    page.inventory = Object.freeze({ ...page.inventory, state: 'outcomeUnknown' })
     throw new BrowserClientPageCommandError('browser_client_page_cleanup_failed', {
       cause: new AggregateError([error, cleanupError], 'Browser page reclaim failed')
     })

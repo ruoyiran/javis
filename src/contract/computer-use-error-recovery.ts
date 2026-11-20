@@ -28,6 +28,14 @@ export function computerUseNextSteps(code: string, message?: string): string[] {
         'Run javis list-apps --json on the selected host, then use the returned app name, bundle ID, or pid:N.',
         'For a website or web app, select the running desktop browser and its window with javis list-windows --app <browser> --json; website names are not desktop app selectors.'
       ]
+    case 'app_launch_failed':
+      return ['Check that the installed app can start, then inspect running apps before attempting another launch.']
+    case 'system_shortcut_blocked':
+      return ['Use a semantic action instead, or pass --allow-system-shortcut only when the user requested that shortcut.']
+    case 'screen_locked':
+      return ['Wait for the user to unlock the desktop, then observe again.']
+    case 'wait_timeout':
+      return ['Observe current app state and match text the tree actually contains before waiting again.']
     case 'app_blocked':
       return ['Stop using Javis on this protected app.']
     case 'permission_denied':

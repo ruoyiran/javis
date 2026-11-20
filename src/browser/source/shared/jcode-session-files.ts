@@ -4,7 +4,7 @@ import { createHash } from 'node:crypto'
 import { readFileSync, statSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { join } from 'node:path'
-import { scanFileRegionsBackward } from './agent-hook-listener/reverse-file-region-scan'
+import { scanFileRegionsBackward } from "./agent-hook-listener/reverse-file-region-scan"
 
 const JCODE_SESSION_ID_MAX_LENGTH = 512
 const JCODE_SESSION_SCAN_BYTES = 4 * 1024 * 1024
@@ -23,7 +23,7 @@ export function resolveJcodeSessionsDir(
   return explicit ? join(explicit, 'sessions') : join(homeDir, '.jcode', 'sessions')
 }
 
-function isSafeJcodeSessionId(value: unknown): value is string {
+export function isSafeJcodeSessionId(value: unknown): value is string {
   if (typeof value !== 'string') {
     return false
   }
@@ -35,7 +35,7 @@ function isSafeJcodeSessionId(value: unknown): value is string {
   return /^[A-Za-z0-9_.:-]+$/.test(trimmed)
 }
 
-function sessionFilePath(sessionId: string): string {
+export function jcodeSessionFilePath(sessionId: string): string {
   return join(resolveJcodeSessionsDir(), `${sessionId}.json`)
 }
 
@@ -208,6 +208,6 @@ export function readLastJcodeUserPromptFromHookPayload(
   }
   return (
     readLastUserMessageFromJournal(sessionJournalPath(sessionId), sessionId) ??
-    readLastUserMessageFromJson(sessionFilePath(sessionId), sessionId)
+    readLastUserMessageFromJson(jcodeSessionFilePath(sessionId), sessionId)
   )
 }

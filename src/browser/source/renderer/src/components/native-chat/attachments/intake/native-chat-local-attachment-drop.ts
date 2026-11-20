@@ -1,24 +1,24 @@
 import {
   readBrowserAttachmentFile,
   releaseBrowserAttachmentFiles
-} from '@/lib/files/drop/browser-attachment-files'
-import { userNamedFileAccess } from '@/lib/files/access/local-file-access'
+} from "../../../../lib/files/drop/browser-attachment-files"
+import { userNamedFileAccess } from "../../../../lib/files/access/local-file-access"
 import {
   nativeChatAttachmentOwnerChangedNotice,
   nativeChatAttachmentUnreadableNotice
-} from './native-chat-attachment-notices'
-import type { NativeChatAttachmentOwner } from '../uploads/native-chat-attachment-owner'
-import { stageNativeChatDraftFile } from '../../drafts/native-chat-draft-attachment-staging'
-import { isImageDropPath } from '../../../../../../shared/image-path-paste'
-import { nativeChatPendingAttachmentScope } from '../chips/native-chat-pending-attachment-scopes'
+} from "./native-chat-attachment-notices"
+import type { NativeChatAttachmentOwner } from "../uploads/native-chat-attachment-owner"
+import { stageNativeChatDraftFile } from "../../drafts/native-chat-draft-attachment-staging"
+import { isAgentInlineImagePath } from "../../../../../../shared/native-chat/input/composer/agent-inline-image-types"
+import { nativeChatPendingAttachmentScope } from "../chips/native-chat-pending-attachment-scopes"
 import type {
   NativeChatAttachmentFocusOptions,
   NativeChatResolvedPathOptions
-} from '../uploads/native-chat-resolved-path-ownership'
+} from "../uploads/native-chat-resolved-path-ownership"
 import type {
   NativeChatPendingAttachmentChips,
   NativeChatReservedAttachment
-} from './native-chat-session-attachment-drop'
+} from "./native-chat-session-attachment-drop"
 
 export async function attachNativeChatLocalAttachmentPaths(args: {
   reserved: NativeChatReservedAttachment[]
@@ -99,7 +99,7 @@ export async function attachNativeChatLocalAttachmentPaths(args: {
                 owner.kind === 'local' && owner.stagingScope
                   ? nativeChatPendingAttachmentScope(owner.stagingScope, chipId)
                   : null
-              const retained = isImageDropPath(path)
+              const retained = isAgentInlineImagePath(path)
                 ? chips.resolve(chipId, path, undefined, completion)
                 : chips.attachReferences([{ id: chipId, path }], completion)
               if (retained && scope) {

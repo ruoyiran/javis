@@ -2,27 +2,27 @@ import { createHash } from 'node:crypto'
 import { statSync } from 'node:fs'
 import { cp, mkdir, readdir, readFile, rename, rm, stat, writeFile } from 'node:fs/promises'
 import { basename, dirname, join, relative, resolve, sep } from 'node:path'
-import type { InstalledBrowserExtension } from '../../../../shared/browser/extensions/browser-extension-types'
+import type { InstalledBrowserExtension } from "../../../../shared/browser/extensions/browser-extension-types"
 import {
   BROWSER_EXTENSION_CONTENT_SCRIPT_FILE,
   BROWSER_EXTENSION_ORIGINAL_MANIFEST_FILE,
   BROWSER_EXTENSION_WORKER_SHIM_FILE,
   BROWSER_EXTENSION_WORKER_WRAPPER_FILE,
   BROWSER_EXTENSION_WORKER_TOKEN_FILE
-} from '../../../../shared/browser/extensions/browser-extension-worker-api'
-import { buildBrowserExtensionBackgroundWrapper } from './browser-extension-background-wrapper'
-import { withOrcaContentScript } from './browser-extension-content-script-manifest'
+} from "../../../../shared/browser/extensions/browser-extension-worker-api"
+import { buildBrowserExtensionBackgroundWrapper } from "./browser-extension-background-wrapper"
+import { withOrcaContentScript } from "./browser-extension-content-script-manifest"
 import {
   withPrivateFilesHiddenFromWebAccessibleResources,
   withStaticWebAccessibleResources
-} from './browser-extension-web-accessible-resources'
-import { getBrowserExtensionInstallStore } from './browser-extension-install-store'
-import { resolveInsideExtensionDirectory } from './browser-extension-manifest'
-import { getBrowserExtensionWorkerToken } from '../api-runtime/browser-extension-worker-api-host'
+} from "./browser-extension-web-accessible-resources"
+import { getBrowserExtensionInstallStore } from "./browser-extension-install-store"
+import { resolveInsideExtensionDirectory } from "./browser-extension-manifest"
+import { getBrowserExtensionWorkerToken } from "../api-runtime/browser-extension-worker-api-host"
 import {
   readBrowserExtensionContentScript,
   readBrowserExtensionWorkerShim
-} from '../api-runtime/browser-extension-worker-shim-source'
+} from "../api-runtime/browser-extension-worker-shim-source"
 
 /**
  * Orca loads every extension from a folder it owns, so it can add its worker wrapper, API shim and
@@ -248,36 +248,62 @@ async function prepare(
 }
 
 const pending = new Map<string, Promise<PreparedBrowserExtensionDirectory>>()
-const copiedThisRun = new Map<string, PreparedBrowserExtensionDirectory>()
+const preparedThisRun = new Map<string, PreparedBrowserExtensionDirectory>()
 
 /**
- * Store folders are re-checked on every load (an Orca update brings a new shim). An unpacked
- * folder is copied once per run, so a second profile never rewrites a copy another profile runs;
- * `refresh` (Settings › Reload) copies it again.
+ * A folder is prepared once per run (an Orca update, which brings a new shim, is a new run), so a
+ * profile reopening later, or a second profile, reuses it. An unpacked copy is never rewritten
+ * under a profile running it; `refresh` (Settings › Reload) prepares it again.
  */
 export async function prepareBrowserExtensionDirectory(
   extension: BrowserExtensionLoadSource,
   options: { refresh?: boolean } = {}
 ): Promise<PreparedBrowserExtensionDirectory> {
   const key = resolve(extension.path)
-  const copied = copiedThisRun.get(key)
-  if (copied && !options.refresh) {
-    return copied
-  }
   let running = pending.get(key)
+  const prepared = preparedThisRun.get(key)
+  // Why not while a preparation runs: a profile starting mid-Reload must load the finished copy.
+  if (prepared && !options.refresh && !running) {
+    return prepared
+  }
   if (!running) {
     running = prepare(extension)
     pending.set(key, running)
   }
   try {
-    const prepared = await running
-    if (extension.source === 'unpacked') {
-      copiedThisRun.set(key, prepared)
+    const result = await running
+    // Forgotten meanwhile (its folder was replaced): this result describes the old contents.
+    if (pending.get(key) === running) {
+      keepPrepared(key, result)
     }
-    return prepared
+    return result
   } finally {
     if (pending.get(key) === running) {
       pending.delete(key)
     }
   }
+}
+
+/** Folders are kept only while installed, so failed installs, updates and removals never pile up. */
+function keepPrepared(key: string, result: PreparedBrowserExtensionDirectory): void {
+  const installed = new Set(
+    getBrowserExtensionInstallStore()
+      .list()
+      .map((extension) => resolve(extension.path))
+  )
+  for (const path of preparedThisRun.keys()) {
+    if (!installed.has(path)) {
+      preparedThisRun.delete(path)
+    }
+  }
+  if (installed.has(key)) {
+    preparedThisRun.set(key, result)
+  }
+}
+
+/** A store version folder is about to be replaced on disk: prepare it afresh next time. */
+export function forgetPreparedBrowserExtensionDirectory(path: string): void {
+  const key = resolve(path)
+  preparedThisRun.delete(key)
+  pending.delete(key)
 }

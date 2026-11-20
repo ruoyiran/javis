@@ -1,34 +1,32 @@
 import type {
   WorktreeDefaultTabsLaunch,
   WorktreeSetupLaunch
-} from '../../../../../../shared/worktree/launch-types'
-import type { ExecutionHostId } from '../../../../../../shared/execution-host'
-import type { FolderWorkspace } from '../../../../../../shared/folder-workspaces/folder-workspace-types'
-import { folderWorkspaceKey } from '../../../../../../shared/workspace-scope'
-import { shouldAutoCreateInitialTerminal } from '@/components/terminal/initial-terminal'
-import { hasSplitLandingGroup } from '@/store/slices/tabs/split-landing-groups'
-import { isTerminalWorkspaceEmptiedOnPurpose } from '../../../../../../shared/workspace-layout/closed-terminal-tab-tombstones'
-import { shouldSeedWorktreePrimaryTerminal } from '../../../../../../shared/worktree-first-surface'
-import { createSequencedSetupAgentCommands } from '../../../../../../shared/agent-launch/startup/setup-agent-sequencing'
-import { getSetupRunnerCommandPlatformForPath } from '../../../../../../shared/agent-launch/startup/setup-runner-command'
-import { agentKindToTuiAgent } from '../../../../../../shared/agent-kind'
-import { useAppStore } from '@/store/index'
-import { queueHookCommandsForFirstWorktreeTab } from '@/lib/workspace/creation/setup/hook-command-delayed-delivery'
-import { resolveWorkspaceTerminalHostAuthority } from '@/lib/workspace/ownership/workspace-terminal-host-authority'
-import { seedNativeChatAppliedSessionOptions } from '../../../../../../shared/native-chat/input/native-chat-session-option-cache'
+} from "../../../../../../shared/worktree/launch-types"
+import type { ExecutionHostId } from "../../../../../../shared/execution-host"
+import { shouldAutoCreateInitialTerminal } from "../../../../components/terminal/initial-terminal"
+import { hasSplitLandingGroup } from "../../../../store/slices/tabs/split-landing-groups"
+import { isTerminalWorkspaceEmptiedOnPurpose } from "../../../../../../shared/workspace-layout/closed-terminal-tab-tombstones"
+import { shouldSeedWorktreePrimaryTerminal } from "../../../../../../shared/worktree-first-surface"
+import { createSequencedSetupAgentCommands } from "../../../../../../shared/agent-launch/startup/setup-agent-sequencing"
+import { getSetupRunnerCommandPlatformForPath } from "../../../../../../shared/agent-launch/startup/setup-runner-command"
+import { agentKindToTuiAgent } from "../../../../../../shared/agent-kind"
+import { useAppStore } from "../../../../store/index"
+import { queueHookCommandsForFirstWorktreeTab } from "../../creation/setup/hook-command-delayed-delivery"
+import { resolveWorkspaceTerminalHostAuthority } from "../../ownership/workspace-terminal-host-authority"
+import { seedNativeChatAppliedSessionOptions } from "../../../../../../shared/native-chat/input/native-chat-session-option-cache"
 import type {
   InitialTerminalOptions,
   WorktreeActivationStore
-} from '@/lib/workspace/activation/worktree-activation-store-contract'
-import type { WorktreeStartupPayload } from '@/lib/workspace/creation/worktree-startup-payload'
+} from "../worktree-activation-store-contract"
+import type { WorktreeStartupPayload } from "../../creation/worktree-startup-payload"
 import {
   queueSetupAndIssueCommands,
   type IssueCommandLaunch
-} from '@/lib/workspace/activation/initial-surface/worktree-setup-issue-command-queue'
-import { applyDefaultTerminalTabs } from '@/lib/workspace/activation/initial-surface/worktree-default-terminal-tabs'
-import { openDefaultAgentChatInEmptyWorkspace } from '@/lib/workspace/activation/initial-surface/empty-workspace-default-agent-chat'
-import { isEmptyWorkspaceDefaultSurfacePending } from '@/lib/workspace/activation/initial-surface/empty-workspace-default-surface-claims'
-import { findPendingWorktreeCreationId } from '../../creation/pending-worktree-creation'
+} from "./worktree-setup-issue-command-queue"
+import { applyDefaultTerminalTabs } from "./worktree-default-terminal-tabs"
+import { openDefaultAgentChatInEmptyWorkspace } from "./empty-workspace-default-agent-chat"
+import { isEmptyWorkspaceDefaultSurfacePending } from "./empty-workspace-default-surface-claims"
+import { findPendingWorktreeCreationId } from "../../creation/pending-worktree-creation"
 
 function getSetupRunnerCommandPlatformForLaunch(setup: WorktreeSetupLaunch): 'windows' | 'posix' {
   return getSetupRunnerCommandPlatformForPath(
@@ -72,32 +70,6 @@ export function reseedGatedEmptyWorkspace(
       ...(seedUserDefaultSurface ? { seedUserDefaultSurface: true } : {})
     }
   )
-}
-
-export function ensureFolderWorkspaceInitialTerminal(
-  folderWorkspace: FolderWorkspace,
-  startup?: WorktreeStartupPayload,
-  providesInitialSurface?: boolean,
-  opts?: Pick<InitialTerminalOptions, 'seedUserDefaultSurface'>
-): string | null {
-  if (providesInitialSurface === true && startup === undefined) {
-    return null
-  }
-  const state = useAppStore.getState()
-  const workspaceKey = folderWorkspaceKey(folderWorkspace.id)
-  const primaryTabId = ensureWorktreeHasInitialTerminal(
-    state,
-    workspaceKey,
-    startup,
-    undefined,
-    undefined,
-    undefined,
-    {
-      reseedEmptiedWorkspace: providesInitialSurface !== true,
-      ...opts
-    }
-  )
-  return primaryTabId
 }
 
 export function ensureWorktreeHasInitialTerminal(

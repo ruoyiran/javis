@@ -1,13 +1,16 @@
 import type {
   BrowserClientPageMetadataParams,
   BrowserClientPageMetadataPublishOutcome
-} from '../../../../shared/browser/client-hosting/browser-client-page-metadata-protocol'
-import type { RuntimeBrowserClientPlacement } from '../../../../shared/runtime-browser-placement'
+} from "../../../../shared/browser/client-hosting/browser-client-page-metadata-protocol"
+import type { RuntimeBrowserClientPlacement } from "../../../../shared/runtime-browser-placement"
+import { remoteTabFaviconUrl } from "../../../../shared/browser/browser-favicon-url"
 
 export type BrowserClientPageMetadataSnapshot = Pick<
   BrowserClientPageMetadataParams,
   'url' | 'title' | 'loading' | 'canGoBack' | 'canGoForward'
 >
+type PublishedMetadata = BrowserClientPageMetadataSnapshot &
+  Pick<BrowserClientPageMetadataParams, 'faviconUrl'>
 
 /** Main holds the host lease; the runtime accepts page traffic only on that connection. */
 type BrowserClientPageMetadataPublish = (
@@ -23,15 +26,21 @@ export function createBrowserClientPageMetadataPublisher(options: {
   browserPageId: string
   placement: RuntimeBrowserClientPlacement
   nextRevision: () => number
+  /** The page's icon when the publisher starts, since a retained guest sends no new icon event. */
+  faviconUrl: string | null
   publish: BrowserClientPageMetadataPublish
   onUnpublished?: (detail: BrowserClientPageMetadataUnpublished) => void
 }): {
   publish(snapshot: BrowserClientPageMetadataSnapshot): void
+  /** Icons arrive between metadata events, so gaining or losing one resends the last snapshot. */
+  publishFavicon(faviconUrl: string | null): void
   dispose(): void
 } {
   let disposed = false
   let inFlight = false
-  let pending: BrowserClientPageMetadataSnapshot | null = null
+  let pending: PublishedMetadata | null = null
+  let last: BrowserClientPageMetadataSnapshot | null = null
+  let faviconUrl = remoteTabFaviconUrl(options.faviconUrl)
 
   const settle = (): void => {
     inFlight = false
@@ -46,7 +55,7 @@ export function createBrowserClientPageMetadataPublisher(options: {
     }
   }
 
-  const send = (snapshot: BrowserClientPageMetadataSnapshot): void => {
+  const send = (snapshot: PublishedMetadata): void => {
     inFlight = true
     let request: Promise<BrowserClientPageMetadataPublishOutcome>
     try {
@@ -57,7 +66,8 @@ export function createBrowserClientPageMetadataPublisher(options: {
         browserPageId: options.browserPageId,
         pageHostGeneration: options.placement.pageHostGeneration,
         revision: options.nextRevision(),
-        ...snapshot
+        ...snapshot,
+        title: snapshot.title.slice(0, 4096)
       })
     } catch (error) {
       request = Promise.reject(error)
@@ -85,17 +95,30 @@ export function createBrowserClientPageMetadataPublisher(options: {
       .finally(settle)
   }
 
+  const publish = (snapshot: BrowserClientPageMetadataSnapshot): void => {
+    if (disposed) {
+      return
+    }
+    last = snapshot
+    const fullSnapshot = { ...snapshot, faviconUrl }
+    if (inFlight) {
+      pending = fullSnapshot
+      return
+    }
+    send(fullSnapshot)
+  }
+
   return {
-    publish: (snapshot) => {
-      if (disposed) {
-        return
+    publish,
+    publishFavicon: (next) => {
+      // The runtime rejects an over-long icon, which would drop the whole update with it.
+      const safe = remoteTabFaviconUrl(next)
+      const arrivedOrCleared = (safe === null) !== (faviconUrl === null)
+      faviconUrl = safe
+      // Animated icons swap many times a second, so a swap rides the next metadata publish.
+      if (arrivedOrCleared && last) {
+        publish(last)
       }
-      const fullSnapshot = { ...snapshot }
-      if (inFlight) {
-        pending = fullSnapshot
-        return
-      }
-      send(fullSnapshot)
     },
     dispose: () => {
       disposed = true

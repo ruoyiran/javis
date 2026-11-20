@@ -1,26 +1,24 @@
-import type { RemoteBrowserPageSession } from './remote-browser-page-session'
+import type { RemoteBrowserPageSession } from "./remote-browser-page-session"
 import {
   isRemoteBrowserPageMissingError,
   resolveRemoteBrowserStreamFailure
-} from './remote-browser-stream-errors'
+} from "./remote-browser-stream-errors"
 import {
   remoteBrowserStreamRetrying,
   remoteBrowserStreamStopped,
   type RemoteBrowserStreamStatus
-} from './remote-browser-stream-status'
+} from "./remote-browser-stream-status"
 import {
   toOperationToken,
   type RemoteBrowserOperationTokens,
   type RemoteBrowserStreamSubscription,
   type RemoteBrowserStreamToken
-} from './remote-browser-stream-tokens'
-import type { BrowserTabInfo } from '../../../../../shared/browser/runtime/runtime-browser-contracts'
+} from "./remote-browser-stream-tokens"
 
 export type RemoteBrowserStreamRestartAttemptDeps = {
   tokens: RemoteBrowserOperationTokens
   session: RemoteBrowserPageSession
   setStatus: (status: RemoteBrowserStreamStatus) => void
-  applyTabInfo: (tab: BrowserTabInfo) => void
   closeMissingRemotePage: (remotePageId: string) => void
   startStream: (pageId: string) => Promise<RemoteBrowserStreamSubscription | null>
   adoptSubscription: (subscription: RemoteBrowserStreamSubscription) => void
@@ -41,10 +39,7 @@ export function createRemoteBrowserStreamRestartAttempt(
     deps.setStatus(remoteBrowserStreamRetrying(lastNotice))
     const operationToken = toOperationToken(token)
     try {
-      const tab = await deps.session.fetchTabInfo(operationToken).catch(() => null)
-      if (tab && tokens.isCurrentStreamOperation(token)) {
-        deps.applyTabInfo(tab)
-      }
+      await deps.session.refreshTabInfo(operationToken).catch(() => null)
       if (!tokens.isCurrentStreamOperation(token)) {
         return false
       }

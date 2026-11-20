@@ -1,9 +1,9 @@
-import type { ExecutionHostId } from '../execution-host'
-import type { GitWorktreeInfo, Worktree } from './types'
+import type { ExecutionHostId } from "../execution-host"
+import type { GitWorktreeInfo, Worktree } from "./types"
 
 export function unregisteredFolderRefusal(worktreePath: string): Error {
   return new Error(
-    `${worktreePath} is no longer a Git worktree, so its folder was left on disk. Delete the folder yourself to finish removing this workspace.`
+    `${worktreePath} is no longer a Git worktree, so its folder was left on disk. Remove the remaining folder yourself, then retry deletion to finish cleanup.`
   )
 }
 

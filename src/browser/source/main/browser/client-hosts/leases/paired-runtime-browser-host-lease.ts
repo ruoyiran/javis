@@ -1,31 +1,30 @@
 import type {
   BrowserClientHostCommandEvent,
   BrowserClientHostLeaseAuthority
-} from '../../../../shared/browser/client-hosting/browser-client-host-protocol'
+} from "../../../../shared/browser/client-hosting/browser-client-host-protocol"
 import {
   BrowserClientAutomationResult as BrowserClientHostCommandResult,
   type BrowserClientAutomationResult as BrowserClientHostCommandResultType
-} from '../../../../shared/browser/client-hosting/browser-client-automation-protocol'
-import { BROWSER_CLIENT_PAGE_METADATA_METHOD } from '../../../../shared/browser/client-hosting/browser-client-page-metadata-protocol'
-import { assertBrowserClientHostAttachOptions } from '../lifecycle/browser-client-host-attach-request'
+} from "../../../../shared/browser/client-hosting/browser-client-automation-protocol"
+import { assertBrowserClientHostAttachOptions } from "../lifecycle/browser-client-host-attach-request"
 import {
   BrowserHostReconnectDelay,
   resolveBrowserHostReconnectDelay
-} from './browser-host-lease-reconnect-delay'
-import { reconnectBrowserHostLeaseUntil } from './browser-host-lease-reconnect-attempts'
-import { requireBrowserHostLeaseSendRequest } from './browser-host-lease-request-sender'
-import { submitBrowserHostCommandResult } from '../commands/browser-host-command-result-submission'
+} from "./browser-host-lease-reconnect-delay"
+import { reconnectBrowserHostLeaseUntil } from "./browser-host-lease-reconnect-attempts"
+import { requireBrowserHostLeaseSendRequest } from "./browser-host-lease-request-sender"
+import { submitBrowserHostCommandResult } from "../commands/browser-host-command-result-submission"
 import {
   BrowserHostCommandResultSettler,
   type BrowserHostCommandResultAdmission
-} from '../commands/browser-host-command-result-settler'
-import { requestBrowserHostLeaseInventoryRefresh } from './browser-host-lease-inventory-refresh'
-import { PairedRuntimeBrowserHostLeaseConnection } from './paired-runtime-browser-host-lease-connection'
-import type { PairedRuntimeBrowserHostLeaseOptions } from './paired-runtime-browser-host-lease-options'
+} from "../commands/browser-host-command-result-settler"
+import { requestBrowserHostLeaseInventoryRefresh } from "./browser-host-lease-inventory-refresh"
+import { PairedRuntimeBrowserHostLeaseConnection } from "./paired-runtime-browser-host-lease-connection"
+import type { PairedRuntimeBrowserHostLeaseOptions } from "./paired-runtime-browser-host-lease-options"
 import {
   attachBrowserHostWithInitialAdmissionRetry,
   isRecoverableBrowserHostLeaseError
-} from './browser-host-admission-recovery'
+} from "./browser-host-admission-recovery"
 
 export class PairedRuntimeBrowserHostLease {
   private connection: PairedRuntimeBrowserHostLeaseConnection | null = null
@@ -79,15 +78,17 @@ export class PairedRuntimeBrowserHostLease {
   }
 
   /** Unversioned, unlike the file channel: an older runtime answers with a reportable error. */
-  sendRequest(method: string, params: unknown, timeoutMs: number) { return requireBrowserHostLeaseSendRequest(this.connection?.sendRequest, 'Remote browser host is unavailable')(method, params, timeoutMs) }
-
-  sendPageMetadataRequest(params: unknown, timeoutMs: number) {
+  sendHostRequest(method: string, params: unknown, timeoutMs: number) {
     // close drops the connection synchronously.
     return requireBrowserHostLeaseSendRequest(
       this.connection?.sendRequest,
       'Remote runtime browser host lease is unavailable.'
-    )(BROWSER_CLIENT_PAGE_METADATA_METHOD, params, timeoutMs)
+    )(method, params, timeoutMs)
   }
+
+  sendRequest(method: string, params: unknown, timeoutMs: number) { return this.sendHostRequest(method, params, timeoutMs) }
+
+  sendPageMetadataRequest(params: unknown, timeoutMs: number) { return this.sendHostRequest('browser.clientHost.pageMetadata', params, timeoutMs) }
 
   sendFileChannelRequest(method: string, params: unknown, timeoutMs: number) {
     return requireBrowserHostLeaseSendRequest(

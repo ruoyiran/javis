@@ -1,19 +1,19 @@
-import type { ToolSnapshot } from '../listener-event'
+import type { ToolSnapshot } from "../listener-event"
 import {
   deriveFallbackToolInputPreview,
   deriveToolInputPreview,
   hasAnyOwnField,
   readString,
   toolUpdate
-} from '../tool-input-preview'
+} from "../tool-input-preview"
 import {
   clearActiveToolFieldsUpdate,
   deriveInteractivePrompt,
   extractToolResponseText
-} from '../interactive-tool'
-import { readLastAssistantFromTranscript } from '../transcript-lines'
-import { readLastAssistantFromGrokChatHistory } from '../grok-result-discovery'
-import { isGrokEvent } from '../provider-event-names'
+} from "../interactive-tool"
+import { readLastAssistantFromTranscriptInline } from "../transcript-lines"
+import { readLastAssistantFromGrokChatHistory } from "../grok-result-discovery"
+import { isGrokEvent } from "../provider-event-names"
 
 export function extractGrokToolFields(
   eventName: unknown,
@@ -75,7 +75,8 @@ export function extractGrokToolFields(
     if (direct) {
       return { lastAssistantMessage: direct }
     }
-    const fromTranscript = readLastAssistantFromTranscript(
+    // Grok's chat-history fallback below must keep losing to its transcript.
+    const fromTranscript = readLastAssistantFromTranscriptInline(
       hookPayload.transcriptPath ?? hookPayload.transcript_path
     )
     if (fromTranscript) {

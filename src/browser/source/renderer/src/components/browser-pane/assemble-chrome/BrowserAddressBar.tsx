@@ -1,30 +1,34 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Globe } from 'lucide-react'
-import { Input } from '@/components/ui/input'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { cn } from '@/lib/class-names'
-import { useTranslate } from '@/i18n/use-translate'
-import { useAppStore } from '@/store/index'
-import { findPage } from '@/store/slices/browser/pages/browser-page-records'
-import { DEFAULT_SEARCH_ENGINE, type SearchEngine } from '../../../../../shared/browser-url'
-import type { BrowserPageDocLocation } from '../../../../../shared/browser-workspace-types'
-import { buildBrowserAddressBarSuggestions } from './browser-address-bar-suggestions'
-import { useBrowserAddressBarInlineCompletion } from './use-browser-address-bar-inline-completion'
-import { useBrowserAddressBarSwitchToTab } from './use-browser-address-bar-switch-to-tab'
-import { useBrowserAddressBarEditHandoff } from './use-browser-address-bar-edit-handoff'
-import { useBrowserAddressBarOverlay } from './browser-address-bar-expansion'
-import { useBrowserAddressBarClickSelect } from './use-browser-address-bar-click-select'
-import { useBrowserAddressBarDismissal } from './use-browser-address-bar-dismissal'
-import { useBrowserAddressBarEscape } from './use-browser-address-bar-escape'
-import { useBrowserAddressBarSuggestionPreview } from './use-browser-address-bar-suggestion-preview'
-import { useRemoveSuggestionRow } from './use-browser-address-bar-row-removal'
-import { isRemovableHistoryRow, isRemoveRowShortcut } from '../history/browser-history-row-removal'
-import type { BrowserAddressBarEditSessionBinding } from './use-browser-address-bar-edit-session'
-import BrowserAddressBarSuggestionList from './BrowserAddressBarSuggestionList'
-import { BrowserLoadProgress } from './browser-load-progress'
-import { toDisplayUrl } from '../describe-page/browser-page-url-display'
-import BrowserHistoryDialog from '../history/BrowserHistoryDialog'
-import { clearTimerRef, useClearTimersOnFormUnmount } from './use-browser-address-bar-close-timers'
+import { Input } from "../../ui/input"
+import { Popover, PopoverContent, PopoverTrigger } from "../../ui/popover"
+import { cn } from "../../../lib/class-names"
+import { useTranslate } from "../../../i18n/use-translate"
+import { useAppStore } from "../../../store/index"
+import { findPage } from "../../../store/slices/browser/pages/browser-page-records"
+import { DEFAULT_SEARCH_ENGINE } from "../../../../../shared/browser-url"
+import type { SearchEngine } from "../../../../../shared/browser-url"
+import type { BrowserPageDocLocation } from "../../../../../shared/browser-workspace-types"
+import { buildBrowserAddressBarSuggestions } from "./browser-address-bar-suggestions"
+import { useBrowserAddressBarInlineCompletion } from "./use-browser-address-bar-inline-completion"
+import { useBrowserAddressBarSwitchToTab } from "./use-browser-address-bar-switch-to-tab"
+import { useBrowserAddressBarEditHandoff } from "./use-browser-address-bar-edit-handoff"
+import { useBrowserAddressBarOverlay } from "./browser-address-bar-expansion"
+import { useBrowserAddressBarClickSelect } from "./use-browser-address-bar-click-select"
+import { useBrowserAddressBarDismissal } from "./use-browser-address-bar-dismissal"
+import { useBrowserAddressBarEscape } from "./use-browser-address-bar-escape"
+import { useBrowserAddressBarSuggestionPreview } from "./use-browser-address-bar-suggestion-preview"
+import { useRemoveSuggestionRow } from "./use-browser-address-bar-row-removal"
+import {
+  isRemovableHistoryRow,
+  isRemoveRowShortcut
+} from "../history/browser-history-row-removal"
+import type { BrowserAddressBarEditSessionBinding } from "./use-browser-address-bar-edit-session"
+import BrowserAddressBarSuggestionList from "./BrowserAddressBarSuggestionList"
+import { BrowserLoadProgress } from "./browser-load-progress"
+import { toDisplayUrl } from "../describe-page/browser-page-url-display"
+import BrowserHistoryDialog from "../history/BrowserHistoryDialog"
+import { clearTimerRef, useClearTimersOnFormUnmount } from "./use-browser-address-bar-close-timers"
 
 type BrowserAddressBarProps = {
   /** The page this bar edits; its worktree's other open pages are offered as "Switch to tab". */
@@ -345,7 +349,7 @@ export default function BrowserAddressBar({
             ref={setAddressBarFormRef}
             data-orca-browser-address-bar-overlay={overlay ? 'true' : undefined}
             className={cn(
-              'flex items-center gap-2 rounded-lg bg-muted px-2.5 transition-colors focus-within:bg-background focus-within:ring-[3px] focus-within:ring-ring/50',
+              'flex items-center gap-2 rounded-lg border border-transparent bg-muted px-2.5 transition-colors focus-within:border-border',
               // Position against the toolbar row so the overlay spans it, not the squeezed slot.
               overlay
                 ? 'absolute inset-x-2 top-1/2 z-30 h-8 -translate-y-1/2 bg-background shadow-[0_10px_24px_rgba(0,0,0,0.18)]'
@@ -358,7 +362,7 @@ export default function BrowserAddressBar({
               submitTypedValue()
             }}
           >
-            {leadingIcon ?? <Globe className="size-4 shrink-0 text-muted-foreground" />}
+            {leadingIcon ?? <Globe className="size-3.5 shrink-0 text-muted-foreground" />}
             <Input
               ref={inputRef}
               value={value}

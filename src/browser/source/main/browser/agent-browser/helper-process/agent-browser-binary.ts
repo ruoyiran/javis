@@ -3,6 +3,7 @@ import { app } from 'electron'
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { ensureDependencyBinaryExecutable } from './agent-browser-dependency-binary'
+import { agentBrowserDependencyBinaryPath } from "../../../../shared/orcad-agent-browser-name"
 
 export function agentBrowserNativeName(): string {
   const ext = process.platform === 'win32' ? '.exe' : ''
@@ -24,18 +25,20 @@ export function resolveAgentBrowserBinary(): string {
   // Bundling makes __dirname unreliable for locating development dependencies.
   const nmBin = join(
     app.getAppPath(),
-    'node_modules',
-    'agent-browser',
-    'bin',
-    agentBrowserNativeName()
+    ...agentBrowserDependencyBinaryPath(process.platform, arch())
   )
   if (existsSync(nmBin)) {
-    ensureDependencyBinaryExecutable(nmBin)
     return nmBin
   }
 
   try {
     const packagePath = require.resolve('agent-browser/package.json')
+    const target = agentBrowserDependencyBinaryPath(process.platform, arch())
+    try {
+      const manifest = require.resolve(`${target[1]}/${target[2]}/package.json`)
+      const native = join(manifest, '..', 'bin', target.at(-1)!)
+      if (existsSync(native)) { ensureDependencyBinaryExecutable(native); return native }
+    } catch {}
     const installed = join(packagePath, '..', 'bin', agentBrowserNativeName())
     if (existsSync(installed)) { ensureDependencyBinaryExecutable(installed); return installed }
   } catch {}

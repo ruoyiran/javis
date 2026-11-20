@@ -1,3 +1,4 @@
+import { FLOATING_TERMINAL_WORKTREE_ID } from '../../../../../shared/workspace/identity/floating-workspace-id'
 import { selectWorktreesByRepo } from '@/store/workspaces/catalog/workspace-record-fields'
 import type { AppState } from '@/store/types'
 import { getIndexedWorktreeMap } from '@/store/slices/worktrees/listing/worktree-catalog-index'
@@ -5,22 +6,12 @@ import { getConnectionIdFromState } from '@/lib/workspace/ownership/connection-o
 import type { TerminalWorktreeRoute } from '@/lib/workspace/ownership/terminal-worktree-route'
 import { resolveWorktreeOperationRouteForHost } from '@/lib/workspace/ownership/worktree-operation-route'
 import { getRemoteRuntimePtyEnvironmentId } from '@/runtime/hosted-terminals/identity/remote-runtime-pty-owner'
-import { FLOATING_TERMINAL_WORKTREE_ID } from '../../../../../shared/constants'
+
 import { isEphemeralSetupTerminalWorktreeId } from '../../../../../shared/ephemeral-setup-terminal-worktree-id'
 import { parseWorkspaceKey } from '../../../../../shared/workspace-scope'
 import { isWebTerminalSurfaceTabId } from '../../../../../shared/workspace-layout/terminal-surface-id'
-import {
-  getRepoExecutionHostId,
-  getConnectionExecutionHostId,
-  getRepoSshConnectionId,
-  parseExecutionHostId,
-  toRuntimeExecutionHostId,
-  UNRESOLVED_OWNER_HOST_ID
-} from '../../../../../shared/execution-host'
-import {
-  findLocalFolderWorkspaceRuntimeRepo,
-  resolveQualifiedFolderWorkspaceResult
-} from '../../../../../shared/folder-workspaces/folder-workspace-execution-host'
+import { getRepoExecutionHostId, getConnectionExecutionHostId, getRepoSshConnectionId, parseExecutionHostId, toRuntimeExecutionHostId, UNRESOLVED_OWNER_HOST_ID } from '../../../../../shared/execution-host'
+import { findLocalFolderWorkspaceRuntimeRepo, resolveQualifiedFolderWorkspaceResult } from '../../../../../shared/folder-workspaces/folder-workspace-execution-host'
 import { folderWorkspaceToWorktree } from '../../../../../shared/folder-workspaces/folder-workspace-worktree'
 
 export function resolveTerminalPaneOwnerContext(

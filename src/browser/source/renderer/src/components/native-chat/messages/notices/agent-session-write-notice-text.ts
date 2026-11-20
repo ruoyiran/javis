@@ -1,23 +1,23 @@
 // Translate whole shared sentences with their English fallbacks so desktop and mobile wording agree.
 
-import { translate } from '@/i18n/i18n'
-import { expiredAttachmentsSentence } from '../../../../../../shared/agent-session/failures/agent-session-attachment-failure-words'
+import { translate } from "../../../../i18n/i18n"
+import { expiredAttachmentsSentence } from "../../../../../../shared/agent-session/failures/agent-session-attachment-failure-words"
 import {
   agentSessionFailureSentence,
   type AgentSessionFailureWordsContext
-} from '../../../../../../shared/agent-session/failures/agent-session-failure-words'
-import { agentSessionWriteNoticeParts } from '../../../../../../shared/agent-session/failures/agent-session-refusal-notice'
+} from "../../../../../../shared/agent-session/failures/agent-session-failure-words"
+import { agentSessionWriteNoticeParts } from "../../../../../../shared/agent-session/failures/agent-session-refusal-notice"
 import {
   AGENT_SESSION_WRITE_NOTICE_COPY as COPY,
   type AgentSessionWriteNoticePart,
   type AgentSessionWriteNoticeSentence
-} from '../../../../../../shared/agent-session/failures/agent-session-write-notice-copy'
+} from "../../../../../../shared/agent-session/failures/agent-session-write-notice-copy"
 import type {
   AgentSessionWriteFailure,
   AgentSessionWriteKind
-} from '../../../../../../shared/agent-session/failures/agent-session-write-failure'
-import { joinSentences } from '../../../../../../shared/sentence-joining'
-import { sayAgentSessionFailureTranslated } from './agent-session-failure-words-text'
+} from "../../../../../../shared/agent-session/failures/agent-session-write-failure"
+import { joinSentences } from "../../../../../../shared/sentence-joining"
+import { sayAgentSessionFailureTranslated } from "./agent-session-failure-words-text"
 
 const SENTENCES: Record<AgentSessionWriteNoticeSentence, () => string> = {
   notDoneReadHistory: () =>
@@ -67,6 +67,8 @@ const SENTENCES: Record<AgentSessionWriteNoticeSentence, () => string> = {
     translate('components.native-chat.writeNotice.historyUnusable', COPY.historyUnusable),
   historyUnavailable: () =>
     translate('components.native-chat.writeNotice.historyUnavailable', COPY.historyUnavailable),
+  savedInOtherFolder: () =>
+    translate('components.native-chat.writeNotice.savedInOtherFolder', COPY.savedInOtherFolder),
   savedByNewerOrca: () =>
     translate('components.native-chat.writeNotice.savedByNewerOrca', COPY.savedByNewerOrca),
   updateOrcaToKeepUsing: () =>

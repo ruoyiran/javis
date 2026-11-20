@@ -1,44 +1,45 @@
-import { captureNativeChatEditDraftDestination } from '../../drafts/native-chat-composer-draft-memory'
+import { captureNativeChatEditDraftDestination } from "../../drafts/native-chat-composer-draft-memory"
 import { useCallback, useLayoutEffect, useRef } from 'react'
-import { useAppStore } from '@/store/index'
-import { NATIVE_FILE_DROP_MAX_PATHS } from '../../../../../../shared/file-import/native-file-drop'
+import { useAppStore } from "../../../../store/index"
+import { NATIVE_FILE_DROP_MAX_PATHS } from "../../../../../../shared/file-import/native-file-drop"
 import {
   isSameComposerWorkspace,
   nativeChatAttachmentOwnerUnchanged
-} from '../uploads/native-chat-resolved-path-ownership'
+} from "../uploads/native-chat-resolved-path-ownership"
 import type {
   ComposerWorkspace,
   NativeChatAttachmentFocusOptions,
   NativeChatResolvedPathOptions
-} from '../uploads/native-chat-resolved-path-ownership'
+} from "../uploads/native-chat-resolved-path-ownership"
 import {
   nativeChatAttachmentOwnerChangedNotice,
   nativeChatTooManyAttachmentsNotice,
   nativeChatWorktreeNotReadyNotice,
   nativeChatLocalAttachmentUnsupportedNotice
-} from './native-chat-attachment-notices'
+} from "./native-chat-attachment-notices"
 import {
   resolveNativeChatAttachmentOwner,
   resolveNativeChatAttachmentOwnerForWorktree,
   resolveNativeChatRuntimeSessionAttachmentOwner
-} from '../uploads/native-chat-attachment-owner'
+} from "../uploads/native-chat-attachment-owner"
 import type {
   NativeChatAttachmentOwner,
   NativeChatStructuredAttachmentSession
-} from '../uploads/native-chat-attachment-owner'
+} from "../uploads/native-chat-attachment-owner"
 import {
   attachNativeChatSessionAttachmentPaths,
+  attachNativeChatStagedAgentPaths,
   reserveNativeChatAttachmentChips
-} from './native-chat-session-attachment-drop'
+} from "./native-chat-session-attachment-drop"
 import type {
   NativeChatPendingAttachmentChips,
   NativeChatReservedAttachment
-} from './native-chat-session-attachment-drop'
-import { releaseBrowserAttachmentFiles } from '@/lib/files/drop/browser-attachment-files'
-import { attachNativeChatLocalAttachmentPaths } from './native-chat-local-attachment-drop'
-import { useMountedRef } from '@/hooks/useMountedRef'
-import { chatWorkspaceByTabId as findTerminalTabWorktreeId } from '../../../../lib/agent-session/tab-identity/structured-chat-tab-index'
-import type { CapturedNativeChatDrop } from './native-chat-pane-file-drop'
+} from "./native-chat-session-attachment-drop"
+import { releaseBrowserAttachmentFiles } from "../../../../lib/files/drop/browser-attachment-files"
+import { attachNativeChatLocalAttachmentPaths } from "./native-chat-local-attachment-drop"
+import { useNativeChatPaneMountedRef } from "../../pane/ownership/native-chat-pane-lifetime"
+import { chatWorkspaceByTabId as findTerminalTabWorktreeId } from "../../../../lib/agent-session/tab-identity/structured-chat-tab-index"
+import type { CapturedNativeChatDrop } from "./native-chat-pane-file-drop"
 
 export type UseNativeChatExternalAttachmentsArgs = {
   terminalTabId: string
@@ -58,7 +59,7 @@ export type UseNativeChatExternalAttachmentsArgs = {
   setNotice: (notice: string | null) => void
 }
 
-/** Upload client-local files to the owning agent’s store or SSH .orca/drops before referencing them. */
+/** Upload client-local files to the owning agent’s store or its worktree's .orca/drops before referencing them. */
 export function useNativeChatExternalAttachments({
   terminalTabId,
   draftScopeKey,
@@ -80,7 +81,7 @@ export function useNativeChatExternalAttachments({
     options?: NativeChatAttachmentFocusOptions
   ) => (reserved: NativeChatReservedAttachment[]) => Promise<void>
 } {
-  const mountedRef = useMountedRef()
+  const mountedRef = useNativeChatPaneMountedRef()
   const disabledRef = useRef(disabled)
   useLayoutEffect(() => {
     disabledRef.current = disabled
@@ -159,7 +160,7 @@ export function useNativeChatExternalAttachments({
         if (owner.kind === 'not-ready') {
           return owner.notice ?? nativeChatWorktreeNotReadyNotice()
         }
-        if (owner.kind === 'remote') {
+        if (owner.kind === 'remote' && !owner.staging) {
           return nativeChatLocalAttachmentUnsupportedNotice()
         }
         // The picker shares the drop limit without partially attaching a batch.
@@ -174,6 +175,18 @@ export function useNativeChatExternalAttachments({
           await attachNativeChatSessionAttachmentPaths({
             pending: reserved,
             owner,
+            chips,
+            options,
+            isAbandoned: abandoned,
+            ownerStillCurrent,
+            setNotice
+          })
+          return
+        }
+        if (owner.kind === 'remote' && owner.staging) {
+          await attachNativeChatStagedAgentPaths({
+            pending: reserved,
+            staging: owner.staging,
             chips,
             options,
             isAbandoned: abandoned,
@@ -200,6 +213,8 @@ export function useNativeChatExternalAttachments({
         admitted: destination !== undefined,
         refusal,
         run,
+        // Staged files live on the agent's host, so a remote terminal may take them.
+        serverOwned: owner.kind === 'remote',
         claimedPaths,
         preparationConsumer:
           owner.kind === 'local' && owner.structuredSessionId
@@ -225,7 +240,7 @@ export function useNativeChatExternalAttachments({
           setNotice(notice)
           return
         }
-        await intake.run(reserveNativeChatAttachmentChips(intake.chips, paths))
+        await intake.run(reserveNativeChatAttachmentChips(intake.chips, paths, intake.serverOwned))
       }
       // Deferred operations own their files until they apply or cancel.
       const deliver: CapturedNativeChatDrop = (paths) =>

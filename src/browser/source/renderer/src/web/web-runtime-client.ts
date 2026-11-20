@@ -1,36 +1,32 @@
-import { requireEncryptedRuntimeConnection } from '../../../shared/remote-runtime/pairing/paired-runtime-connection'
+import { requireEncryptedRuntimeConnection } from "../../../shared/remote-runtime/pairing/paired-runtime-connection"
 import {
   subscribeDedicatedWebRuntime,
   observeCrewSubscriptionSetup,
   enrollWebRuntimeSubscription,
   type WebRuntimeCrewSetupOutcome
-} from './web-runtime-dedicated-subscription'
-import type { PairedRuntimeConnection } from '../../../shared/remote-runtime/pairing/paired-runtime-connection'
-import type { PairedE2EEClientHandshake } from '../../../shared/remote-runtime/e2ee/paired-e2ee-client-handshake'
-import { throwIfSignalAborted } from '../../../shared/abort-signal-reason'
-import type { RuntimeEnvironmentSetupFailure } from '../../../shared/remote-runtime/host-catalog/runtime-environment-subscription-setup'
-import { RuntimeHostStatusOwner } from '../../../shared/remote-runtime/host-status/runtime-host-status-owner'
+} from "./web-runtime-dedicated-subscription"
+import type { PairedRuntimeConnection } from "../../../shared/remote-runtime/pairing/paired-runtime-connection"
+import type { PairedE2EEClientHandshake } from "../../../shared/remote-runtime/e2ee/paired-e2ee-client-handshake"
+import { throwIfSignalAborted } from "../../../shared/abort-signal-reason"
+import type { RuntimeEnvironmentSetupFailure } from "../../../shared/remote-runtime/host-catalog/runtime-environment-subscription-setup"
+import { RuntimeHostStatusOwner } from "../../../shared/remote-runtime/host-status/runtime-host-status-owner"
 import type {
   RuntimeHostStatusSnapshot,
   RuntimeHostStatusResponse
-} from '../../../shared/remote-runtime/host-status/runtime-host-status'
-import { RUNTIME_CONNECTION_CHANGED_MESSAGE } from './web-runtime-request-registry'
-import type { RuntimeRpcResponse } from '../../../shared/runtime-rpc-envelope'
-import { WebRuntimeConnectionTransport } from './web-runtime-connection-transport'
-import type { WebRuntimeCredentialSource } from './web-runtime-credential-source'
-import { subscribeWebRuntimeFileWatch } from './web-runtime-file-watch-subscription'
-import type { WebRuntimeConnectionState } from './web-runtime-connection-frame-router'
+} from "../../../shared/remote-runtime/host-status/runtime-host-status"
+import { RUNTIME_CONNECTION_CHANGED_MESSAGE } from "./web-runtime-request-registry"
+import type { RuntimeRpcResponse } from "../../../shared/runtime-rpc-envelope"
+import { WebRuntimeConnectionTransport } from "./web-runtime-connection-transport"
+import type { WebRuntimeCredentialSource } from "./web-runtime-credential-source"
+import { subscribeWebRuntimeFileWatch } from "./web-runtime-file-watch-subscription"
+import type { WebRuntimeConnectionState } from "./web-runtime-connection-frame-router"
 import {
   pinWebRuntimeSubscription,
   type WebRuntimeSubscribeOptions,
   type WebRuntimeSubscriptionCallbacks,
   type WebRuntimeTransportSubscription,
   type WebRuntimeTransportSubscriptionHandle
-} from './web-runtime-subscription-contract'
-
-export type WebRuntimeSubscriptionHandle = WebRuntimeTransportSubscriptionHandle
-
-export type SubscribeOptions = WebRuntimeSubscribeOptions
+} from "./web-runtime-subscription-contract"
 
 const SHARED_CONNECTION_SUBSCRIPTION_METHODS = new Set(['files.watch'])
 
@@ -116,7 +112,7 @@ export class WebRuntimeClient {
   call(
     method: string,
     params?: unknown,
-    options?: { timeoutMs?: number; signal?: AbortSignal; expectedConnectionEpoch?: number }
+    options?: Parameters<WebRuntimeConnectionTransport['call']>[2] & { force?: true }
   ): Promise<RuntimeRpcResponse<unknown>> {
     return method === 'status.get' && this.statusOwner
       ? this.statusOwner.refresh(options)
@@ -127,8 +123,8 @@ export class WebRuntimeClient {
     method: string,
     params: unknown,
     callbacks: WebRuntimeSubscriptionCallbacks,
-    options?: SubscribeOptions
-  ): Promise<WebRuntimeSubscriptionHandle> {
+    options?: WebRuntimeSubscribeOptions
+  ): Promise<WebRuntimeTransportSubscriptionHandle> {
     try {
       throwIfSignalAborted(options?.signal)
       return SHARED_CONNECTION_SUBSCRIPTION_METHODS.has(method)
@@ -142,8 +138,8 @@ export class WebRuntimeClient {
   private async subscribeFileWatch(
     params: unknown,
     callbacks: WebRuntimeSubscriptionCallbacks,
-    options?: SubscribeOptions
-  ): Promise<WebRuntimeSubscriptionHandle> {
+    options?: WebRuntimeSubscribeOptions
+  ): Promise<WebRuntimeTransportSubscriptionHandle> {
     return subscribeWebRuntimeFileWatch({
       params,
       callbacks,
@@ -157,8 +153,8 @@ export class WebRuntimeClient {
   subscribeCrewAttempt(
     params: unknown,
     callbacks: WebRuntimeSubscriptionCallbacks,
-    options?: SubscribeOptions
-  ): Promise<WebRuntimeCrewSetupOutcome<WebRuntimeSubscriptionHandle>> {
+    options?: WebRuntimeSubscribeOptions
+  ): Promise<WebRuntimeCrewSetupOutcome<WebRuntimeTransportSubscriptionHandle>> {
     return observeCrewSubscriptionSetup((observe) => {
       throwIfSignalAborted(options?.signal)
       return this.subscribeDedicated(
@@ -175,9 +171,9 @@ export class WebRuntimeClient {
     method: string,
     params: unknown,
     callbacks: WebRuntimeSubscriptionCallbacks,
-    options?: SubscribeOptions,
+    options?: WebRuntimeSubscribeOptions,
     observeFailure?: (failure: RuntimeEnvironmentSetupFailure) => void
-  ): Promise<WebRuntimeSubscriptionHandle> {
+  ): Promise<WebRuntimeTransportSubscriptionHandle> {
     return subscribeDedicatedWebRuntime({
       createClient: () =>
         new WebRuntimeClient(this.connection, {
@@ -211,7 +207,7 @@ export class WebRuntimeClient {
     method: string,
     params: unknown,
     callbacks: WebRuntimeSubscriptionCallbacks,
-    options?: SubscribeOptions
+    options?: WebRuntimeSubscribeOptions
   ): Promise<WebRuntimeTransportSubscriptionHandle> {
     const expectedConnectionEpoch =
       options?.expectedEnvironmentRuntimeId === undefined

@@ -1,19 +1,22 @@
 import type { StoreApi } from 'zustand'
-import type { AppState } from '../../types'
-import type { Repo } from '../../../../../shared/repo-types'
-import type { TaskSourceContext } from '../../../../../shared/work-items/task-source-context'
-import type { GitHubWorkItem } from '../../../../../shared/github/work-item-types'
-import type { CacheEntry } from '../cache/cache-model'
-import { getTaskSourceCacheScope } from '../../../../../shared/work-items/task-source-context'
-import { githubTaskBinding } from '@/lib/work-items/github/github-task-observation'
+import type { AppState } from "../../types"
+import type { Repo } from "../../../../../shared/repo-types"
+import {
+  type TaskSourceContext,
+  getTaskSourceCacheScope
+} from "../../../../../shared/work-items/task-source-context"
+import type { GitHubWorkItem } from "../../../../../shared/github/work-item-types"
+import type { CacheEntry } from "../cache/cache-model"
+
+import { githubTaskBinding } from "../../../lib/work-items/github/github-task-observation"
 import {
   bindingKey,
   type BindingIncarnation,
   type TaskBinding
-} from '../task-records/task-record-model'
-import { isHostIdentityContinued } from '../../../runtime/rpc/environment-revisions/host-identity-fence'
-import { nextProviderRequestId } from '../requests/request-coordination'
-import { createSourceWrite, waitForWriteEnd, type SourceWrite } from './source-write'
+} from "../task-records/task-record-model"
+import { isHostIdentityContinued } from "../../../runtime/rpc/environment-revisions/host-identity-fence"
+import { nextProviderRequestId } from "../requests/request-coordination"
+import { createSourceWrite, waitForWriteEnd, type SourceWrite } from "./source-write"
 
 const unsafeTarget = () => false
 /** What one recovery readback repairs: a failed write, or a contradicted binding incarnation. */
@@ -275,10 +278,11 @@ export abstract class GitHubSourceOwnership {
           attempt.owner?.id === attempt.context))
     )
   }
-  sync(repos: readonly Repo[]) {
+  /** `visited`: the owners `repos` may retire; every owner unless a status write scoped it to its hosts. */
+  sync(repos: readonly Repo[], visited = this.owners) {
     const live = new Map(repos.map((repo) => [bindingKey(repo), repo]))
     const retired: CollectionOwner[] = []
-    for (const [key, owner] of this.owners) {
+    for (const [key, owner] of visited) {
       const next = live.get(key),
         write = this.writes.get(key)
       const ownedFlip =

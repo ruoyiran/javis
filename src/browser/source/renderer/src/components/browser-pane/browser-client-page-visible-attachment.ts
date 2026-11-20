@@ -1,8 +1,9 @@
-import { registerWebviewDragPassthroughSurface } from './host-guest/webview-drag-passthrough'
-import { registerBrowserClientPagePositionSync } from './browser-client-page-position-driver'
-import { syncBrowserClientPagePaintRetention } from './browser-client-page-paint-retention'
-import type { BrowserClientPageRendererIdentity as RendererPageIdentity } from '../../../../shared/browser/client-hosting/browser-client-page-renderer-protocol'
-import type { BrowserClientRetainedRendererPage as RetainedPage } from './browser-client-page-retained-state'
+import { registerWebviewDragPassthroughSurface } from "./host-guest/webview-drag-passthrough"
+import { retainWebviewDragListeners } from "./host-guest/webview-registry"
+import { registerBrowserClientPagePositionSync } from "./browser-client-page-position-driver"
+import { syncBrowserClientPagePaintRetention } from "./browser-client-page-paint-retention"
+import type { BrowserClientPageRendererIdentity as RendererPageIdentity } from "../../../../shared/browser/client-hosting/browser-client-page-renderer-protocol"
+import type { BrowserClientRetainedRendererPage as RetainedPage } from "./browser-client-page-retained-state"
 
 export type BrowserClientPageVisibleAttachment = {
   webview: Electron.WebviewTag
@@ -80,7 +81,14 @@ export function attachBrowserClientRetainedPage(
 
 /** Register the body-level host for drag passthrough; hidden creation and derived show state also cover enrollment mid-drag. */
 export function enrolRetainedHostDragPassthrough(page: RetainedPage): () => void {
-  return registerWebviewDragPassthroughSurface(() => syncBrowserClientPagePaintRetention(page))
+  const releaseSurface = registerWebviewDragPassthroughSurface(() =>
+    syncBrowserClientPagePaintRetention(page)
+  )
+  const releaseListeners = retainWebviewDragListeners()
+  return () => {
+    releaseSurface()
+    releaseListeners()
+  }
 }
 
 function showRetainedHost(page: RetainedPage, container: HTMLElement): () => void {

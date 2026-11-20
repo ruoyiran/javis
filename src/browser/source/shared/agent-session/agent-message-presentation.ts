@@ -1,7 +1,10 @@
-import type { AgentMessageSender, AgentMessageSource } from './agent-session-message-source'
-import type { AgentStatusEntry } from '../agent-status/contracts/agent-status-types'
-import type { NativeChatMessage } from '../native-chat/native-chat-types'
-import { agentMessageTranscriptText } from './agent-message-display-text'
+import type {
+  AgentMessageSender,
+  AgentMessageSource
+} from "./agent-session-message-source"
+import type { AgentStatusEntry } from "../agent-status/contracts/agent-status-types"
+import type { NativeChatMessage } from "../native-chat/native-chat-types"
+import { agentMessageTranscriptText } from "./agent-message-display-text"
 
 export function agentMessageIsCompact(
   message: Pick<NativeChatMessage, 'agentStart' | 'from'>
@@ -11,6 +14,8 @@ export function agentMessageIsCompact(
 
 export type AgentMessageHeading =
   | 'started'
+  | 'reopened-worker'
+  | 'followed-up-worker'
   | 'handed-off'
   | 'started-agent'
   | 'task'
@@ -38,10 +43,13 @@ export type AgentMessageSenderView = Readonly<{
  *  creation card as a plain message, a handoff as a started worker, or a handoff with no task as work handed over. */
 export function agentMessageHeading(
   from: AgentMessageSource,
-  creation: Pick<NativeChatMessage, 'agentStart' | 'agentHandoff' | 'blocks'>
+  creation: Pick<NativeChatMessage, 'agentStart' | 'agentHandoff' | 'agentFollowUp' | 'blocks'>
 ): AgentMessageHeading {
   if (creation.agentStart) {
     if (!creation.agentHandoff) {
+      if (creation.agentFollowUp) {
+        return creation.agentFollowUp === 'reopened' ? 'reopened-worker' : 'followed-up-worker'
+      }
       return 'started'
     }
     return agentMessageTranscriptText(creation.blocks, from) ? 'handed-off' : 'started-agent'
@@ -62,6 +70,8 @@ export function agentMessageHeading(
 
 export function agentMessageSenderLabel(facts: {
   localChat: boolean
+  /** The bot whose home the sender's chat is in; it names every chat there. */
+  botName?: string | null
   customLabel?: string | null
   conversationName?: string | null
   snapshotName?: string | null
@@ -69,7 +79,7 @@ export function agentMessageSenderLabel(facts: {
   fallback: string
 }): string {
   return (
-    (facts.localChat && (facts.customLabel?.trim() || facts.conversationName)) ||
+    (facts.localChat && (facts.botName || facts.customLabel?.trim() || facts.conversationName)) ||
     facts.snapshotName ||
     facts.tabLabel?.trim() ||
     facts.fallback

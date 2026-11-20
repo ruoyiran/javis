@@ -1,10 +1,10 @@
 import { spawn as nodeSpawn, type ChildProcess } from 'node:child_process'
-import { admitProcessTreeKill } from './process-tree-kill-gate'
+import { admitProcessTreeKill } from "./process-tree-kill-gate"
 import {
   startWindowsTreeKill,
   trackedWindowsTreeKill,
   waitForWindowsTreeKill
-} from './windows-tree-kill'
+} from "./windows-tree-kill"
 
 const PROBE_INTERVAL_MS = 25
 const SUBPROCESS_TIMEOUT_MS = 2_000
@@ -81,6 +81,9 @@ function taskkillTree(
 async function waitForPosixProcessGroupQuiescence(processGroupId: number): Promise<boolean> {
   const deadline = Date.now() + SUBPROCESS_TIMEOUT_MS
   while (true) {
+    if (!processGroupExists(processGroupId)) {
+      return true
+    }
     const states = await readPosixProcessGroupStates(processGroupId)
     if (
       states ? states.every((state) => state.startsWith('Z')) : !processGroupExists(processGroupId)
@@ -147,7 +150,7 @@ function readPosixProcessGroupStates(processGroupId: number): Promise<string[] |
   })
 }
 
-function processGroupExists(processGroupId: number): boolean {
+export function processGroupExists(processGroupId: number): boolean {
   try {
     process.kill(-processGroupId, 0)
     return true

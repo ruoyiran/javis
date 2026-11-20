@@ -1,26 +1,31 @@
-import { isRemoteCliDrivenGuest } from '../../desktop-browser-bridge/remote-cli-driven-workspaces'
-import { browserManager } from '../../guest-lifecycle/manager/browser-manager'
+import {
+  protectBrowserGuestMedia,
+  registerBrowserSessionNotificationGrant
+} from "../../guest-lifecycle/manager/registration/browser-guest-discard-protection"
+import { isRemoteCliDrivenGuest } from "../../desktop-browser-bridge/remote-cli-driven-workspaces"
+import { browserManager } from "../../guest-lifecycle/manager/browser-manager"
 import type { Session } from 'electron'
-import type { BrowserSessionProfile } from '../../../../shared/browser-workspace-types'
-import { hasSystemMediaAccess, requestSystemMediaAccess } from './browser-media-access'
+import type { BrowserSessionProfile } from "../../../../shared/browser-workspace-types"
+import { hasSystemMediaAccess, requestSystemMediaAccess } from "./browser-media-access"
 import {
   isAutoGrantedBrowserSessionPermission,
   browserSitePermissionsFor
-} from './browser-session-permission-policy'
+} from "./browser-session-permission-policy"
 import {
   answerBrowserLocalNetworkCheck,
   browserSitePermissionRequestingOrigin,
   decideBrowserSitePermissions,
   isBrowserSitePermissionAllowed
-} from './browser-site-permission-prompt'
+} from "./browser-site-permission-prompt"
 import {
+  registerBrowserSessionSitePermissions,
   savedBrowserSitePermissions,
   sessionBrowserSitePermissions
-} from './browser-site-permission-memory'
+} from "./browser-site-permission-memory"
 import {
   allowsBrowserWebAuthnPermission,
   installBrowserWebAuthnAccessHandlers
-} from '../../webauthn/browser-webauthn-access'
+} from "../../webauthn/browser-webauthn-access"
 
 // SSH-driven pages must not read the desktop clipboard.
 function deniesRemoteCliDrivenClipboardRead(permission: string, webContentsId?: number): boolean {
@@ -93,6 +98,14 @@ export function installBrowserSessionPermissionHandlers(
     options.sitePermissions === 'session'
       ? sessionBrowserSitePermissions(partition)
       : savedBrowserSitePermissions(profile.id)
+  registerBrowserSessionSitePermissions(sess, siteMemory)
+  registerBrowserSessionNotificationGrant(sess, (pageUrl) =>
+    isBrowserSitePermissionAllowed({
+      source: { pageUrl, frameOrigin: pageUrl },
+      memory: siteMemory,
+      permissions: ['notifications']
+    })
+  )
   sess.setPermissionRequestHandler((webContents, permission, callback, details) => {
     if (
       permission === 'openExternal' &&
@@ -148,10 +161,18 @@ export function installBrowserSessionPermissionHandlers(
       }
       return granted
     }
-    void decide().then(callback, (error: unknown) => {
-      console.error('[permissions] Browser site permission failed:', error)
-      callback(false)
-    })
+    void decide().then(
+      (allowed) => {
+        if (allowed && permission === 'media') {
+          protectBrowserGuestMedia(webContents)
+        }
+        callback(allowed)
+      },
+      (error: unknown) => {
+        console.error('[permissions] Browser site permission failed:', error)
+        callback(false)
+      }
+    )
   })
   sess.setPermissionCheckHandler((webContents, permission, requestingOrigin, details) => {
     if (deniesRemoteCliDrivenClipboardRead(permission, webContents?.id)) {
@@ -178,14 +199,17 @@ export function installBrowserSessionPermissionHandlers(
           memory: siteMemory
         })
       }
-      return (
+      const allowed =
         isBrowserSitePermissionAllowed({
           source,
           memory: siteMemory,
           permissions: sitePermissions
         }) &&
         (permission !== 'media' || hasSystemMediaAccess(details?.mediaType))
-      )
+      if (allowed && permission === 'media' && webContents) {
+        protectBrowserGuestMedia(webContents)
+      }
+      return allowed
     }
     return isAutoGranted(permission)
   })

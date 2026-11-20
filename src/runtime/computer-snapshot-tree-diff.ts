@@ -5,7 +5,7 @@ import {
   type ComputerTreeElement
 } from '../contract/computer-use-tree-text.js'
 
-const MAX_BASELINES = 32
+export const MAX_COMPUTER_OBSERVATIONS = 32
 // Matches the provider snapshot caches: older element indexes are refused by actions anyway.
 const MAX_BASELINE_AGE_MS = 2 * 60 * 1000
 // A diff that rewrites most of the tree is harder to read than the tree itself.
@@ -148,7 +148,7 @@ export class ComputerTreeBaselines {
   private prune(): void {
     const cutoff = Date.now() - MAX_BASELINE_AGE_MS
     for (const [key, entry] of this.entries) {
-      if (this.entries.size > MAX_BASELINES || entry.createdAtMs < cutoff) {
+      if (this.entries.size > MAX_COMPUTER_OBSERVATIONS || entry.createdAtMs < cutoff) {
         this.entries.delete(key)
       }
     }

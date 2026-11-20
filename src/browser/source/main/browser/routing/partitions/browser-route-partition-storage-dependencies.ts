@@ -3,17 +3,18 @@ import { rm } from 'node:fs/promises'
 import {
   releaseBrowserRoutePartitionStorage,
   type BrowserRoutePartitionStorageDependencies
-} from './browser-route-partition-storage-lifecycle'
+} from "./browser-route-partition-storage-lifecycle"
 import {
   currentBrowserRoutePartitionBindingFilePath,
   currentBrowserRoutePartitionBindingStore,
   routePartitionDataRoot
-} from './browser-route-partition-binding-runtime'
-import { browserSessionRegistry } from '../../sessions/profiles/browser-session-registry'
+} from "./browser-route-partition-binding-runtime"
+import { browserSessionRegistry } from "../../sessions/profiles/browser-session-registry"
+import { forgetBrowserRoutePartitionSessionCookies } from "../../cookies/session-restore/browser-session-cookie-restore"
 import {
   browserRoutePartitionPendingDeletesPath,
   queueBrowserRoutePartitionDirectoryDelete
-} from './browser-route-partition-pending-deletes'
+} from "./browser-route-partition-pending-deletes"
 
 /**
  * `live`: this run may have loaded the session, so its data is cleared through Chromium and the
@@ -29,6 +30,7 @@ export function browserRoutePartitionStorageDependencies(
     partitionDataRoot,
     isPartitionLive,
     clearPartitionStorage: async (partition) => {
+      await forgetBrowserRoutePartitionSessionCookies(partition)
       // Why not when cold: `fromPartition` would load the session and lock the folder it deletes.
       if (mode === 'live') {
         const partitionSession = session.fromPartition(partition)

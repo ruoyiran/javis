@@ -7,9 +7,19 @@ export type BrowserHostSubscribe = (target: string, method: string, params: unkn
 let transport: BrowserHostTransport | null = null
 let subscription: BrowserHostSubscribe | null = null
 export function setBrowserHostTransport(next: BrowserHostTransport, subscribe?: BrowserHostSubscribe): void { transport = next; subscription = subscribe ?? null }
-export function callRuntimeEnvironment(_dataDirectory: string, target: string, method: string, params: unknown, timeoutMs?: number, _revision?: number): Promise<RuntimeRpcResponse<unknown>> {
+export async function callRuntimeEnvironment(_dataDirectory: string, target: string, method: string, params: unknown, timeoutMs?: number, _revision?: number, _caller?: unknown, options?: { signal?: AbortSignal }): Promise<RuntimeRpcResponse<unknown>> {
   if (!transport) throw new Error('browser_host_transport_unavailable')
-  return transport(target, method, params, timeoutMs)
+  const signal = options?.signal
+  if (signal?.aborted) throw signal.reason ?? new Error('browser_host_request_aborted')
+  const request = transport(target, method, params, timeoutMs)
+  if (!signal) return request
+  let abort: () => void = () => {}
+  const cancelled = new Promise<never>((_resolve, reject) => {
+    abort = () => reject(signal.reason ?? new Error('browser_host_request_aborted'))
+    signal.addEventListener('abort', abort, { once: true })
+  })
+  try { return await Promise.race([request, cancelled]) }
+  finally { signal.removeEventListener('abort', abort) }
 }
 export function subscribeBrowserHostTransport(target: string, method: string, params: unknown, callbacks: BrowserHostCallbacks, options?: BrowserHostSubscriptionOptions): Promise<RemoteRuntimeTransportSubscription> {
   if (!subscription) throw new Error('browser_host_transport_unavailable')

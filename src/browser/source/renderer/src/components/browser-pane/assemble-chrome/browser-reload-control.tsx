@@ -1,15 +1,15 @@
 import type { Dispatch, SetStateAction } from 'react'
 import { RefreshCw, X } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Button } from "../../ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuShortcut,
   DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { useTranslate } from '@/i18n/use-translate'
+} from "../../ui/dropdown-menu"
+import { Tooltip, TooltipContent, TooltipTrigger } from "../../ui/tooltip"
+import { useTranslate } from "../../../i18n/use-translate"
 
 /** Share left-click reload/right-click hard reload gestures; the caller defines the hard variant. */
 export function BrowserReloadControl({
@@ -45,9 +45,8 @@ export function BrowserReloadControl({
         <TooltipTrigger asChild>
           <DropdownMenuTrigger asChild>
             <Button
-              size="icon"
-              variant="ghost"
-              className="h-7 w-7"
+              size="icon-xs"
+              variant="muted-field-icon"
               aria-label={label}
               // Prevent Radix left-click opening so the primary action remains reload and only right-click opens the menu.
               onPointerDown={(e) => {
@@ -68,7 +67,7 @@ export function BrowserReloadControl({
                 onMenuOpenChange(true)
               }}
             >
-              {showStop ? <X className="size-4" /> : <RefreshCw className="size-4" />}
+              {showStop ? <X className="size-3.5" /> : <RefreshCw className="size-3.5" />}
             </Button>
           </DropdownMenuTrigger>
         </TooltipTrigger>

@@ -1,4 +1,4 @@
-import { recordRendererCrashBreadcrumb } from '@/diagnostics/crash-reporting/crash-breadcrumb-recorder'
+import { recordRendererCrashBreadcrumb } from "../diagnostics/crash-reporting/crash-breadcrumb-recorder"
 
 /** Why a finished agent turn did not mark its workspace unread. */
 export type AgentFinishDropCause =
@@ -17,6 +17,7 @@ export type AgentFinishDropCause =
   | 'turn-end-not-counted'
   | 'restored-unconfirmed'
   | 'host-replay-skipped'
+  | 'resume-restatement'
 
 /** Every path that drops a finish was silent, so a missing unread could not be traced (#40340). */
 export function recordAgentFinishDropped(

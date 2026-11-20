@@ -1,36 +1,32 @@
 import { useSyncExternalStore } from 'react'
-import { useAppStore } from '@/store/index'
-import { readIpcErrorMessage } from '@/runtime/errors/ipc-error'
-import { parseExecutionHostId } from '../../../../shared/execution-host'
-import type { ExecutionHostId } from '../../../../shared/execution-host'
-import { prepareNativeChatCliFork } from '@/lib/agent-session/resume/cli-fork/native-chat-cli-fork-preparation'
-import type { NativeChatCliForkSubject } from '@/lib/agent-session/resume/cli-fork/native-chat-cli-fork-preparation'
+import { useAppStore } from "../../store/index"
+import { readIpcErrorMessage } from "../../runtime/errors/ipc-error"
+import type { ExecutionHostId } from "../../../../shared/execution-host"
+import { prepareNativeChatCliFork } from "../../lib/agent-session/resume/cli-fork/native-chat-cli-fork-preparation"
+import type { NativeChatCliForkSubject } from "../../lib/agent-session/resume/cli-fork/native-chat-cli-fork-preparation"
 import {
-  assertAiVaultCopiedSessionLaunchAllowed,
-  buildAiVaultCopiedSessionStartupForWorktree,
-  buildAiVaultForkStartupForWorktree
-} from '@/lib/agent-session/resume/history/ai-vault-session-fork-startup'
-import { launchAiVaultSessionAndReveal } from '@/lib/agent-session/resume/history/launch-ai-vault-session-and-reveal'
-import { notifyAiVaultSessionPreparationFailure } from '../right-sidebar/ai-vault/session-actions/ai-vault-session-launch-feedback'
-import { describeAiVaultCliForkFailure } from '../right-sidebar/ai-vault/session-actions/ai-vault-session-cli-fork'
-import {
-  captureWebSessionIntentOwner,
-  matchesWebSessionIntentOwner
-} from '@/runtime/web-session-tabs-sync/identity/web-runtime-session-environment'
+  buildAiVaultCliForkStartupForWorktree,
+  captureAiVaultCliForkOwner,
+  readAiVaultCliForkLaunchSettings
+} from "../../lib/agent-session/resume/history/ai-vault-session-fork-startup"
+import { launchAiVaultSessionAndReveal } from "../../lib/agent-session/resume/history/launch-ai-vault-session-and-reveal"
+import { notifyAiVaultSessionPreparationFailure } from "../right-sidebar/ai-vault/session-actions/ai-vault-session-launch-feedback"
+import { describeAiVaultCliForkFailure } from "../right-sidebar/ai-vault/session-actions/ai-vault-session-cli-fork"
+import { matchesWebSessionIntentOwner } from "../../runtime/web-session-tabs-sync/identity/web-runtime-session-environment"
 import {
   onRuntimeEnvironmentsRetired,
   onRuntimeEnvironmentRevisionsChanged
-} from '@/runtime/rpc/environment-revisions/runtime-environment-revision'
-import { resolveNativeChatCliForkIdentity } from './tab-session-history-switch'
-import type { NativeChatCliForkIdentity } from './tab-session-history-switch'
-import { translate } from '@/i18n/i18n'
-import { openDesktopStructuredSession } from '@/lib/agent-session/open/activate-ai-vault-structured-session'
-import { moveStructuredAgentLaunchDraft } from '@/lib/agent-session/launch/structured-agent-session-launch-draft'
-import { structuredAgentSessionDraftScopeKey } from '@/components/native-chat/drafts/native-chat-draft-scope'
-import type { AppState } from '@/store/types'
-import type { AiVaultAgent } from '../../../../shared/ai-vault/contracts/ai-vault-types'
-import type { RuntimeClientTarget } from '../../../../shared/runtime-client-target'
-import type { TerminalPaneLayoutNode } from '../../../../shared/workspace-layout/terminal-tab-types'
+} from "../../runtime/rpc/environment-revisions/runtime-environment-revision"
+import { resolveNativeChatCliForkIdentity } from "./tab-session-history-switch"
+import type { NativeChatCliForkIdentity } from "./tab-session-history-switch"
+import { translate } from "../../i18n/i18n"
+import { openDesktopStructuredSession } from "../../lib/agent-session/open/activate-ai-vault-structured-session"
+import { moveStructuredAgentLaunchDraft } from "../../lib/agent-session/launch/structured-agent-session-launch-draft"
+import { structuredAgentSessionDraftScopeKey } from "../native-chat/drafts/native-chat-draft-scope"
+import type { AppState } from "../../store/types"
+import type { AiVaultAgent } from "../../../../shared/ai-vault/contracts/ai-vault-types"
+import type { RuntimeClientTarget } from "../../../../shared/runtime-client-target"
+import type { TerminalPaneLayoutNode } from "../../../../shared/workspace-layout/terminal-tab-types"
 
 const pending = new Map<string, AbortController>()
 const listeners = new Set<() => void>()
@@ -64,7 +60,7 @@ function rememberForkOrigin(
     }
     const leafId = launchedLeafId(state.terminalLayoutsByTabId[terminalTabId]?.root)
     const fork = leafId
-      ? state.agentStatusByPaneKey[`${terminalTabId}:${leafId}`]?.providerSession?.id
+      ? state.agentStatusByPaneKey.get(`${terminalTabId}:${leafId}`)?.providerSession?.id
       : undefined
     if (fork) {
       forkOrigins.set(forkOriginKey(origin.workspaceId, fork), origin)
@@ -137,15 +133,13 @@ export async function runNativeChatCliFork(args: {
   tab: { id: string; worktreeId: string }
   agent: AiVaultAgent
   onComplete?: () => void
-  commandOverrides?: Partial<Record<AiVaultAgent, string | null>>
 }): Promise<void> {
   const { subject, tab } = args
   const key = keyFor({ ...subject, executionHostScope: subject.request.executionHostScope })
   if (pending.has(key)) {
     return
   }
-  const host = parseExecutionHostId(subject.request.executionHostScope)
-  const owner = host?.kind === 'runtime' ? captureWebSessionIntentOwner(host.environmentId) : null
+  const owner = captureAiVaultCliForkOwner(subject.request.executionHostScope)
   const controller = new AbortController()
   const isCurrent = () => {
     if (controller.signal.aborted || (owner && !matchesWebSessionIntentOwner(owner))) {
@@ -195,6 +189,11 @@ export async function runNativeChatCliFork(args: {
     stopRevision()
   }
   try {
+    const settings = await readAiVaultCliForkLaunchSettings({
+      owner,
+      localSettings: useAppStore.getState().settings,
+      signal: controller.signal
+    })
     const prepared = await prepareNativeChatCliFork(subject, {
       pairingRevision: owner?.pairingRevision,
       isCurrent,
@@ -204,16 +203,14 @@ export async function runNativeChatCliFork(args: {
       return
     }
     const target = prepared.session
-    const startupArgs = {
+    const startup = buildAiVaultCliForkStartupForWorktree({
       state: useAppStore.getState(),
       worktreeId: subject.workspaceId,
       session: target,
-      commandOverride: args.commandOverrides?.[target.agent]
-    }
-    assertAiVaultCopiedSessionLaunchAllowed(startupArgs)
-    const startup = prepared.copied
-      ? buildAiVaultCopiedSessionStartupForWorktree(startupArgs, prepared.sourceAgent ?? args.agent)
-      : buildAiVaultForkStartupForWorktree(startupArgs)
+      copied: prepared.copied,
+      owner,
+      settings
+    })
     if (!startup) {
       throw new Error(
         translate(

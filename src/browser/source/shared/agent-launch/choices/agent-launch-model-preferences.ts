@@ -1,13 +1,14 @@
 /** Use the launch catalog for every caller's model/effort validation so CLI and orchestration refusals agree. */
 
-import type { AgentLaunchPreferences } from '../../agent-session/agent-session-host-authority'
+import type { AgentLaunchPreferences } from "../../agent-session/agent-session-host-authority"
 import {
   findCatalogModel,
   findCatalogOption,
   getAgentSessionOptionLaunchCatalog
-} from '../../agent-session/options/agent-session-option-catalog'
-import { resolveAgentSessionOptionLaunch } from '../../agent-session/options/agent-session-option-launch'
-import type { TuiAgent } from '../catalog/tui-agent'
+} from "../../agent-session/options/agent-session-option-catalog"
+import { isPiModelOptionId } from "../../agent-session/options/agent-session-option-catalog-pi"
+import { resolveAgentSessionOptionLaunch } from "../../agent-session/options/agent-session-option-launch"
+import type { TuiAgent } from "../catalog/tui-agent"
 
 export const OPENCODE_MODEL_VERSION_REFUSAL =
   'OpenCode cannot safely start with a chosen model on this version. Update OpenCode to a supported release, or omit the model choice.'
@@ -57,6 +58,13 @@ export function checkAgentLaunchModelPreferences(args: {
     return refuse(
       'invalid_argument',
       `Agent ${args.agent} does not support launch-time model selection. Omit --model to run the model from its own config.`
+    )
+  }
+
+  if (args.agent === 'pi' && !isPiModelOptionId(args.model)) {
+    return refuse(
+      'invalid_argument',
+      `Agent pi needs a provider/id model, such as anthropic/claude-sonnet-4-5; got ${args.model}.`
     )
   }
 

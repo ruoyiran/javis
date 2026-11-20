@@ -1,5 +1,5 @@
-import { parseExplicitFileLinkTarget } from '../../file-links/explicit-file-link-target'
-import type { ParsedTerminalFileLink } from './terminal-links'
+import { parseExplicitFileLinkTarget } from "../../file-links/explicit-file-link-target"
+import type { ParsedTerminalFileLink } from "./terminal-links"
 
 const LEADING_TRIM_CHARS = new Set(['(', '[', '{', '"', "'"])
 const TRAILING_TRIM_CHARS = new Set([')', ']', '}', '"', "'", ',', ';', '.'])
@@ -14,6 +14,26 @@ export type DetectedTerminalFileLinkRange = {
 
 export function hasPathSeparator(text: string): boolean {
   return text.includes('/') || text.includes('\\')
+}
+
+// Why: an unmatched `)` closes a wrapper around the path, so anything after it is prose.
+export function readParenthesizedTerminalPathRange(
+  value: string,
+  startIndex: number
+): DetectedTerminalFileLinkRange | null {
+  let depth = 0
+  for (let index = 0; index < value.length; index++) {
+    if (value[index] === '(') {
+      depth++
+    } else if (value[index] === ')') {
+      if (depth === 0) {
+        const range = trimTerminalPathBoundaryPunctuation(value.slice(0, index), startIndex)
+        return range && hasPathSeparator(range.text) ? range : null
+      }
+      depth--
+    }
+  }
+  return null
 }
 
 export function trimTerminalPathBoundaryPunctuation(

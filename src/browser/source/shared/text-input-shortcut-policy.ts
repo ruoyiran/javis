@@ -1,11 +1,7 @@
-import {
-  hasModifier,
-  isLatinShortcutKey,
-  keybindingMatchesAction,
-  keybindingRunsInTextField,
-  type KeybindingActionId,
-  type KeybindingInput
-} from './keybindings'
+import { hasModifier } from "./keybindings/parser"
+import { isLatinShortcutKey } from "./keybindings/input"
+import { keybindingRunsInTextField } from "./keybindings/matching"
+import type { KeybindingActionId, KeybindingInput } from "./keybindings/types"
 
 export type TextShortcutInput = KeybindingInput & {
   isComposing?: boolean
@@ -20,6 +16,25 @@ export function textInputOwnsComposition(input: TextShortcutInput): boolean {
     input.key === 'Dead' ||
     input.altGraph ||
     input.getModifierState?.('AltGraph')
+  )
+}
+
+/** An Option (Mac) or Alt chord that types a character in a text field. */
+export function shortcutProducesText(input: TextShortcutInput, platform: NodeJS.Platform): boolean {
+  const alt = hasModifier(input, 'alt')
+  const meta = hasModifier(input, 'meta')
+  const control = hasModifier(input, 'control')
+  const key = input.key?.toLowerCase()
+  const physicalLetter = input.code?.match(/^Key([A-Z])$/)?.[1]?.toLowerCase()
+  // Electron has no AltGraph flag; a produced character differing from its physical key is text.
+  return Boolean(
+    (platform === 'darwin' && alt && !meta && !control && input.key?.length === 1) ||
+    (platform !== 'darwin' &&
+      alt &&
+      !meta &&
+      key?.length === 1 &&
+      physicalLetter &&
+      key !== physicalLetter)
   )
 }
 
@@ -38,16 +53,7 @@ export function nativeChatPromptClaimsShortcut(
   const key = input.key?.toLowerCase()
   const physicalLetter = input.code?.match(/^Key([A-Z])$/)?.[1]?.toLowerCase()
   const editingLetter = key && isLatinShortcutKey(key) ? key : (physicalLetter ?? key)
-  // Electron has no AltGraph flag; a produced character differing from its physical key is text.
-  if (
-    (platform === 'darwin' && alt && !meta && !control && input.key?.length === 1) ||
-    (platform !== 'darwin' &&
-      alt &&
-      !meta &&
-      key?.length === 1 &&
-      physicalLetter &&
-      key !== physicalLetter)
-  ) {
+  if (shortcutProducesText(input, platform)) {
     return true
   }
   if (input.doubleTapModifier) {
@@ -57,9 +63,6 @@ export function nativeChatPromptClaimsShortcut(
     return true
   }
   if (actionId && keybindingRunsInTextField(actionId, input, platform)) {
-    return false
-  }
-  if (actionId === 'workspace.delete' && keybindingMatchesAction(actionId, input, platform)) {
     return false
   }
   if (
